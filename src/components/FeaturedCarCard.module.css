@@ -1,0 +1,167 @@
+/* Featured Car Card - Large White Cards */
+.card {
+    background: #ffffff;
+    border-radius: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Image */
+.imageContainer {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    background: #f5f5f5;
+    overflow: hidden;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.4s ease;
+}
+
+.card:hover .image {
+    transform: scale(1.05);
+}
+
+/* Content */
+.content {
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Title */
+.title {
+    font-family: var(--font-display, 'Outfit', sans-serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* Specs Row */
+.specs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.specItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.specLabel {
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 10px;
+    font-weight: 600;
+    color: #999999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.specValue {
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: #333333;
+}
+
+/* Description */
+.description {
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: #666666;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Features Tags */
+.features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.featureTag {
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 11px;
+    font-weight: 500;
+    color: #3b82f6;
+    text-decoration: none;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid #3b82f6;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.featureTag:hover {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+/* Inquire Button */
+.inquireButton {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    border: 2px solid #1a1a1a;
+    border-radius: 4px;
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.inquireButton:hover {
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .content {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .specs {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .specItem {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .title {
+        font-size: 16px;
+    }
+}

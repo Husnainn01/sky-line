@@ -1,0 +1,198 @@
+
+.card {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.media {
+    position: relative;
+}
+
+.imageWrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 160px;
+}
+
+.image {
+    object-fit: cover;
+    object-position: center;
+}
+
+.stockBadge {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #f8fafc;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    padding: 5px 11px;
+    border-radius: 999px;
+}
+
+.content {
+    padding: 0.75rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.priceBlock {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 100px;
+}
+
+.price {
+    font-family: var(--font-display);
+    font-size: 1.04rem;
+    font-weight: 700;
+    color: #b91c1c;
+}
+
+.specList {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem 0.45rem;
+}
+
+.specRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.3rem 0.35rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.65);
+    min-width: 120px;
+}
+
+.specLabel {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #64748b;
+}
+
+.specValue {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.footerRow {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.inquiryButton,
+.viewButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.inquiryButton {
+    background: rgba(2, 132, 199, 0.15);
+    color: #0369a1;
+    border: 1px solid rgba(2, 132, 199, 0.35);
+}
+
+.inquiryButton:hover {
+    background: rgba(2, 132, 199, 0.25);
+}
+
+.viewButton {
+    background: #f97316;
+    border: 1px solid #ea580c;
+    color: #fff7ed;
+}
+
+.viewButton:hover {
+    background: #ea580c;
+}
+
+@media (max-width: 1024px) {
+    .card {
+        grid-template-columns: 1fr;
+    }
+
+    .content {
+        padding: 0.75rem 0.9rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .priceBlock {
+        text-align: left;
+    }
+
+    .footerRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .specList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .content {
+        padding: 0.7rem 0.8rem;
+    }
+
+    .actions {
+        width: 100%;
+    }
+
+    .inquiryButton,
+    .viewButton {
+        width: auto;
+    }
+}

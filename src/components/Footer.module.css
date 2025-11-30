@@ -1,0 +1,242 @@
+.footer {
+    background: #0f2129;
+    color: rgba(241, 245, 249, 0.82);
+    padding: 4rem 0 2.5rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.topRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3rem;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    padding-bottom: 3rem;
+}
+
+.brandBlock {
+    flex: 1 1 260px;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.logoGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logoMark {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f97316;
+    letter-spacing: 1px;
+}
+
+.logoWord {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: rgba(241, 245, 249, 0.92);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.brandTagline {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: rgba(241, 245, 249, 0.72);
+}
+
+.contactList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contactList li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+}
+
+.contactIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.12);
+    color: rgba(59, 130, 246, 0.9);
+}
+
+.contactIcon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.socialList {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.socialButton {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    color: rgba(241, 245, 249, 0.82);
+    transition: all 0.2s ease;
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.socialButton:hover {
+    border-color: rgba(59, 130, 246, 0.6);
+    color: rgba(241, 245, 249, 1);
+    background: rgba(59, 130, 246, 0.18);
+    transform: translateY(-2px);
+}
+
+.socialButton svg {
+    width: 16px;
+    height: 16px;
+}
+
+.linkColumns {
+    flex: 2 1 520px;
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.columnTitle {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(241, 245, 249, 0.85);
+}
+
+.linkList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.link {
+    font-size: 0.85rem;
+    color: rgba(241, 245, 249, 0.7);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.link:hover {
+    color: rgba(59, 130, 246, 0.95);
+}
+
+.viewMore {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    text-decoration: none;
+    color: rgba(59, 130, 246, 0.9);
+    transition: color 0.2s ease;
+}
+
+.viewMore svg {
+    width: 14px;
+    height: 14px;
+}
+
+.viewMore:hover {
+    color: rgba(59, 130, 246, 1);
+}
+
+.bottomRow {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    color: rgba(148, 163, 184, 0.8);
+    font-size: 0.8rem;
+}
+
+.bottomNav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.bottomLink {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.bottomLink:hover {
+    color: rgba(241, 245, 249, 0.95);
+}
+
+.copyright {
+    margin: 0;
+}
+
+@media (max-width: 960px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+
+    .topRow {
+        flex-direction: column;
+    }
+
+    .brandBlock {
+        max-width: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer {
+        padding: 3rem 0 2rem;
+    }
+
+    .bottomRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .bottomNav {
+        gap: 0.75rem;
+    }
+}
