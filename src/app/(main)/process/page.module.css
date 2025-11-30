@@ -1,0 +1,369 @@
+html {
+  scroll-behavior: smooth;
+}
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #000000, #1a1a1a);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/images/hero-car.jpg') center/cover no-repeat;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.timeline {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background: #e0e0e0;
+  top: 0;
+}
+
+.timelineItem {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 50%;
+  position: relative;
+  margin-bottom: 4rem;
+}
+
+.timelineItem:nth-child(even) {
+  justify-content: flex-start;
+  padding-right: 0;
+  padding-left: 50%;
+}
+
+.timelineContent {
+  width: 90%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.timelineContent:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.timelineItem:nth-child(odd) .timelineContent::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 20px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  transform: rotate(45deg);
+  box-shadow: 4px -4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.timelineItem:nth-child(even) .timelineContent::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 20px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  transform: rotate(45deg);
+  box-shadow: -4px 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.stepNumber {
+  position: absolute;
+  top: 10px;
+  right: -50px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #c70f0f, #8f0000);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.timelineContent:hover .stepNumber {
+  transform: scale(1.1) rotate(10deg);
+  box-shadow: 0 0 20px rgba(199, 15, 15, 0.4);
+}
+
+.timelineItem:nth-child(even) .stepNumber {
+  right: auto;
+  left: -60px;
+}
+
+.stepTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.stepIcon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(199, 15, 15, 0.2);
+  border-radius: 6px;
+  color: #ff4444;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.timelineContent:hover .stepIcon {
+  transform: scale(1.1);
+  background: rgba(199, 15, 15, 0.3);
+}
+
+.stepDescription {
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.infoLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.infoValue {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.bankingDetails {
+  background: #1a1a1a;
+  color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 3rem auto;
+  max-width: 700px;
+  scroll-margin-top: 100px;
+}
+
+.bankingTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.bankingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.bankCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.bankCardTitle {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bankInfo {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bankInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bankInfoLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bankInfoValue {
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.copyButton {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.copyButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.supportSection {
+  text-align: center;
+  margin-top: 4rem;
+  padding: 3rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.supportTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+}
+
+.supportText {
+  color: #666;
+  margin-bottom: 1.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.supportButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #c70f0f;
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.supportButton:hover {
+  background: #8f0000;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .timeline::before {
+    left: 20px;
+  }
+
+  .timelineItem,
+  .timelineItem:nth-child(even) {
+    justify-content: flex-start;
+    padding-left: 60px;
+    padding-right: 0;
+  }
+
+  .stepNumber,
+  .timelineItem:nth-child(even) .stepNumber {
+    left: 0;
+    right: auto;
+  }
+
+  .timelineContent {
+    width: 100%;
+  }
+
+  .timelineContent::after {
+    display: none;
+  }
+
+  .bankingGrid {
+    grid-template-columns: 1fr;
+  }
+}

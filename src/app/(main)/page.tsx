@@ -1,8 +1,8 @@
 import { carsData } from '@/data/mockData';
-import HeroSection from '@/components/sections/HeroSection';
-import RecentlyAddedSection from '@/components/sections/RecentlyAddedSection';
-import HowToPurchaseSection from '@/components/sections/HowToPurchaseSection';
-import FAQSection from '@/components/sections/FAQSection';
+import HeroSection from './components/HeroSection';
+import RecentlyAddedSection from './components/RecentlyAddedSection';
+import HowToPurchaseSection from './components/HowToPurchaseSection';
+import FAQSection from './components/FAQSection';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import styles from './page.module.css';

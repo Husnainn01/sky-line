@@ -51,8 +51,8 @@ export default function Navbar() {
                                 <option value="Русский">Русский</option>
                             </select>
                         </div>
-                        <Link href="/login" className={styles.topBarLink}>Login</Link>
-                        <Link href="/register" className={styles.topBarLinkButton}>Register</Link>
+                        <Link href="/auth/login" className={styles.topBarLink}>Login</Link>
+                        <Link href="/auth/register" className={styles.topBarLinkButton}>Register</Link>
                     </div>
                 </div>
             </div>
@@ -81,15 +81,40 @@ export default function Navbar() {
 
                     <div className={`${styles.navLinks} ${isMobileMenuOpen ? styles.mobileOpen : ''}`}>
                         <Link href="/" className={styles.navLink}>Home</Link>
-                        <Link href="/inventory" className={styles.navLink}>
+                        <div className={`${styles.navLink} ${styles.hasDropdown}`}>
                             Inventory
                             <svg className={styles.dropdownIcon} viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
-                        </Link>
-                        <Link href="/auction" className={styles.navLink}>Auction</Link>
+                            <div className={styles.navDropdown}>
+                                <Link href="/inventory" className={styles.dropdownLink}>
+                                    <span className={styles.dropdownIcon}>🚗</span>
+                                    Available Inventory
+                                </Link>
+                                <Link href="/auction" className={styles.dropdownLink}>
+                                    <span className={styles.dropdownIcon}>🔨</span>
+                                    Auction Vehicles
+                                </Link>
+                            </div>
+                        </div>
                         <Link href="/about" className={styles.navLink}>About Us</Link>
                         <Link href="/shipping" className={styles.navLink}>Shipping Info</Link>
+                        <Link href="/process" className={styles.navLink}>
+                            How to Buy
+                            <svg className={styles.dropdownIcon} viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            <div className={styles.navDropdown}>
+                                <Link href="/process" className={styles.dropdownLink}>
+                                    <span className={styles.dropdownIcon}>📋</span>
+                                    Complete Guide
+                                </Link>
+                                <Link href="/process#banking-details" className={styles.dropdownLink}>
+                                    <span className={styles.dropdownIcon}>🏦</span>
+                                    Banking Details
+                                </Link>
+                            </div>
+                        </Link>
                         <Link href="/contact" className={styles.navLink}>Contact</Link>
                         <Link href="/faq" className={styles.navLink}>FAQ</Link>
 

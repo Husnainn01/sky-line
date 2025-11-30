@@ -1,0 +1,31 @@
+export interface AuctionCar {
+  id: string;
+  slug: string;
+  make: string;
+  model: string;
+  year: number;
+  image: string;
+  images?: string[];
+  mileage: number;
+  engine: string;
+  transmission: string;
+  grade: string;
+  color: string;
+  auctionStatus: 'upcoming' | 'live' | 'past';
+  auctionHouse: string;
+  auctionDate: string;
+  timeRemaining?: string;
+  startingBid: number;
+  currentBid: number;
+  estimatedPrice: number;
+  finalPrice?: number;
+  soldStatus?: 'sold' | 'unsold';
+  features?: string[];
+  condition: string;
+  inspectionReport?: string;
+  inspectionGrade?: string;
+  exteriorGrade?: string;
+  interiorGrade?: string;
+  description?: string;
+  location: string;
+}
