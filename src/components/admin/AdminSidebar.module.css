@@ -5,15 +5,26 @@
   bottom: 0;
   width: 250px;
   background-color: #1a1a1a;
+  background: linear-gradient(180deg, #1a1a1a 0%, #262626 100%);
   color: white;
   display: flex;
   flex-direction: column;
   z-index: 100;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  transition: width 0.3s ease;
+}
+
+.collapsed {
+  width: 70px;
 }
 
 .logo {
-  padding: var(--admin-spacing-lg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
 }
 
 .logoLink {
@@ -21,22 +32,72 @@
   align-items: center;
   text-decoration: none;
   color: white;
+  gap: 0.75rem;
 }
 
 .logoIcon {
-  font-size: 1.5rem;
-  margin-right: var(--admin-spacing-sm);
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
 }
 
 .logoText {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
+  white-space: nowrap;
+  color: white;
+}
+
+.collapseButton {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapseButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.collapseButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.navWrapper {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .nav {
   flex: 1;
-  padding: var(--admin-spacing-md) 0;
+  padding: 1rem 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
 }
 
 .navList {
@@ -47,57 +108,105 @@
 
 .navItem {
   margin-bottom: 2px;
+  position: relative;
 }
 
 .indented {
-  padding-left: var(--admin-spacing-md);
+  padding-left: 1rem;
   font-size: 0.9rem;
+}
+
+.collapsed .indented {
+  padding-left: 0;
 }
 
 .navLink {
   display: flex;
   align-items: center;
-  padding: var(--admin-spacing-sm) var(--admin-spacing-lg);
+  padding: 0.75rem 1.25rem;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: all 0.2s ease;
+  border-radius: 0.25rem;
+  margin: 0 0.5rem;
+  position: relative;
 }
 
 .navLink:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
   color: white;
 }
 
 .active .navLink {
-  background-color: var(--admin-primary);
+  background-color: #c70f0f;
   color: white;
   font-weight: 500;
 }
 
 .navIcon {
-  margin-right: var(--admin-spacing-md);
-  font-size: 1.2rem;
-  width: 1.5rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.collapsed .navIcon {
+  margin-right: 0;
+}
+
+.navIcon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .navText {
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+
+.tooltipText {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #333;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  margin-left: 0.5rem;
+  z-index: 10;
+}
+
+.navItem:hover .tooltipText {
+  opacity: 1;
 }
 
 .sidebarFooter {
-  padding: var(--admin-spacing-md);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .viewSiteLink {
   display: flex;
   align-items: center;
-  padding: var(--admin-spacing-sm) var(--admin-spacing-md);
+  padding: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
-  border-radius: var(--admin-radius);
+  border-radius: 0.25rem;
   transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.05);
+  justify-content: center;
 }
 
 .viewSiteLink:hover {
@@ -106,5 +215,55 @@
 }
 
 .viewSiteIcon {
-  margin-right: var(--admin-spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  width: 20px;
+  height: 20px;
+}
+
+.collapsed .viewSiteIcon {
+  margin-right: 0;
+}
+
+.viewSiteIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.viewSiteText {
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 70px;
+  }
+  
+  .sidebar:hover {
+    width: 250px;
+  }
+  
+  .sidebar:hover .navIcon {
+    margin-right: 0.75rem;
+  }
+  
+  .sidebar:hover .navText,
+  .sidebar:hover .logoText,
+  .sidebar:hover .viewSiteText {
+    display: block;
+  }
+  
+  .navIcon {
+    margin-right: 0;
+  }
+  
+  .navText,
+  .logoText,
+  .viewSiteText,
+  .collapseButton {
+    display: none;
+  }
 }

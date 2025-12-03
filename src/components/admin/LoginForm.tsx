@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './LoginForm.module.css';
 
@@ -11,6 +12,7 @@ interface LoginFormProps {
 export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -22,7 +24,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
     try {
       // This is just UI for now, we'll implement actual login later
-      console.log('Login attempt with:', { email, password });
+      console.log('Login attempt with:', { email, password, rememberMe });
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -58,7 +60,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
-          <label htmlFor="email" className={styles.label}>Email</label>
+          <label htmlFor="email" className={styles.label}>Email Address</label>
           <input
             id="email"
             type="email"
@@ -81,6 +83,22 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             placeholder="••••••••"
             required
           />
+        </div>
+        
+        <div className={styles.formOptions}>
+          <label className={styles.rememberMe}>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={() => setRememberMe(!rememberMe)}
+              className={styles.checkbox}
+            />
+            Remember me
+          </label>
+          
+          <Link href="/admin/forgot-password" className={styles.forgotPassword}>
+            Forgot password?
+          </Link>
         </div>
         
         <div className={styles.formFooter}>

@@ -1,78 +1,158 @@
 .formContainer {
-  padding: var(--admin-spacing-xl);
+  width: 100%;
 }
 
 .formTitle {
   font-size: 1.5rem;
   font-weight: 600;
   margin-top: 0;
-  margin-bottom: var(--admin-spacing-lg);
-  color: var(--admin-text);
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+  display: none; /* Hidden since we have welcome text in the parent */
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--admin-spacing-md);
+  gap: 1.5rem;
 }
 
 .formGroup {
-  margin-bottom: var(--admin-spacing-md);
+  margin-bottom: 0.5rem;
 }
 
 .label {
   display: block;
-  margin-bottom: var(--admin-spacing-sm);
+  margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--admin-text);
+  color: #333;
+  font-size: 0.95rem;
 }
 
 .input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius);
+  padding: 0.9rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
+  background-color: #f9fafb;
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 2px rgba(199, 15, 15, 0.1);
+  border-color: #c70f0f;
+  box-shadow: 0 0 0 3px rgba(199, 15, 15, 0.1);
+  background-color: white;
+}
+
+.input::placeholder {
+  color: #9ca3af;
 }
 
 .formFooter {
-  margin-top: var(--admin-spacing-md);
+  margin-top: 1rem;
 }
 
 .submitButton {
   width: 100%;
-  padding: 0.75rem;
-  background-color: var(--admin-primary);
+  padding: 0.9rem;
+  background-color: #c70f0f;
   color: white;
   border: none;
-  border-radius: var(--admin-radius);
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.submitButton::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.submitButton:hover::after {
+  width: 300px;
+  height: 300px;
 }
 
 .submitButton:hover {
   background-color: #a00c0c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(199, 15, 15, 0.2);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 6px rgba(199, 15, 15, 0.2);
 }
 
 .submitButton:disabled {
   background-color: #e0e0e0;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .errorMessage {
-  padding: 0.75rem;
-  margin-bottom: var(--admin-spacing-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
   background-color: rgba(239, 68, 68, 0.1);
   color: #ef4444;
-  border-radius: var(--admin-radius);
+  border-radius: 8px;
   font-size: 0.9rem;
+  border-left: 3px solid #ef4444;
+  display: flex;
+  align-items: center;
+}
+
+.errorMessage::before {
+  content: '⚠️';
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Add remember me and forgot password options */
+.formOptions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.rememberMe {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #c70f0f;
+}
+
+.forgotPassword {
+  color: #c70f0f;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.forgotPassword:hover {
+  color: #a00c0c;
+  text-decoration: underline;
 }

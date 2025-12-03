@@ -1,0 +1,383 @@
+.dashboardLayout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.mainContent {
+  flex: 1;
+  padding: var(--admin-spacing-lg);
+  margin-left: 250px; /* Width of sidebar */
+  max-width: calc(100% - 250px);
+  overflow-x: hidden;
+}
+
+.container {
+  padding: 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  background-color: #c70f0f;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background-color: #a00c0c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.searchBox {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #c70f0f;
+  box-shadow: 0 0 0 3px rgba(199, 15, 15, 0.1);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.tabsContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tabButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.tabButton:hover {
+  color: #1a1a1a;
+}
+
+.activeTab {
+  border-bottom: 2px solid #c70f0f;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.liveValue {
+  color: #ef4444;
+}
+
+.upcomingValue {
+  color: #3b82f6;
+}
+
+.pastValue {
+  color: #6b7280;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.tableContainer {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background-color: white;
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+  color: #4b5563;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
+
+.tableRow:hover {
+  background-color: #f9fafb;
+}
+
+.tableRow td {
+  vertical-align: top;
+}
+
+.imageCell {
+  width: 80px;
+}
+
+.thumbnailContainer {
+  width: 80px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vehicleCell {
+  min-width: 180px;
+  max-width: 250px;
+}
+
+.vehicleName {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.vehicleDetails {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.statusContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.liveBadge {
+  display: inline-block;
+  background-color: #ef4444;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.upcomingBadge {
+  display: inline-block;
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.pastBadge {
+  display: inline-block;
+  background-color: #6b7280;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.timeRemaining {
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.soldStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.soldBadge {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.unsoldBadge {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.bidCell {
+  font-weight: 500;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+.finalPrice {
+  font-size: 0.85rem;
+  color: #10b981;
+  margin-top: 0.25rem;
+}
+
+.actionsCell {
+  white-space: nowrap;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  margin-right: 0.25rem;
+}
+
+.actionButton:hover {
+  background-color: #e5e7eb;
+}
+
+.deleteButton {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.deleteButton:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.noResults {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+@media (max-width: 1024px) {
+  .mainContent {
+    padding: var(--admin-spacing-md);
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchBox {
+    width: 100%;
+  }
+  
+  .stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .addButton {
+    width: 100%;
+    text-align: center;
+  }
+}
