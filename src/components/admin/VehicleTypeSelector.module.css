@@ -1,0 +1,28 @@
+.typeSelector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.typeButton {
+  padding: 0.5rem 1rem;
+  background-color: #f1f5f9;
+  border: none;
+  border-radius: 2rem;
+  font-size: 0.9rem;
+  color: var(--admin-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.typeButton:hover {
+  background-color: #e2e8f0;
+}
+
+.typeButton.active {
+  background-color: var(--admin-primary);
+  color: white;
+}
+
+.typeButton.active:hover {
+  background-color: #a00c0c;
+}

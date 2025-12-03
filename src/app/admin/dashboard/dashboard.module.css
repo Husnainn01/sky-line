@@ -1,0 +1,119 @@
+.dashboardLayout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.mainContent {
+  flex: 1;
+  padding: var(--admin-spacing-lg);
+  margin-left: 250px; /* Width of sidebar */
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--admin-spacing-lg);
+  margin-bottom: var(--admin-spacing-xl);
+}
+
+.statsCard {
+  background-color: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-spacing-lg);
+  box-shadow: var(--admin-shadow);
+  transition: transform 0.2s ease;
+}
+
+.statsCard:hover {
+  transform: translateY(-4px);
+}
+
+.statsCard:nth-child(1) {
+  border-top: 4px solid var(--admin-primary);
+}
+
+.statsCard:nth-child(2) {
+  border-top: 4px solid var(--admin-secondary);
+}
+
+.statsCard:nth-child(3) {
+  border-top: 4px solid #f59e0b; /* Amber */
+}
+
+.statsCard:nth-child(4) {
+  border-top: 4px solid #10b981; /* Emerald */
+}
+
+.statsTitle {
+  font-size: 1rem;
+  color: var(--admin-text-secondary);
+  margin-top: 0;
+  margin-bottom: var(--admin-spacing-sm);
+}
+
+.statsValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: var(--admin-spacing-lg);
+  color: var(--admin-text);
+}
+
+.recentActivity {
+  background-color: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-spacing-lg);
+  box-shadow: var(--admin-shadow);
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-spacing-md);
+}
+
+.activityItem {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--admin-spacing-md);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.activityItem:last-child {
+  border-bottom: none;
+}
+
+.activityIcon {
+  font-size: 1.5rem;
+  margin-right: var(--admin-spacing-md);
+}
+
+.activityContent {
+  flex: 1;
+}
+
+.activityTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--admin-text);
+}
+
+.activityDesc {
+  font-size: 0.9rem;
+  color: var(--admin-text-secondary);
+  margin: 0 0 0.25rem 0;
+}
+
+.activityTime {
+  font-size: 0.8rem;
+  color: var(--admin-text-secondary);
+  opacity: 0.8;
+  margin: 0;
+}

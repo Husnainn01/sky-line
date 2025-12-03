@@ -1,0 +1,194 @@
+.dashboardLayout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.mainContent {
+  flex: 1;
+  padding: var(--admin-spacing-lg);
+  margin-left: 250px; /* Width of sidebar */
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--admin-spacing-lg);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-spacing-md);
+}
+
+.searchBox {
+  width: 300px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 2rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 2px rgba(199, 15, 15, 0.1);
+}
+
+.addButton {
+  background-color: var(--admin-primary);
+  color: white;
+  border: none;
+  border-radius: var(--admin-radius);
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background-color: #a00c0c;
+}
+
+.vehiclesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--admin-spacing-lg);
+}
+
+.vehicleCard {
+  background-color: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  overflow: hidden;
+  box-shadow: var(--admin-shadow);
+  transition: transform 0.2s ease;
+}
+
+.vehicleCard:hover {
+  transform: translateY(-4px);
+}
+
+.vehicleImageContainer {
+  position: relative;
+  height: 180px;
+  background-color: #f0f0f0;
+}
+
+.vehicleImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+.vehicleType {
+  position: absolute;
+  top: var(--admin-spacing-sm);
+  left: var(--admin-spacing-sm);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.vehicleStatus {
+  position: absolute;
+  top: var(--admin-spacing-sm);
+  right: var(--admin-spacing-sm);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.available {
+  background-color: #10b981;
+  color: white;
+}
+
+.sold {
+  background-color: #ef4444;
+  color: white;
+}
+
+.auction {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.shipping {
+  background-color: #6366f1;
+  color: white;
+}
+
+.vehicleInfo {
+  padding: var(--admin-spacing-md);
+}
+
+.vehicleTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 var(--admin-spacing-sm) 0;
+  color: var(--admin-text);
+}
+
+.vehicleDetails {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--admin-spacing-md);
+}
+
+.vehiclePrice {
+  font-weight: 700;
+  color: var(--admin-primary);
+}
+
+.vehicleMileage {
+  color: var(--admin-text-secondary);
+  font-size: 0.9rem;
+}
+
+.vehicleActions {
+  display: flex;
+  gap: var(--admin-spacing-sm);
+}
+
+.editButton, .deleteButton {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: var(--admin-radius);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editButton {
+  background-color: var(--admin-secondary);
+  color: white;
+}
+
+.editButton:hover {
+  background-color: #2563eb;
+}
+
+.deleteButton {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.deleteButton:hover {
+  background-color: #ef4444;
+  color: white;
+}
