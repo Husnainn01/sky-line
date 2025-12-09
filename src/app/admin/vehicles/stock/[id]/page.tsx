@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { carsData } from '@/data/mockData';
+import { getAuthToken, verifySession } from '../../../../../utils/sessionManager';
+import ConfirmDialog from '../../../../../components/admin/ConfirmDialog';
 
 // Define badge type
 interface Badge {
@@ -14,7 +15,8 @@ interface Badge {
 
 // Define car type with badge
 interface Car {
-  id: string;
+  id?: string;
+  _id?: string;
   make: string;
   model: string;
   year: number;
@@ -24,6 +26,7 @@ interface Car {
   fuelType: string;
   drivetrain: string;
   image: string;
+  images?: string[];
   description: string;
   features: string[];
   condition: string;
@@ -31,13 +34,20 @@ interface Car {
   available: boolean;
   bodyType: string;
   vin?: string;
-  engine?: string;
-  cylinders?: number;
-  color?: string;
-  doors?: number;
   stockNumber?: string;
-  steering?: string;
+  engineSize?: string;
+  exteriorColor?: string;
+  color?: string; // For backward compatibility
+  engine?: string; // For backward compatibility
+  cylinders?: string; // For backward compatibility
+  steering?: string; // For backward compatibility
+  doors?: number;
+  specifications?: {
+    cylinders?: string;
+    steering?: string;
+  };
   badge?: Badge;
+  status?: string; // available or sold
 }
 import AdminHeader from '../../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../../components/admin/AdminSidebar';
@@ -46,21 +56,182 @@ import styles from './vehicleDetail.module.css';
 export default function VehicleDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const id = params.id as string;
   
-  // Find the vehicle by ID
-  const vehicle = carsData.find(car => car.id === id) as unknown as Car;
+  // Extract ID from URL and ensure it's not undefined
+  let id = params?.id as string;
   
-  // For demo purposes, add a badge to the first vehicle
-  if (vehicle && vehicle.id === '1') {
-    vehicle.badge = {
-      text: 'Hot Stock',
-      color: '#ef4444'
-    };
+  // Debug params
+  console.log('Detail Page Params:', params);
+  console.log('Detail Page Raw ID:', id);
+  
+  // Fix for the 'undefined' string issue
+  if (id === 'undefined' || !id) {
+    console.error('Invalid ID: ID is undefined');
+    // In Next.js App Router, we can't access router.query directly
+    // Instead, we'll need to extract from the current URL
+    // Check if window is available (client-side only)
+    if (typeof window !== 'undefined') {
+      const urlParts = window.location.pathname.split('/');
+      const potentialId = urlParts[urlParts.length - 1]; // The ID should be the last part
+      if (potentialId) {
+        id = potentialId;
+        console.log('Extracted ID from URL path:', id);
+      } else {
+        console.error('Could not extract ID from URL path');
+      }
+    } else {
+      console.log('Running on server side, cannot extract ID from URL');
+    }
   }
   
-  // If vehicle not found, show error
-  if (!vehicle) {
+  const [vehicle, setVehicle] = useState<Car | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Fetch vehicle data
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      try {
+        // Check if ID is valid
+        if (!id) {
+          console.error('Vehicle ID is undefined');
+          setError('Vehicle ID is missing');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Get the authentication token
+        const token = getAuthToken();
+        if (!token) {
+          console.error('Authentication required');
+          router.push('/admin/login');
+          return;
+        }
+
+        console.log(`Fetching vehicle details with ID: ${id}`);
+        const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Vehicle not found');
+          } else if (response.status === 401) {
+            router.push('/admin/login');
+          } else {
+            throw new Error('Failed to fetch vehicle data');
+          }
+          return;
+        }
+        
+        const data = await response.json();
+        const vehicle = data.data;
+        
+        if (!vehicle) {
+          setError('Vehicle not found');
+          return;
+        }
+        
+        // Ensure vehicle has an id property
+        if (!vehicle.id && vehicle._id) {
+          vehicle.id = vehicle._id;
+        }
+        
+        console.log('Fetched vehicle data:', vehicle);
+        
+        setVehicle(vehicle);
+      } catch (err) {
+        console.error('Error fetching vehicle:', err);
+        setError('Failed to load vehicle data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchVehicle();
+  }, [id, router]);
+  
+  // Open delete confirmation dialog
+  const openDeleteConfirm = () => {
+    setShowDeleteConfirm(true);
+  };
+  
+  // Close delete confirmation dialog
+  const closeDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+  };
+  
+  // Handle delete vehicle
+  const handleDeleteVehicle = async () => {
+    setShowDeleteConfirm(false);
+    setIsDeleting(true);
+    
+    try {
+      // First verify the session
+      const isSessionValid = await verifySession();
+      if (!isSessionValid) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      
+      // Then get the token
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+      
+      // Use vehicle._id as fallback if id is not available
+      const vehicleId = id || (vehicle && (vehicle.id || vehicle._id));
+      console.log('Using vehicle ID for delete:', vehicleId);
+      
+      if (!vehicleId) {
+        throw new Error('Vehicle ID is missing');
+      }
+      
+      // Make API call to delete vehicle
+      const response = await fetch(`http://localhost:5001/api/vehicles/${vehicleId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete vehicle');
+      }
+      
+      // Redirect to stock vehicles page after successful deletion
+      router.push('/admin/vehicles/stock');
+      
+    } catch (err) {
+      console.error('Error deleting vehicle:', err);
+      alert(`Failed to delete vehicle: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setIsDeleting(false);
+    }
+  };
+  
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className={styles.dashboardLayout}>
+        <AdminSidebar />
+        <div className={styles.mainContent}>
+          <AdminHeader title="Loading..." />
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading vehicle data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // If error or vehicle not found, show error
+  if (error || !vehicle) {
     return (
       <div className={styles.dashboardLayout}>
         <AdminSidebar />
@@ -68,13 +239,10 @@ export default function VehicleDetailPage() {
           <AdminHeader title="Vehicle Not Found" />
           <div className={styles.errorContainer}>
             <h1 className={styles.errorTitle}>Vehicle Not Found</h1>
-            <p className={styles.errorMessage}>The vehicle you are looking for does not exist or has been removed.</p>
-            <button 
-              onClick={() => router.push('/admin/vehicles/stock')}
-              className={styles.backButton}
-            >
+            <p className={styles.errorMessage}>{error || 'The vehicle you are looking for does not exist or has been removed.'}</p>
+            <Link href="/admin/vehicles/stock" className={styles.backButton}>
               Back to Stock Vehicles
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -101,9 +269,23 @@ export default function VehicleDetailPage() {
           <Link href={`/admin/vehicles/stock/${id}/edit`} className={styles.editButton}>
             Edit Vehicle
           </Link>
-          <button className={styles.deleteButton}>
-            Delete Vehicle
+          <button 
+            className={styles.deleteButton}
+            onClick={openDeleteConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete Vehicle'}
           </button>
+          
+          <ConfirmDialog
+            isOpen={showDeleteConfirm}
+            title="Confirm Delete"
+            message={`Are you sure you want to delete this ${vehicle.year} ${vehicle.make} ${vehicle.model}? This action cannot be undone.`}
+            confirmText="Delete"
+            cancelText="Cancel"
+            onConfirm={handleDeleteVehicle}
+            onCancel={closeDeleteConfirm}
+          />
         </div>
       </div>
       

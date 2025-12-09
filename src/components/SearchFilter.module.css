@@ -50,6 +50,12 @@
     color: #1d4ed8;
 }
 
+.statCount span {
+    color: #64748b;
+    font-weight: 500;
+    font-style: italic;
+}
+
 .statRating {
     font-size: 0.85rem;
     color: #475569;
@@ -64,6 +70,29 @@
     display: flex;
     gap: 1rem;
     align-items: center;
+}
+
+.searchButtons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.clearFiltersButton {
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.05);
+    color: #ef4444;
+    border-radius: 10px;
+    padding: 0.65rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+}
+
+.clearFiltersButton:hover {
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 10px 18px rgba(239, 68, 68, 0.1);
 }
 
 .searchInput {
@@ -140,6 +169,13 @@
     outline: none;
     border-color: rgba(59, 130, 246, 0.8);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+.select:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-color: rgba(148, 163, 184, 0.3);
 }
 
 .actionRow {

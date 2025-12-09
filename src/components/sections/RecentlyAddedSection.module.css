@@ -4,6 +4,42 @@
     padding: 4rem 0;
 }
 
+/* Loading, Error, and Empty States */
+.loadingContainer,
+.errorContainer,
+.emptyContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin: 1rem 0 2rem;
+    text-align: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--color-primary);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.errorMessage {
+    color: #e53e3e;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
 .container {
     max-width: calc(var(--max-width-container) + var(--sidebar-width, 280px));
     margin: 0 auto;
@@ -101,6 +137,15 @@
     border-color: #e5e7eb;
 }
 
+.filterSelect:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.75;
+    border-color: transparent;
+    box-shadow: none;
+}
+
 .filterSelect:focus {
     outline: none;
     border-color: #EA580C;
@@ -153,6 +198,36 @@
 
 .searchButton:active {
     transform: translateY(0);
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.resetButton {
+    padding: 0 1.5rem;
+    background: #ffffff;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    border-radius: 6px;
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.resetButton:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.resetButton:active {
+    transform: translateY(1px);
 }
 
 /* Header */

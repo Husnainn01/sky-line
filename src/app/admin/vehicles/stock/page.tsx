@@ -1,9 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { carsData } from '@/data/mockData';
+import { useRouter } from 'next/navigation';
+import AdminHeader from '../../../../components/admin/AdminHeader';
+import AdminSidebar from '../../../../components/admin/AdminSidebar';
+import ProtectedRoute from '../../../../components/admin/ProtectedRoute';
+import PermissionGuard from '../../../../components/admin/PermissionGuard';
+import ConfirmDialog from '../../../../components/admin/ConfirmDialog';
+import { getAuthToken, verifySession } from '../../../../utils/sessionManager';
+import styles from './stock.module.css';
 
 // Define badge type
 interface Badge {
@@ -33,46 +40,76 @@ interface Car {
   badge?: Badge;
   [key: string]: any; // For other properties
 }
-import AdminHeader from '../../../../components/admin/AdminHeader';
-import AdminSidebar from '../../../../components/admin/AdminSidebar';
-import styles from './stock.module.css';
 
 export default function StockVehiclesPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMake, setFilterMake] = useState('');
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<{id: string, make: string, model: string, year: number} | null>(null);
   
-  // Filter to only show stock vehicles (not auction)
-  const stockVehicles = carsData.filter(car => !car.hasOwnProperty('auctionGrade')) as unknown as Car[];
-  
-  // For demo purposes, add badges to some vehicles
-  if (stockVehicles.length > 0) {
-    // Add "Hot Stock" badge to the first vehicle
-    stockVehicles[0].badge = {
-      text: 'Hot Stock',
-      color: '#ef4444'
+  // Fetch vehicles from API
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        setLoading(true);
+        
+        // Get the authentication token
+        const token = getAuthToken();
+        if (!token) {
+          console.error('Authentication required');
+          router.push('/admin/login');
+          return;
+        }
+        
+        const response = await fetch('http://localhost:5001/api/vehicles/type/stock', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/admin/login');
+            return;
+          }
+          throw new Error('Failed to fetch vehicles');
+        }
+        
+        const data = await response.json();
+        console.log('API Response:', data);
+        console.log('Vehicles data:', data.data);
+        
+        // Ensure each vehicle has a valid ID
+        const vehiclesWithValidIds = (data.data || []).map((vehicle: any) => {
+          console.log('Vehicle:', vehicle);
+          // If _id exists but id doesn't, use _id as id
+          if (vehicle._id && !vehicle.id) {
+            return { ...vehicle, id: vehicle._id };
+          }
+          return vehicle;
+        });
+        
+        setVehicles(vehiclesWithValidIds);
+      } catch (err) {
+        console.error('Error fetching vehicles:', err);
+        setError('Failed to load vehicles. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
     };
     
-    // Add "50% Off" badge to the second vehicle if it exists
-    if (stockVehicles.length > 1) {
-      stockVehicles[1].badge = {
-        text: '50% Off',
-        color: '#f59e0b'
-      };
-    }
-    
-    // Add "Winter Special" badge to the third vehicle if it exists
-    if (stockVehicles.length > 2) {
-      stockVehicles[2].badge = {
-        text: 'Winter Special',
-        color: '#3b82f6'
-      };
-    }
-  }
+    fetchVehicles();
+  }, [router]);
   
   // Apply search and make filter
-  const filteredVehicles = stockVehicles.filter(car => {
+  const filteredVehicles = vehicles.filter(car => {
     const matchesSearch = searchTerm 
-      ? `${car.year} ${car.make} ${car.model} ${car.stockNumber}`.toLowerCase().includes(searchTerm.toLowerCase())
+      ? `${car.year} ${car.make} ${car.model} ${car.stockNumber || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
     
     const matchesMake = filterMake 
@@ -82,21 +119,128 @@ export default function StockVehiclesPage() {
     return matchesSearch && matchesMake;
   });
   
-  // Get unique makes for filter dropdown
-  const uniqueMakes = Array.from(new Set(stockVehicles.map(car => car.make))).sort();
+  // Open delete confirmation dialog
+  const openDeleteConfirm = (car: any) => {
+    setVehicleToDelete({
+      id: car.id || car._id,
+      make: car.make,
+      model: car.model,
+      year: car.year
+    });
+    setShowDeleteConfirm(true);
+  };
   
+  // Close delete confirmation dialog
+  const closeDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    setVehicleToDelete(null);
+  };
+  
+  // Handle delete vehicle
+  const handleDeleteVehicle = async () => {
+    if (!vehicleToDelete) return;
+    
+    const id = vehicleToDelete.id;
+    setShowDeleteConfirm(false);
+    setDeleteId(id);
+    
+    try {
+      // First verify the session
+      const isSessionValid = await verifySession();
+      if (!isSessionValid) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      
+      // Then get the token
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+      
+      // Make API call to delete vehicle
+      const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete vehicle');
+      }
+      
+      // Remove the vehicle from the list
+      setVehicles(vehicles.filter(car => (car.id || car._id) !== id));
+      
+    } catch (err) {
+      console.error('Error deleting vehicle:', err);
+      alert(`Failed to delete vehicle: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setDeleteId(null);
+    }
+  };
+  
+  // Get unique makes for filter dropdown
+  const uniqueMakes = Array.from(new Set(vehicles.map(car => car.make))).sort();
+  
+  // Show loading state
+  if (loading) {
+    return (
+      <div className={styles.dashboardLayout}>
+        <AdminSidebar />
+        <div className={styles.mainContent}>
+          <AdminHeader title="Loading..." />
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading vehicles data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className={styles.dashboardLayout}>
+        <AdminSidebar />
+        <div className={styles.mainContent}>
+          <AdminHeader title="Error" />
+          <div className={styles.errorContainer}>
+            <h1 className={styles.errorTitle}>Error Loading Vehicles</h1>
+            <p className={styles.errorMessage}>{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className={styles.backButton}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.dashboardLayout}>
       <AdminSidebar />
       <div className={styles.mainContent}>
         <AdminHeader title="Stock Vehicles" />
         
-        <div className={styles.container}>
+        <ProtectedRoute
+          requiredPermission={{ resource: 'vehicles', action: 'read' }}
+        >
+          <div className={styles.container}>
           <div className={styles.header}>
             <h1 className={styles.title}>Stock Vehicles</h1>
-            <Link href="/admin/vehicles/stock/new" className={styles.addButton}>
-              Add New Vehicle
-            </Link>
+            <PermissionGuard
+              requiredPermission={{ resource: 'vehicles', action: 'create' }}
+            >
+              <Link href="/admin/vehicles/stock/new" className={styles.addButton}>
+                Add New Vehicle
+              </Link>
+            </PermissionGuard>
           </div>
       
       <div className={styles.filters}>
@@ -138,15 +282,15 @@ export default function StockVehiclesPage() {
       
       <div className={styles.stats}>
         <div className={styles.statCard}>
-          <span className={styles.statValue}>{stockVehicles.length}</span>
+          <span className={styles.statValue}>{vehicles.length}</span>
           <span className={styles.statLabel}>Total Stock</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statValue}>{stockVehicles.filter(car => car.available).length}</span>
+          <span className={styles.statValue}>{vehicles.filter((car: any) => car.available || car.status === 'available').length}</span>
           <span className={styles.statLabel}>Available</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statValue}>{stockVehicles.filter(car => !car.available).length}</span>
+          <span className={styles.statValue}>{vehicles.filter((car: any) => !car.available && car.status !== 'available').length}</span>
           <span className={styles.statLabel}>Sold</span>
         </div>
       </div>
@@ -168,8 +312,10 @@ export default function StockVehiclesPage() {
           </thead>
           <tbody>
             {filteredVehicles.length > 0 ? (
-              filteredVehicles.map(car => (
-                <tr key={car.id} className={styles.tableRow}>
+              filteredVehicles.map(car => {
+                console.log('Vehicle ID:', car.id, 'Type:', typeof car.id);
+                return (
+                  <tr key={car.id} className={styles.tableRow}>
                   <td className={styles.imageCell}>
                     <div className={styles.thumbnailContainer}>
                       <Image
@@ -201,18 +347,31 @@ export default function StockVehiclesPage() {
                     </span>
                   </td>
                   <td className={styles.actionsCell}>
-                    <Link href={`/admin/vehicles/stock/${car.id}`} className={styles.actionButton}>
+                    <Link href={`/admin/vehicles/stock/${car.id || car._id}`} className={styles.actionButton}>
                       View
                     </Link>
-                    <Link href={`/admin/vehicles/stock/${car.id}/edit`} className={styles.actionButton}>
-                      Edit
-                    </Link>
-                    <button className={`${styles.actionButton} ${styles.deleteButton}`}>
-                      Delete
-                    </button>
+                    <PermissionGuard
+                      requiredPermission={{ resource: 'vehicles', action: 'update' }}
+                    >
+                      <Link href={`/admin/vehicles/stock/${car.id || car._id}/edit`} className={styles.actionButton}>
+                        Edit
+                      </Link>
+                    </PermissionGuard>
+                    <PermissionGuard
+                      requiredPermission={{ resource: 'vehicles', action: 'delete' }}
+                    >
+                      <button 
+                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                        onClick={() => openDeleteConfirm(car)}
+                        disabled={deleteId === (car.id || car._id)}
+                      >
+                        {deleteId === (car.id || car._id) ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </PermissionGuard>
                   </td>
                 </tr>
-              ))
+              );
+            })
             ) : (
               <tr>
                 <td colSpan={9} className={styles.noResults}>
@@ -224,7 +383,21 @@ export default function StockVehiclesPage() {
         </table>
           </div>
         </div>
+        </ProtectedRoute>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      {vehicleToDelete && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          title="Confirm Delete"
+          message={`Are you sure you want to delete this ${vehicleToDelete.year} ${vehicleToDelete.make} ${vehicleToDelete.model}? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleDeleteVehicle}
+          onCancel={closeDeleteConfirm}
+        />
+      )}
     </div>
   );
 }

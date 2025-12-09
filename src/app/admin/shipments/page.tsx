@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import AdminHeader from '../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../components/admin/AdminSidebar';
+import ProtectedRoute from '../../../components/admin/ProtectedRoute';
+import PermissionGuard from '../../../components/admin/PermissionGuard';
 import styles from './shipments.module.css';
 
 // Define shipment status type
@@ -280,11 +282,18 @@ export default function ShipmentsPage() {
       <div className={styles.mainContent}>
         <AdminHeader title="Shipments" />
         
-        <div className={styles.container}>
+        <ProtectedRoute
+          requiredPermission={{ resource: 'shipments', action: 'read' }}
+        >
+          <div className={styles.container}>
           <div className={styles.header}>
-            <Link href="/admin/shipments/new" className={styles.addButton}>
-              Create New Shipment
-            </Link>
+            <PermissionGuard
+              requiredPermission={{ resource: 'shipments', action: 'create' }}
+            >
+              <Link href="/admin/shipments/new" className={styles.addButton}>
+                Create New Shipment
+              </Link>
+            </PermissionGuard>
           </div>
           
           <div className={styles.filters}>
@@ -453,16 +462,20 @@ export default function ShipmentsPage() {
                     <Link href={`/admin/shipments/${shipment.id}`} className={styles.viewButton}>
                       View Details
                     </Link>
-                    <Link href={`/admin/shipments/${shipment.id}/edit`} className={styles.editButton}>
-                      Edit Shipment
-                    </Link>
-                    <Link href={`/admin/shipments/${shipment.id}/documents`} className={styles.documentButton}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                      </svg>
-                      Documents
-                    </Link>
+                    <PermissionGuard requiredPermission={{ resource: 'shipments', action: 'update' }}>
+                      <Link href={`/admin/shipments/${shipment.id}/edit`} className={styles.editButton}>
+                        Edit Shipment
+                      </Link>
+                    </PermissionGuard>
+                    <PermissionGuard requiredPermission={{ resource: 'shipments', action: 'read' }}>
+                      <Link href={`/admin/shipments/${shipment.id}/documents`} className={styles.documentButton}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        Documents
+                      </Link>
+                    </PermissionGuard>
                     <Link href={`/admin/shipments/${shipment.id}/track`} className={styles.trackButton}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -476,6 +489,7 @@ export default function ShipmentsPage() {
             </div>
           )}
         </div>
+        </ProtectedRoute>
       </div>
     </div>
   );

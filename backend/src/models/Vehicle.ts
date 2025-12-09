@@ -19,6 +19,7 @@ export const VehicleValidation = z.object({
   interiorColor: z.string(),
   doors: z.number(),
   seats: z.number(),
+  owner: z.string().optional(), // User ID
 
   // Auction Specific
   auctionGrade: z.string().optional(),
@@ -104,6 +105,7 @@ const vehicleSchema = new mongoose.Schema({
   location: { type: String, required: true },
   vin: String,
   stockNumber: String,
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
   // Timestamps
   createdAt: { type: Date, default: Date.now },

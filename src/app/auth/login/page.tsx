@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
+import { authApi } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +15,12 @@ export default function LoginPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // MFA state
+  const [requiresMfa, setRequiresMfa] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaUser, setMfaUser] = useState<any>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -23,20 +30,93 @@ export default function LoginPage() {
     }));
   };
 
+  // Check for saved email in localStorage on component mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      setFormData(prev => ({
+        ...prev,
+        email: savedEmail,
+        rememberMe: true
+      }));
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call our backend API using the utility
+      const data = await authApi.login(formData.email, formData.password, formData.rememberMe);
       
-      // Simulate successful login
-      // In real implementation, save token and user data
-      router.push('/dashboard'); // Redirect to dashboard after login
-    } catch (err) {
-      setError('Invalid email or password');
+      // Check if MFA is required
+      if (data.requiresMfa) {
+        console.log('MFA required for login');
+        setRequiresMfa(true);
+        setMfaFactorId(data.mfaFactorId);
+        setMfaUser(data.user);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Redirect to dashboard on successful login
+      router.push('/dashboard');
+    } catch (err: any) {
+      // Format the error message for better user experience
+      let errorMessage = 'Invalid email or password';
+      
+      if (err.message) {
+        // Check for specific error messages
+        if (err.message.includes('Failed to set up authentication')) {
+          errorMessage = 'There was a problem setting up your account. Please try again or contact support.';
+        } else if (err.message.includes('Authentication failed')) {
+          errorMessage = 'Invalid email or password. Please check your credentials.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
+      console.error('Login error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+    
+    try {
+      // Verify MFA code
+      await authApi.verifyMfaLogin(mfaFactorId, mfaCode);
+      
+      // Redirect to dashboard on successful verification
+      router.push('/dashboard');
+    } catch (err: any) {
+      // Format the error message for better user experience
+      let errorMessage = 'Invalid verification code';
+      
+      if (err.message) {
+        if (err.message.includes('MFA verification failed')) {
+          errorMessage = 'Invalid verification code. Please try again.';
+        } else if (err.message.includes('MFA verification session expired')) {
+          errorMessage = 'Your verification session has expired. Please log in again.';
+          // Reset to login form after a delay
+          setTimeout(() => {
+            setRequiresMfa(false);
+            setMfaCode('');
+          }, 3000);
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
+      console.error('MFA verification error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +137,8 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className={styles.form}>
+          {!requiresMfa ? (
+            <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.formGroup}>
               <label htmlFor="email">Email Address</label>
               <input
@@ -109,6 +190,53 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+          ) : (
+            <form onSubmit={handleMfaSubmit} className={styles.form}>
+              <div className={styles.mfaHeader}>
+                <h2>Two-Factor Authentication</h2>
+                <p>Enter the verification code from your authenticator app</p>
+              </div>
+              
+              {mfaUser && (
+                <div className={styles.mfaUserInfo}>
+                  <p>Verifying login for: <strong>{mfaUser.email}</strong></p>
+                </div>
+              )}
+              
+              <div className={styles.formGroup}>
+                <label htmlFor="mfaCode">Verification Code</label>
+                <input
+                  type="text"
+                  id="mfaCode"
+                  name="mfaCode"
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  required
+                  className={styles.input}
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                />
+              </div>
+              
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Verifying...' : 'Verify'}
+              </button>
+              
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setRequiresMfa(false)}
+                disabled={isLoading}
+              >
+                Back to Login
+              </button>
+            </form>
+          )}
 
           <div className={styles.divider}>
             <span>Don't have an account?</span>

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authApi } from '@/lib/api';
 import styles from './layout.module.css';
 
 const menuItems = [
@@ -88,9 +89,54 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  
+  // Load user data from localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  
+  // Get user initials from full name
+  const getInitials = (name: string): string => {
+    // Split by spaces and get first letter of each part
+    const parts = name.split(' ');
+    
+    if (parts.length >= 2) {
+      // If there are at least 2 parts, use first letter of first and last parts
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    } else {
+      // If only one part, use first two letters or just the first if it's a single letter
+      return (parts[0].length > 1 ? parts[0].substring(0, 2) : parts[0]).toUpperCase();
+    }
+  };
+  
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      
+      // Clear local storage
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      
+      // Redirect to login page
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      
+      // Even if the API call fails, clear local storage and redirect
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      router.push('/auth/login');
+    }
+  };
 
   return (
     <div className={styles.layout}>
@@ -136,7 +182,7 @@ export default function DashboardLayout({
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <Link href="/auth/logout" className={styles.logoutButton}>
+          <button onClick={handleLogout} className={styles.logoutButton}>
             <span className={styles.navIcon}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -145,24 +191,26 @@ export default function DashboardLayout({
               </svg>
             </span>
             <span className={styles.navText}>Logout</span>
-          </Link>
+          </button>
         </div>
       </aside>
 
       <main className={styles.main}>
         <header className={styles.header}>
           <div className={styles.headerContent}>
-            <button 
-              className={styles.mobileMenuButton}
-              onClick={toggleSidebar}
-              aria-label="Menu"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            <div className={styles.headerLeft}>
+              <button 
+                className={styles.mobileMenuButton}
+                onClick={toggleSidebar}
+                aria-label="Menu"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
 
-            <div className={styles.userMenu}>
+            <div className={styles.headerRight}>
               <button className={styles.notificationButton}>
                 <span className={styles.notificationIcon}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -172,11 +220,16 @@ export default function DashboardLayout({
                 </span>
                 <span className={styles.notificationBadge}>2</span>
               </button>
-              <div className={styles.userInfo}>
-                <span className={styles.userName}>John Doe</span>
-                <span className={styles.userEmail}>john@example.com</span>
+              
+              <div className={styles.userProfile}>
+                <div className={styles.userAvatar}>
+                  {user?.name ? getInitials(user.name) : 'U'}
+                </div>
+                <div className={styles.userInfo}>
+                  <span className={styles.userName}>{user?.name || 'User'}</span>
+                  <span className={styles.userEmail}>{user?.email || 'user@example.com'}</span>
+                </div>
               </div>
-              <div className={styles.userAvatar}>JD</div>
             </div>
           </div>
         </header>

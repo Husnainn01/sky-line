@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
+import { authApi } from '@/lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,9 +18,26 @@ export default function RegisterPage() {
     confirmPassword: '',
     agreeTerms: false
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<React.ReactNode>('');
+  
+  // Verification state
+  const [registrationStep, setRegistrationStep] = useState('form'); // 'form', 'verification', 'success'
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  
+  // Define the type for registration data
+  interface RegistrationData {
+    name: string;
+    email: string;
+    password: string;
+    company: string;
+    phone: string;
+    tempUserId?: string;
+  }
+  
+  const [tempRegistrationData, setTempRegistrationData] = useState<RegistrationData | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -100,6 +118,7 @@ export default function RegisterPage() {
     return true;
   };
 
+  // Step 1: Request verification email
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -110,14 +129,105 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Request verification email from backend
+      const data = await authApi.requestVerification({
+        email: formData.email
+      });
       
-      // Simulate successful registration
-      // In real implementation, create user account and send verification email
-      router.push('/auth/register-success'); // Redirect to success page
-    } catch (err) {
-      setError('Registration failed. Please try again.');
+      // Store registration data temporarily including the tempUserId
+      setTempRegistrationData({
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+        company: '',
+        phone: formData.phoneNumber,
+        tempUserId: data.tempUserId
+      } as RegistrationData);
+      
+      // Move to verification step
+      setRegistrationStep('verification');
+    } catch (err: any) {
+      // Handle specific error messages from the backend
+      const errorMessage = err.message || 'Failed to send verification email. Please try again.';
+      setError(errorMessage);
+      
+      // If the error indicates the email is already registered, show login link
+      if (errorMessage.includes('already registered')) {
+        setError(
+          <>
+            {errorMessage} <Link href="/auth/login" className={styles.errorLink}>Sign in here</Link>
+          </>
+        );
+      }
+      
+      console.error('Verification request error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Go back to form step
+  const handleBackToForm = () => {
+    setRegistrationStep('form');
+    setVerificationError('');
+  };
+  
+  // Resend verification email
+  const handleResendCode = async () => {
+    setVerificationError('');
+    setIsLoading(true);
+    
+    try {
+      if (tempRegistrationData) {
+        await authApi.requestVerification({
+          email: tempRegistrationData.email
+        });
+      }
+      
+      // Show success message
+      setVerificationError('Verification email resent successfully!');
+    } catch (err: any) {
+      setVerificationError(err.message || 'Failed to resend verification email. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: Complete registration after email verification
+  const handleCompleteRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerificationError('');
+    
+    if (verificationCode.trim() === '') {
+      setVerificationError('Please enter the verification code from your email');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Complete registration with the tempUserId and verification code
+      const data = await authApi.register(
+        tempRegistrationData ? {
+          ...tempRegistrationData,
+          verificationCode
+        } : {}
+      );
+      
+      // Save token and user data to localStorage
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Show success or redirect
+      setRegistrationStep('success');
+      
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
+    } catch (err: any) {
+      setVerificationError(err.message || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -127,170 +237,234 @@ export default function RegisterPage() {
     <div className={styles.page}>
       <div className={styles.container}>
         <div className={styles.formWrapper}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Create Account</h1>
-            <p className={styles.subtitle}>Join JDM Global to access exclusive deals</p>
-          </div>
-
-          {error && (
-            <div className={styles.error}>
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label htmlFor="firstName">First Name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                  className={styles.input}
-                  placeholder="Enter your first name"
-                />
+          {registrationStep === 'form' && (
+            <>
+              <div className={styles.header}>
+                <h1 className={styles.title}>Create Account</h1>
+                <p className={styles.subtitle}>Join our global automotive community</p>
               </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="lastName">Last Name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                  className={styles.input}
-                  placeholder="Enter your last name"
-                />
-              </div>
-            </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="email">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className={styles.input}
-                placeholder="Enter your email"
-              />
-            </div>
+              {error && <div className={styles.error}>{error}</div>}
 
-            <div className={styles.formGroup}>
-              <label htmlFor="country">Country</label>
-              <select
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-                className={styles.input}
-              >
-                <option value="">Select your country</option>
-                <option value="US">United States</option>
-                <option value="CA">Canada</option>
-                <option value="UK">United Kingdom</option>
-                <option value="AU">Australia</option>
-                <option value="NZ">New Zealand</option>
-                <option value="JP">Japan</option>
-                <option value="SG">Singapore</option>
-                <option value="AE">United Arab Emirates</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="phoneNumber">Phone Number</label>
-              <input
-                type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                required
-                className={styles.input}
-                placeholder="Enter your phone number"
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className={styles.input}
-                placeholder="Create a password"
-              />
-              {formData.password && (
-                <div className={styles.passwordStrength}>
-                  <div className={styles.strengthBar}>
-                    <div 
-                      className={`${styles.strengthIndicator} ${getPasswordStrengthClass()}`} 
-                      style={{ width: `${(passwordStrength / 5) * 100}%` }}
-                    ></div>
+              <form onSubmit={handleSubmit} className={styles.form}>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="firstName">First Name</label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
+                      className={styles.input}
+                      placeholder="Enter your first name"
+                    />
                   </div>
-                  <span className={styles.strengthText}>{getPasswordStrengthText()}</span>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="lastName">Last Name</label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
+                      className={styles.input}
+                      placeholder="Enter your last name"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="email">Email Address</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className={styles.input}
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="country">Country</label>
+                  <select
+                    id="country"
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
+                    required
+                    className={styles.input}
+                  >
+                    <option value="">Select your country</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="NZ">New Zealand</option>
+                    <option value="JP">Japan</option>
+                    <option value="SG">Singapore</option>
+                    <option value="AE">United Arab Emirates</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="phoneNumber">Phone Number</label>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    required
+                    className={styles.input}
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className={styles.input}
+                    placeholder="Create a password"
+                  />
+                  {formData.password && (
+                    <div className={styles.passwordStrength}>
+                      <div className={styles.strengthBar}>
+                        <div 
+                          className={`${styles.strengthIndicator} ${getPasswordStrengthClass()}`} 
+                          style={{ width: `${(passwordStrength / 5) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span className={styles.strengthText}>{getPasswordStrengthText()}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="confirmPassword">Confirm Password</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className={styles.input}
+                    placeholder="Confirm your password"
+                  />
+                </div>
+
+                <div className={styles.formOptions}>
+                  <label className={styles.checkbox}>
+                    <input
+                      type="checkbox"
+                      name="agreeTerms"
+                      checked={formData.agreeTerms}
+                      onChange={handleChange}
+                      required
+                    />
+                    I agree to the <Link href="/terms" className={styles.termsLink}>Terms of Service</Link> and <Link href="/privacy" className={styles.termsLink}>Privacy Policy</Link>
+                  </label>
+                </div>
+
+                <button 
+                  type="submit" 
+                  className={styles.submitButton}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Sending Verification...' : 'Continue'}
+                </button>
+              </form>
+
+              <div className={styles.divider}>
+                <span>Already have an account?</span>
+              </div>
+
+              <Link href="/auth/login" className={styles.loginLink}>
+                Sign In
+              </Link>
+            </>
+          )}
+          
+          {registrationStep === 'verification' && (
+            <>
+              <div className={styles.header}>
+                <h1 className={styles.title}>Verify Email</h1>
+                <p className={styles.subtitle}>A verification email has been sent to {tempRegistrationData ? tempRegistrationData.email : ''}</p>
+              </div>
+              
+              {verificationError && (
+                <div className={verificationError.includes('resent') ? styles.success : styles.error}>
+                  {verificationError}
                 </div>
               )}
+              
+              <div className={styles.verificationInstructions}>
+                <p>Please check your inbox for an email from WorkOS with your verification code.</p>
+                <p>You can either:</p>
+                <ul>
+                  <li>Click the verification link in the email, then return here to complete registration</li>
+                  <li>OR enter the 6-digit verification code from the email below</li>
+                </ul>
+              </div>
+              
+              <form onSubmit={handleCompleteRegistration} className={styles.form}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="verificationCode">Verification Code</label>
+                  <input
+                    type="text"
+                    id="verificationCode"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className={styles.input}
+                    placeholder="Enter verification code"
+                    disabled={isLoading}
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  className={styles.submitButton}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Processing...' : 'Complete Registration'}
+                </button>
+              </form>
+              
+              <div className={styles.verificationActions}>
+                <button onClick={handleResendCode} className={styles.textButton} disabled={isLoading}>
+                  Resend Verification Email
+                </button>
+                <button onClick={handleBackToForm} className={styles.textButton} disabled={isLoading}>
+                  Back to Form
+                </button>
+              </div>
+            </>
+          )}
+          
+          {registrationStep === 'success' && (
+            <div className={styles.successContainer}>
+              <div className={styles.header}>
+                <h1 className={styles.title}>Registration Complete!</h1>
+                <p className={styles.subtitle}>Your account has been created successfully.</p>
+              </div>
+              
+              <div className={styles.success}>
+                <p>Redirecting you to the dashboard...</p>
+              </div>
             </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className={styles.input}
-                placeholder="Confirm your password"
-              />
-            </div>
-
-            <div className={styles.formOptions}>
-              <label className={styles.checkbox}>
-                <input
-                  type="checkbox"
-                  name="agreeTerms"
-                  checked={formData.agreeTerms}
-                  onChange={handleChange}
-                  required
-                />
-                I agree to the <Link href="/terms" className={styles.termsLink}>Terms of Service</Link> and <Link href="/privacy" className={styles.termsLink}>Privacy Policy</Link>
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className={styles.divider}>
-            <span>Already have an account?</span>
-          </div>
-
-          <Link href="/auth/login" className={styles.loginButton}>
-            Sign In
-          </Link>
-
-          <div className={styles.help}>
-            <p>Need help? <Link href="/contact">Contact Support</Link></p>
-          </div>
+          )}
         </div>
       </div>
     </div>

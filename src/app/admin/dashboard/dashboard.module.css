@@ -5,6 +5,75 @@
   overflow-x: hidden;
 }
 
+/* Loading Container */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: white;
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-sm);
+  margin-bottom: var(--admin-spacing-lg);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(199, 15, 15, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--admin-primary);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: var(--admin-spacing-md);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingMessage {
+  font-size: 1rem;
+  color: var(--admin-text-secondary);
+  margin: 0;
+}
+
+/* Error Container */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: white;
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-sm);
+  margin-bottom: var(--admin-spacing-lg);
+  border-left: 4px solid #ef4444;
+}
+
+.errorMessage {
+  font-size: 1rem;
+  color: #ef4444;
+  margin-bottom: var(--admin-spacing-md);
+  text-align: center;
+}
+
+.retryButton {
+  padding: 0.5rem 1.5rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: var(--admin-radius);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background-color: #dc2626;
+}
+
 .mainContent {
   flex: 1;
   padding: var(--admin-spacing-lg);

@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './AdminHeader.module.css';
+import { getUser, logout } from '../../utils/sessionManager';
+import { usePermissions } from '../../lib/usePermissions';
 
 interface AdminHeaderProps {
   title: string;
@@ -10,10 +12,22 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ title }: AdminHeaderProps) {
   const router = useRouter();
+  const { role } = usePermissions();
+  const [userName, setUserName] = useState('User');
+  const [userRole, setUserRole] = useState(role || 'viewer');
   
-  const handleLogout = () => {
-    // This would normally clear authentication
-    console.log('Logging out');
+  useEffect(() => {
+    // Get user data from localStorage
+    const user = getUser();
+    if (user) {
+      setUserName(user.name || user.email || 'User');
+      setUserRole(user.role || 'viewer');
+    }
+  }, []);
+  
+  const handleLogout = async () => {
+    // Use the logout function from sessionManager
+    await logout();
     router.push('/admin/login');
   };
   
@@ -35,8 +49,8 @@ export default function AdminHeader({ title }: AdminHeaderProps) {
         
         <div className={styles.userMenu}>
           <div className={styles.userInfo}>
-            <span className={styles.userName}>Admin User</span>
-            <span className={styles.userRole}>Administrator</span>
+            <span className={styles.userName}>{userName}</span>
+            <span className={styles.userRole}>{userRole.charAt(0).toUpperCase() + userRole.slice(1)}</span>
           </div>
           
           <button className={styles.logoutButton} onClick={handleLogout}>

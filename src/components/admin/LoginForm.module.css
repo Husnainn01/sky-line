@@ -156,3 +156,52 @@
   color: #a00c0c;
   text-decoration: underline;
 }
+
+/* MFA Styles */
+.mfaHeader {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.mfaTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+}
+
+.mfaDescription {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.mfaUserInfo {
+  background-color: #f3f4f6;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.secondaryButton {
+  width: 100%;
+  padding: 0.9rem;
+  background-color: #f3f4f6;
+  color: #333;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.75rem;
+}
+
+.secondaryButton:hover {
+  background-color: #e5e7eb;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

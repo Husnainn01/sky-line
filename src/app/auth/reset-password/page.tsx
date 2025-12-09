@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { authApi } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
 
@@ -21,11 +22,27 @@ export default function ResetPasswordPage() {
   const [isResetComplete, setIsResetComplete] = useState(false);
 
   useEffect(() => {
-    // In a real app, validate the token with the backend
+    // Check if token exists in URL
     if (!token) {
-      setIsTokenValid(false);
-      setError('Invalid or expired password reset link. Please request a new one.');
+      // Check if token might be in a different format or parameter name
+      const fullUrl = window.location.href;
+      const tokenMatch = fullUrl.match(/[?&]token=([^&]+)/);
+      const codeMatch = fullUrl.match(/[?&]code=([^&]+)/);
+      
+      if (tokenMatch && tokenMatch[1]) {
+        // Found token in URL but not in searchParams
+        console.log('Found token in URL:', tokenMatch[1]);
+        // We'll use this token directly in handleSubmit
+      } else if (codeMatch && codeMatch[1]) {
+        // Some providers use 'code' instead of 'token'
+        console.log('Found code in URL:', codeMatch[1]);
+        // We'll use this code as token
+      } else {
+        setIsTokenValid(false);
+        setError('Invalid or expired password reset link. Please request a new one.');
+      }
     }
+    // Note: WorkOS will validate the token when we actually use it
   }, [token]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,13 +127,32 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Try to find a token in various formats
+      let resetToken = token;
       
-      // Simulate successful password reset
-      setIsResetComplete(true);
-    } catch (err) {
-      setError('Failed to reset password. Please try again.');
+      // If no token in searchParams, check URL directly
+      if (!resetToken) {
+        const fullUrl = window.location.href;
+        const tokenMatch = fullUrl.match(/[?&]token=([^&]+)/);
+        const codeMatch = fullUrl.match(/[?&]code=([^&]+)/);
+        
+        if (tokenMatch && tokenMatch[1]) {
+          resetToken = tokenMatch[1];
+        } else if (codeMatch && codeMatch[1]) {
+          resetToken = codeMatch[1];
+        }
+      }
+      
+      // Call the reset password API with the token
+      if (resetToken) {
+        await authApi.resetPassword(resetToken, formData.password);
+        setIsResetComplete(true);
+      } else {
+        setError('Missing reset token. Please request a new password reset link.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to reset password. The link may have expired.');
+      console.error('Password reset error:', err);
     } finally {
       setIsLoading(false);
     }

@@ -108,9 +108,51 @@
 
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
+}
+
+.emailField {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.emailField input {
+  flex: 1;
+}
+
+.changeEmailButton {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.375rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.changeEmailButton:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+}
+
+.pendingEmail {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(199, 15, 15, 0.1);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.pendingEmail p {
+  margin: 0 0 0.5rem 0;
+  color: #94a3b8;
+}
+
+.pendingEmail strong {
+  color: #f8fafc;
 }
 
 .formGroup {
@@ -150,6 +192,7 @@
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 .editButton,
@@ -167,11 +210,21 @@
   background: #c70f0f;
   color: white;
   border: none;
+  font-size: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 200px;
 }
 
 .editButton:hover,
 .saveButton:hover {
   background: #a00c0c;
+}
+
+.editButton:disabled,
+.saveButton:disabled {
+  background: #666;
+  cursor: not-allowed;
 }
 
 .cancelButton {
@@ -200,6 +253,58 @@
   margin-top: 3rem;
   padding-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mfaSetupContainer {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mfaSetupContainer h4 {
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+  color: #f8fafc;
+}
+
+.qrCodeContainer {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.qrCode {
+  width: 200px;
+  height: 200px;
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.secretCode {
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+  word-break: break-all;
+}
+
+.codeInput {
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.mfaActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .twoFactorSection p {
@@ -258,6 +363,51 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
+.error {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.success {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loadingContainer p {
+  margin-top: 1rem;
+  color: #94a3b8;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: #c70f0f;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 640px) {
   .formGrid {
     grid-template-columns: 1fr;
@@ -269,5 +419,14 @@ input:checked + .slider:before {
   
   .formActions button {
     width: 100%;
+  }
+  
+  .mfaActions {
+    flex-direction: column;
+  }
+  
+  .qrCode {
+    width: 160px;
+    height: 160px;
   }
 }

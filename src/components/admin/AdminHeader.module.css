@@ -72,7 +72,8 @@
 
 .userRole {
   font-size: 0.8rem;
-  color: var(--admin-text-secondary);
+  color: var(--admin-primary);
+  border-radius: 12px;
 }
 
 .logoutButton {

@@ -1,14 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FilterOptions } from '@/types';
 import styles from './SearchFilter.module.css';
 
 interface SearchFilterProps {
     onFilterChange: (filters: FilterOptions) => void;
+    totalVehicles?: number;
+    loading?: boolean;
+    averageRating?: number;
+    makes?: string[];
+    modelsByMake?: Record<string, string[]>;
+    initialFilters?: FilterOptions;
 }
 
-export default function SearchFilter({ onFilterChange }: SearchFilterProps) {
+export default function SearchFilter({ 
+    onFilterChange, 
+    totalVehicles = 0, 
+    loading = false, 
+    averageRating = 4.8,
+    makes = [],
+    modelsByMake = {},
+    initialFilters
+}: SearchFilterProps) {
     const defaultFilters: FilterOptions = {
         searchQuery: '',
         make: '',
@@ -25,14 +39,49 @@ export default function SearchFilter({ onFilterChange }: SearchFilterProps) {
         maxMileage: 200000,
     };
 
-    const [filters, setFilters] = useState<FilterOptions>(defaultFilters);
+    const [filters, setFilters] = useState<FilterOptions>(initialFilters || defaultFilters);
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
-    const makeOptions = ['Toyota', 'Nissan', 'Honda', 'Mazda', 'Mitsubishi', 'Subaru'];
-    const modelOptions = ['Supra MK4', 'Skyline GT-R', 'NSX', 'RX-7 FD', 'Lancer Evolution', 'WRX STI', 'Silvia S15'];
+    // Use dynamic makes from props instead of hardcoded values
+    // Use models based on selected make
+    const availableModels = filters.make ? (modelsByMake[filters.make] || []) : [];
+    
+    // Keep these options hardcoded for now
     const bodyTypes = ['Coupe', 'Sedan', 'SUV', 'Hatchback', 'Truck'];
     const fuelOptions = ['Gasoline', 'Diesel', 'Hybrid', 'Electric'];
     const drivetrainOptions = ['RWD', 'FWD', 'AWD', '4WD'];
+
+    // Check if any filters are active
+    useEffect(() => {
+        const hasFilters = 
+            filters.searchQuery !== '' ||
+            filters.make !== '' ||
+            filters.model !== '' ||
+            filters.bodyType !== '' ||
+            filters.transmission !== '' ||
+            filters.fuel !== '' ||
+            filters.drivetrain !== '' ||
+            filters.minPrice !== defaultFilters.minPrice ||
+            filters.maxPrice !== defaultFilters.maxPrice ||
+            filters.minYear !== defaultFilters.minYear ||
+            filters.maxYear !== defaultFilters.maxYear ||
+            filters.minMileage !== defaultFilters.minMileage ||
+            filters.maxMileage !== defaultFilters.maxMileage;
+        
+        setHasActiveFilters(hasFilters);
+    }, [filters, defaultFilters]);
+    
+    // Reset model when make changes
+    useEffect(() => {
+        // If make is cleared or changed, reset the model
+        if (filters.model && (!filters.make || !modelsByMake[filters.make]?.includes(filters.model))) {
+            setFilters(prev => ({
+                ...prev,
+                model: ''
+            }));
+        }
+    }, [filters.make, filters.model, modelsByMake]);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -69,9 +118,16 @@ export default function SearchFilter({ onFilterChange }: SearchFilterProps) {
                     <p className={styles.subheading}>Refine your search and uncover limited stock JDM icons ready for export.</p>
                 </div>
                 <div className={styles.searchStats}>
-                    <span className={styles.statCount}>128 Vehicles</span>
+                    <span className={styles.statCount}>
+                        {loading ? 'Loading...' : (
+                            <>
+                                {totalVehicles} Vehicle{totalVehicles !== 1 ? 's' : ''}
+                                {hasActiveFilters && <span> (filtered)</span>}
+                            </>
+                        )}
+                    </span>
                     <span className={styles.statRating}>
-                        <span className={styles.ratingValue}>4.8</span>/5 customer rating
+                        <span className={styles.ratingValue}>{averageRating}</span>/5 customer rating
                     </span>
                 </div>
             </header>
@@ -85,14 +141,25 @@ export default function SearchFilter({ onFilterChange }: SearchFilterProps) {
                     placeholder="Search by make, model, VIN, keyword..."
                     className={styles.searchInput}
                 />
-                <button
-                    type="button"
-                    onClick={toggleAdvancedFilters}
-                    className={styles.toggleFiltersButton}
-                    aria-expanded={showAdvancedFilters}
-                >
-                    {showAdvancedFilters ? 'Hide Filters' : 'Show More Filters'}
-                </button>
+                <div className={styles.searchButtons}>
+                    {hasActiveFilters && (
+                        <button
+                            type="button"
+                            onClick={clearFilters}
+                            className={styles.clearFiltersButton}
+                        >
+                            Clear Filters
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={toggleAdvancedFilters}
+                        className={styles.toggleFiltersButton}
+                        aria-expanded={showAdvancedFilters}
+                    >
+                        {showAdvancedFilters ? 'Hide Filters' : 'Show More Filters'}
+                    </button>
+                </div>
             </div>
 
             {showAdvancedFilters && (
@@ -101,16 +168,23 @@ export default function SearchFilter({ onFilterChange }: SearchFilterProps) {
                         <label htmlFor="make" className={styles.label}>Select Maker</label>
                         <select id="make" name="make" value={filters.make} onChange={handleInputChange} className={styles.select}>
                             <option value="">Any</option>
-                            {makeOptions.map((make) => (
+                            {makes.map((make) => (
                                 <option key={make} value={make}>{make}</option>
                             ))}
                         </select>
                     </div>
                     <div className={styles.filterGroup}>
                         <label htmlFor="model" className={styles.label}>Select Model</label>
-                        <select id="model" name="model" value={filters.model} onChange={handleInputChange} className={styles.select}>
-                            <option value="">Any</option>
-                            {modelOptions.map((model) => (
+                        <select 
+                            id="model" 
+                            name="model" 
+                            value={filters.model} 
+                            onChange={handleInputChange} 
+                            className={styles.select}
+                            disabled={!filters.make} // Disable if no make is selected
+                        >
+                            <option value="">{filters.make ? 'Any' : 'Select Make First'}</option>
+                            {availableModels.map((model) => (
                                 <option key={model} value={model}>{model}</option>
                             ))}
                         </select>

@@ -102,6 +102,17 @@
     color: #e5e5e5;
 }
 
+.userWelcome {
+    color: #e5e5e5;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
 /* Main Navigation - White/Light */
 .mainNav {
     background: #ffffff;

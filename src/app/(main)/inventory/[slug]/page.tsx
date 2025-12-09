@@ -1,16 +1,169 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { carsData } from '@/data/mockData';
+import { vehicleApi } from '@/lib/api';
+import { Car } from '@/types';
 import styles from './page.module.css';
 
-const fallbackCar = carsData[0];
-
 export default function InventoryDetailPage({ params }: { params: { slug: string } }) {
+    const [car, setCar] = useState<Car | null>(null);
+    const [relatedCars, setRelatedCars] = useState<Car[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
     const normalizedSlug = decodeURIComponent(slug);
-    const car = carsData.find((item) => item.slug === normalizedSlug) || fallbackCar;
 
-    const stockNumber = car.stockNumber || `SKY-${car.id.padStart(4, '0')}`;
+    // Fetch car data when component mounts
+    useEffect(() => {
+        const fetchCarData = async () => {
+            try {
+                setLoading(true);
+                
+                // First try to find the car by slug
+                const response = await vehicleApi.getAllVehicles({ slug: normalizedSlug });
+                
+                if (response.success && response.data && response.data.length > 0) {
+                    // Map API response to Car type
+                    const vehicleData = response.data[0];
+                    const mappedCar: Car = {
+                        id: vehicleData._id,
+                        slug: vehicleData.slug || `${vehicleData.make}-${vehicleData.model}-${vehicleData.year}`.toLowerCase().replace(/\s+/g, '-'),
+                        make: vehicleData.make,
+                        model: vehicleData.model,
+                        year: vehicleData.year,
+                        price: vehicleData.price,
+                        mileage: vehicleData.mileage,
+                        transmission: vehicleData.transmission,
+                        fuelType: vehicleData.fuelType,
+                        drivetrain: vehicleData.drivetrain,
+                        image: vehicleData.images && vehicleData.images.length > 0 ? vehicleData.images[0] : '/cars/placeholder.png',
+                        images: vehicleData.images || [],
+                        description: vehicleData.description,
+                        features: vehicleData.features || [],
+                        condition: vehicleData.condition,
+                        location: vehicleData.location,
+                        available: vehicleData.status !== 'sold',
+                        bodyType: vehicleData.bodyType,
+                        vin: vehicleData.vin,
+                        engine: vehicleData.engineSize,
+                        cylinders: vehicleData.cylinders,
+                        color: vehicleData.exteriorColor,
+                        doors: vehicleData.doors,
+                        stockNumber: vehicleData.stockNumber || `SKY-${Math.floor(1000 + Math.random() * 9000)}`,
+                        steering: vehicleData.steering
+                    };
+                    
+                    setCar(mappedCar);
+                    
+                    // Fetch related cars
+                    fetchRelatedCars(mappedCar);
+                } else {
+                    throw new Error('Vehicle not found');
+                }
+            } catch (err: any) {
+                console.error('Error fetching vehicle:', err);
+                setError(err.message || 'Failed to load vehicle details');
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchCarData();
+    }, [normalizedSlug]);
+    
+    // Fetch related cars based on make or body type
+    const fetchRelatedCars = async (currentCar: Car) => {
+        try {
+            // Get cars with same make or body type, excluding current car
+            const response = await vehicleApi.getAllVehicles({ 
+                make: currentCar.make,
+                limit: 4 
+            });
+            
+            if (response.success && response.data) {
+                // Map API response to Car type and filter out current car
+                const relatedVehicles: Car[] = response.data
+                    .filter((vehicle: any) => vehicle._id !== currentCar.id)
+                    .slice(0, 3)
+                    .map((vehicle: any) => ({
+                        id: vehicle._id,
+                        slug: vehicle.slug || `${vehicle.make}-${vehicle.model}-${vehicle.year}`.toLowerCase().replace(/\s+/g, '-'),
+                        make: vehicle.make,
+                        model: vehicle.model,
+                        year: vehicle.year,
+                        price: vehicle.price,
+                        mileage: vehicle.mileage,
+                        transmission: vehicle.transmission,
+                        fuelType: vehicle.fuelType,
+                        drivetrain: vehicle.drivetrain,
+                        image: vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : '/cars/placeholder.png',
+                        images: vehicle.images || [],
+                        description: vehicle.description,
+                        features: vehicle.features || [],
+                        condition: vehicle.condition,
+                        location: vehicle.location,
+                        available: vehicle.status !== 'sold',
+                        bodyType: vehicle.bodyType,
+                        vin: vehicle.vin,
+                        engine: vehicle.engineSize,
+                        cylinders: vehicle.cylinders,
+                        color: vehicle.exteriorColor,
+                        doors: vehicle.doors,
+                        stockNumber: vehicle.stockNumber || `SKY-${Math.floor(1000 + Math.random() * 9000)}`,
+                        steering: vehicle.steering
+                    }));
+                    
+                setRelatedCars(relatedVehicles);
+            }
+        } catch (err) {
+            console.error('Error fetching related vehicles:', err);
+            // Don't set error state here, as this is not critical
+            setRelatedCars([]);
+        }
+    };
+    
+    // Show loading state
+    if (loading) {
+        return (
+            <div className={styles.page}>
+                <div className={styles.container}>
+                    <div className={styles.loadingContainer}>
+                        <div className={styles.loadingSpinner}></div>
+                        <p className={styles.loadingText}>Loading vehicle details...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    // Show error state
+    if (error || !car) {
+        return (
+            <div className={styles.page}>
+                <div className={styles.container}>
+                    <nav className={styles.breadcrumbs}>
+                        <Link href="/inventory">Inventory</Link>
+                        <span>/</span>
+                        <span>Error</span>
+                    </nav>
+                    
+                    <div className={styles.errorContainer}>
+                        <div className={styles.errorIcon}>⚠️</div>
+                        <h3 className={styles.errorTitle}>Vehicle Not Found</h3>
+                        <p className={styles.errorText}>{error || 'The requested vehicle could not be found.'}</p>
+                        <Link href="/inventory" className={styles.backButton}>
+                            Back to Inventory
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    const stockNumber = car.stockNumber || `SKY-${car.id}`;
     const galleryImages = car.images && car.images.length > 0 ? car.images : [car.image];
 
     const specGroups = [
@@ -41,10 +194,6 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
         'Review and confirm the quotation',
         'Get your Proforma Invoice',
     ];
-
-    const relatedCars = carsData
-        .filter((item) => item.slug !== car.slug && (item.make === car.make || item.bodyType === car.bodyType))
-        .slice(0, 3);
 
     return (
         <div className={styles.page}>
@@ -191,7 +340,7 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
                                                     fill
                                                     sizes="120px"
                                                 />
-                                                <span className={styles.relatedRef}>Ref No. {related.stockNumber || `SKY-${related.id.padStart(4, '0')}`}</span>
+                                                <span className={styles.relatedRef}>Ref No. {related.stockNumber}</span>
                                             </div>
                                             <div className={styles.relatedContent}>
                                                 <Link href={`/inventory/${related.slug}`} className={styles.relatedTitle}>
@@ -218,7 +367,7 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
                                                     </div>
                                                     <div className={styles.relatedActions}>
                                                         <Link
-                                                            href={`/contact?stock=${related.stockNumber ?? related.id}`}
+                                                            href={`/contact?stock=${related.stockNumber}`}
                                                             className={styles.relatedInquiry}
                                                         >
                                                             Inquiry

@@ -1,69 +1,159 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 // Import directly with relative paths to fix TypeScript errors
 import AdminHeader from '../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../components/admin/AdminSidebar';
+import { getUser } from '../../../utils/sessionManager';
+import { dashboardApi, vehicleApi } from '../../../lib/api';
 import styles from './dashboard.module.css';
 
-// Mock data for charts and stats
-const monthlyRevenue = [
-  { month: 'Jan', amount: 65000 },
-  { month: 'Feb', amount: 72000 },
-  { month: 'Mar', amount: 58000 },
-  { month: 'Apr', amount: 75000 },
-  { month: 'May', amount: 82000 },
-  { month: 'Jun', amount: 95000 },
-  { month: 'Jul', amount: 105000 },
-  { month: 'Aug', amount: 92000 },
-  { month: 'Sep', amount: 86000 },
-  { month: 'Oct', amount: 94000 },
-  { month: 'Nov', amount: 98000 },
-  { month: 'Dec', amount: 120000 },
-];
+// Define interfaces for dashboard data
+interface MonthlyRevenue {
+  month: string;
+  amount: number;
+}
 
-const vehiclesByType = {
-  stock: 86,
-  auction: 38,
-  sold: 45,
-  pending: 12,
-};
+interface VehiclesByType {
+  stock: number;
+  auction: number;
+  sold: number;
+  pending: number;
+}
 
-const topSellingModels = [
-  { model: 'Toyota Supra', count: 12, percentage: 15 },
-  { model: 'Nissan Skyline', count: 10, percentage: 12.5 },
-  { model: 'Honda NSX', count: 8, percentage: 10 },
-  { model: 'Mazda RX-7', count: 7, percentage: 8.75 },
-  { model: 'Mitsubishi Evo', count: 6, percentage: 7.5 },
-];
+interface TopSellingModel {
+  model: string;
+  count: number;
+  percentage: number;
+}
 
-const recentOrders = [
-  { id: 'ORD-7829', customer: 'John Smith', vehicle: '2002 Nissan Skyline GT-R', amount: 42500, status: 'completed', date: '2023-11-28' },
-  { id: 'ORD-7830', customer: 'Emma Johnson', vehicle: '1995 Toyota Supra RZ', amount: 68000, status: 'processing', date: '2023-11-29' },
-  { id: 'ORD-7831', customer: 'Michael Brown', vehicle: '1992 Mazda RX-7 FD', amount: 35000, status: 'processing', date: '2023-11-30' },
-  { id: 'ORD-7832', customer: 'Sarah Davis', vehicle: '1991 Honda NSX', amount: 75000, status: 'pending', date: '2023-12-01' },
-];
+interface RecentOrder {
+  id: string;
+  customer: string;
+  vehicle: string;
+  amount: number;
+  status: string;
+  date: string;
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [selectedPeriod, setSelectedPeriod] = useState('yearly');
+  const [userName, setUserName] = useState('Admin');
   
-  // This would normally check for authentication
-  const isAuthenticated = true; // For demo purposes
+  // State for dashboard data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue[]>([]);
+  const [vehiclesByType, setVehiclesByType] = useState<VehiclesByType>({ stock: 0, auction: 0, sold: 0, pending: 0 });
+  const [topSellingModels, setTopSellingModels] = useState<TopSellingModel[]>([]);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalVehicles, setTotalVehicles] = useState(0);
   
-  if (!isAuthenticated) {
-    router.push('/admin/login');
-    return null;
-  }
+  // Get user data and dashboard data when component mounts
+  useEffect(() => {
+    const user = getUser();
+    if (user) {
+      // Use name if available, otherwise use email or fallback to 'Admin'
+      setUserName(user.name || user.email?.split('@')[0] || 'Admin');
+    }
+    
+    // Fetch dashboard data
+    fetchDashboardData();
+  }, []);
   
-  // Calculate total revenue
-  const totalRevenue = monthlyRevenue.reduce((sum, month) => sum + month.amount, 0);
-  
-  // Calculate total vehicles
-  const totalVehicles = Object.values(vehiclesByType).reduce((sum, count) => sum + count, 0);
+  // Fetch dashboard data from API
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch dashboard data from API
+      const dashboardData = await dashboardApi.getDashboardData();
+      
+      // Set monthly revenue data
+      if (dashboardData.monthlyRevenue) {
+        setMonthlyRevenue(dashboardData.monthlyRevenue);
+        // Calculate total revenue
+        const total = dashboardData.monthlyRevenue.reduce(
+          (sum: number, month: MonthlyRevenue) => sum + month.amount, 0
+        );
+        setTotalRevenue(total);
+      }
+      
+      // Set vehicles by type data
+      if (dashboardData.vehiclesByType) {
+        setVehiclesByType(dashboardData.vehiclesByType);
+        // Calculate total vehicles
+        const total = Object.values(dashboardData.vehiclesByType as VehiclesByType).reduce(
+          (sum: number, count: number) => sum + count, 0
+        );
+        setTotalVehicles(total);
+      }
+      
+      // Set top selling models data
+      if (dashboardData.topSellingModels) {
+        setTopSellingModels(dashboardData.topSellingModels);
+      }
+      
+      // Set recent orders data
+      if (dashboardData.recentOrders) {
+        setRecentOrders(dashboardData.recentOrders);
+      }
+      
+    } catch (err: any) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err.message || 'Failed to load dashboard data');
+      
+      // Set fallback data for development
+      setMonthlyRevenue([
+        { month: 'Jan', amount: 65000 },
+        { month: 'Feb', amount: 72000 },
+        { month: 'Mar', amount: 58000 },
+        { month: 'Apr', amount: 75000 },
+        { month: 'May', amount: 82000 },
+        { month: 'Jun', amount: 95000 },
+        { month: 'Jul', amount: 105000 },
+        { month: 'Aug', amount: 92000 },
+        { month: 'Sep', amount: 86000 },
+        { month: 'Oct', amount: 94000 },
+        { month: 'Nov', amount: 98000 },
+        { month: 'Dec', amount: 120000 },
+      ]);
+      
+      setVehiclesByType({
+        stock: 86,
+        auction: 38,
+        sold: 45,
+        pending: 12,
+      });
+      
+      setTopSellingModels([
+        { model: 'Toyota Supra', count: 12, percentage: 15 },
+        { model: 'Nissan Skyline', count: 10, percentage: 12.5 },
+        { model: 'Honda NSX', count: 8, percentage: 10 },
+        { model: 'Mazda RX-7', count: 7, percentage: 8.75 },
+        { model: 'Mitsubishi Evo', count: 6, percentage: 7.5 },
+      ]);
+      
+      setRecentOrders([
+        { id: 'ORD-7829', customer: 'John Smith', vehicle: '2002 Nissan Skyline GT-R', amount: 42500, status: 'completed', date: '2023-11-28' },
+        { id: 'ORD-7830', customer: 'Emma Johnson', vehicle: '1995 Toyota Supra RZ', amount: 68000, status: 'processing', date: '2023-11-29' },
+        { id: 'ORD-7831', customer: 'Michael Brown', vehicle: '1992 Mazda RX-7 FD', amount: 35000, status: 'processing', date: '2023-11-30' },
+        { id: 'ORD-7832', customer: 'Sarah Davis', vehicle: '1991 Honda NSX', amount: 75000, status: 'pending', date: '2023-12-01' },
+      ]);
+      
+      // Calculate totals from fallback data
+      setTotalRevenue(1042000); // Sum of all monthly revenue
+      setTotalVehicles(181); // Sum of all vehicle types
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return (
     <div className={styles.dashboardLayout}>
@@ -73,7 +163,7 @@ export default function AdminDashboard() {
         
         <div className={styles.welcomeSection}>
           <div className={styles.welcomeContent}>
-            <h1 className={styles.welcomeTitle}>Welcome back, Admin</h1>
+            <h1 className={styles.welcomeTitle}>Welcome back, {userName}</h1>
             <p className={styles.welcomeSubtitle}>Here's what's happening with your inventory today.</p>
           </div>
           <div className={styles.dateTimeDisplay}>
@@ -81,7 +171,24 @@ export default function AdminDashboard() {
           </div>
         </div>
         
-        <div className={styles.overviewCards}>
+        {loading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p className={styles.loadingMessage}>Loading dashboard data...</p>
+          </div>
+        ) : error ? (
+          <div className={styles.errorContainer}>
+            <p className={styles.errorMessage}>{error}</p>
+            <button 
+              onClick={() => fetchDashboardData()}
+              className={styles.retryButton}
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className={styles.overviewCards}>
           <div className={styles.overviewCard}>
             <div className={styles.overviewIconWrapper} style={{ backgroundColor: 'rgba(199, 15, 15, 0.1)' }}>
               <svg className={styles.overviewIcon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#c70f0f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -399,6 +506,8 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

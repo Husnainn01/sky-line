@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { auctionCarsData } from '@/data/auctionData';
+import { auctionService } from '@/lib/auctionService';
+import { AuctionCar } from '@/types/auction';
 import AdminHeader from '../../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../../components/admin/AdminSidebar';
 import styles from './auctionDetail.module.css';
@@ -14,8 +15,27 @@ export default function AuctionDetailPage() {
   const router = useRouter();
   const id = params.id as string;
   
-  // Find the auction vehicle by ID
-  const auction = auctionCarsData.find(car => car.id === id);
+  const [auction, setAuction] = useState<AuctionCar | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Fetch auction vehicle by ID
+  useEffect(() => {
+    const fetchAuctionVehicle = async () => {
+      try {
+        setLoading(true);
+        const auctionVehicle = await auctionService.getAuctionVehicleById(id);
+        setAuction(auctionVehicle);
+        setLoading(false);
+      } catch (err) {
+        console.error(`Error fetching auction vehicle with ID ${id}:`, err);
+        setError('Failed to load auction vehicle. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    fetchAuctionVehicle();
+  }, [id]);
   
   // Format currency in JPY
   const formatJPY = (amount: number) => {
@@ -40,8 +60,24 @@ export default function AuctionDetailPage() {
     }
   };
   
-  // If auction not found, show error
-  if (!auction) {
+  // Show loading state
+  if (loading) {
+    return (
+      <div className={styles.dashboardLayout}>
+        <AdminSidebar />
+        <div className={styles.mainContent}>
+          <AdminHeader title="Loading Auction..." />
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p className={styles.loadingMessage}>Loading auction details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show error state
+  if (error || !auction) {
     return (
       <div className={styles.dashboardLayout}>
         <AdminSidebar />

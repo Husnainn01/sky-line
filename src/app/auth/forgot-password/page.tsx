@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { authApi } from '@/lib/api';
 import styles from './page.module.css';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<React.ReactNode>('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,13 +21,24 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call the forgot password API
+      await authApi.forgotPassword(email);
       
-      // Simulate successful password reset request
+      // Show success message
       setIsSubmitted(true);
-    } catch (err) {
-      setError('Failed to send reset link. Please try again.');
+    } catch (err: any) {
+      // Handle specific error for legacy accounts
+      if (err.message && err.message.includes('before our new authentication system')) {
+        setError(
+          <>
+            This account was created before our new authentication system. 
+            Please <Link href="/auth/register" className={styles.errorLink}>register again</Link> with the same email.
+          </>
+        );
+      } else {
+        setError(err.message || 'Failed to send reset link. Please try again.');
+      }
+      console.error('Password reset request error:', err);
     } finally {
       setIsLoading(false);
     }

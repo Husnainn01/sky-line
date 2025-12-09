@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { vehicleApi } from '@/lib/api';
 import AdminHeader from '../../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../../components/admin/AdminSidebar';
 import ImageUploader, { UploadedImage } from '../../../../../components/admin/ImageUploader';
@@ -96,8 +97,50 @@ export default function NewAuctionVehiclePage() {
       
       console.log('Submitting auction data:', auctionData);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Create vehicle with type auction
+      const vehicleData = {
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        price: parseFloat(formData.estimatedPrice as string),
+        type: 'auction',
+        condition: formData.condition,
+        mileage: parseFloat(formData.mileage as string),
+        engineSize: formData.engine,
+        transmission: formData.transmission,
+        fuelType: 'Gasoline', // Default value
+        driveType: 'RWD', // Default value
+        bodyType: 'Coupe', // Default value
+        exteriorColor: formData.color,
+        interiorColor: 'Black', // Default value
+        doors: 2, // Default value
+        seats: 4, // Default value
+        
+        // Auction specific fields
+        auctionGrade: formData.grade,
+        auctionLocation: formData.auctionHouse,
+        bidEndTime: new Date(formData.auctionDate),
+        startingBid: parseFloat(formData.startingBid as string),
+        currentBid: parseFloat(formData.currentBid as string),
+        minimumBid: parseFloat(formData.startingBid as string),
+        bidIncrement: 10000, // Default value
+        
+        // Features and specifications
+        features: featuresArray,
+        specifications: {},
+        description: formData.description,
+        
+        // Media
+        images: images.map(img => img.preview),
+        
+        // Status and logistics
+        status: formData.auctionStatus === 'live' ? 'auction' : formData.auctionStatus === 'past' && formData.soldStatus === 'sold' ? 'sold' : 'available',
+        location: formData.location
+      };
+      
+      // Send to API
+      const response = await vehicleApi.createVehicle(vehicleData);
+      console.log('API response:', response);
       
       // Redirect to auction vehicles page after successful submission
       router.push('/admin/vehicles/auction');
@@ -407,7 +450,7 @@ export default function NewAuctionVehiclePage() {
                 
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="startingBid" className={styles.label}>Starting Bid (USD) *</label>
+                    <label htmlFor="startingBid" className={styles.label}>Starting Bid (JPY) *</label>
                     <input
                       type="number"
                       id="startingBid"
@@ -422,7 +465,7 @@ export default function NewAuctionVehiclePage() {
                   </div>
                   
                   <div className={styles.formGroup}>
-                    <label htmlFor="currentBid" className={styles.label}>Current Bid (USD) *</label>
+                    <label htmlFor="currentBid" className={styles.label}>Current Bid (JPY) *</label>
                     <input
                       type="number"
                       id="currentBid"
@@ -439,7 +482,7 @@ export default function NewAuctionVehiclePage() {
                 
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="estimatedPrice" className={styles.label}>Estimated Price (USD) *</label>
+                    <label htmlFor="estimatedPrice" className={styles.label}>Estimated Price (JPY) *</label>
                     <input
                       type="number"
                       id="estimatedPrice"
@@ -455,7 +498,7 @@ export default function NewAuctionVehiclePage() {
                   
                   {formData.auctionStatus === 'past' && (
                     <div className={styles.formGroup}>
-                      <label htmlFor="finalPrice" className={styles.label}>Final Price (USD) *</label>
+                      <label htmlFor="finalPrice" className={styles.label}>Final Price (JPY) *</label>
                       <input
                         type="number"
                         id="finalPrice"

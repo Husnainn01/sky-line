@@ -1,17 +1,34 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import CompactCarCard from '@/components/CompactCarCard';
 import { Car } from '@/types';
 import styles from './RecentlyAddedSection.module.css';
 
 interface RecentlyAddedSectionProps {
     cars: Car[];
+    loading?: boolean;
+    error?: string | null;
     sidebar?: ReactNode;
+    makes?: string[];
+    modelsByMake?: Record<string, string[]>;
+    bodyTypes?: string[];
 }
 
-export default function RecentlyAddedSection({ cars, sidebar }: RecentlyAddedSectionProps) {
+export default function RecentlyAddedSection({ 
+    cars, 
+    loading = false, 
+    error = null, 
+    sidebar,
+    makes = [],
+    modelsByMake = {},
+    bodyTypes = []
+}: RecentlyAddedSectionProps) {
+    const router = useRouter();
+    // State for filtered cars
+    const [filteredCars, setFilteredCars] = useState<Car[]>(cars);
     const [filters, setFilters] = useState({
         make: '',
         model: '',
@@ -21,9 +38,76 @@ export default function RecentlyAddedSection({ cars, sidebar }: RecentlyAddedSec
         yearFrom: '',
         yearTo: ''
     });
+    
+    // State for available models based on selected make
+    const [availableModels, setAvailableModels] = useState<string[]>([]);
+    
+    // State to track if search has been performed
+    const [searchPerformed, setSearchPerformed] = useState(false);
+
+    // Update filteredCars when cars prop changes
+    useEffect(() => {
+        setFilteredCars(cars);
+    }, [cars]);
+    
+    // Update available models when make changes
+    useEffect(() => {
+        if (filters.make) {
+            // Find the matching make in a case-insensitive way
+            const matchingMake = Object.keys(modelsByMake).find(
+                make => make.toLowerCase() === filters.make.toLowerCase()
+            );
+            
+            if (matchingMake) {
+                setAvailableModels(modelsByMake[matchingMake]);
+            } else {
+                setAvailableModels([]);
+            }
+        } else {
+            setAvailableModels([]);
+            
+            // Reset model if make is cleared
+            if (filters.model) {
+                setFilters(prev => ({ ...prev, model: '' }));
+            }
+        }
+    }, [filters.make, filters.model, modelsByMake]);
 
     const handleFilterChange = (field: string, value: string) => {
         setFilters(prev => ({ ...prev, [field]: value }));
+    };
+    
+    // Function to reset filters and search state
+    const resetFilters = () => {
+        setFilters({
+            make: '',
+            model: '',
+            steering: '',
+            type: '',
+            priceRange: '',
+            yearFrom: '',
+            yearTo: ''
+        });
+        setFilteredCars(cars);
+        setSearchPerformed(false);
+    };
+    
+    // Function to apply filters and redirect to inventory page
+    const applyFilters = () => {
+        // Build the query string from the filters
+        const queryParams = new URLSearchParams();
+        
+        // Add each filter to the query params if it has a value
+        if (filters.make) queryParams.append('make', filters.make);
+        if (filters.model) queryParams.append('model', filters.model);
+        if (filters.steering) queryParams.append('steering', filters.steering);
+        if (filters.type) queryParams.append('bodyType', filters.type);
+        if (filters.priceRange) queryParams.append('priceRange', filters.priceRange);
+        if (filters.yearFrom) queryParams.append('yearFrom', filters.yearFrom);
+        if (filters.yearTo) queryParams.append('yearTo', filters.yearTo);
+        
+        // Redirect to the inventory page with the filters as query parameters
+        router.push(`/inventory?${queryParams.toString()}`);
     };
 
     const layoutClassName = `${styles.layout} ${sidebar ? styles.layoutWithSidebar : ''}`.trim();
@@ -55,24 +139,21 @@ export default function RecentlyAddedSection({ cars, sidebar }: RecentlyAddedSec
                             onChange={(e) => handleFilterChange('make', e.target.value)}
                         >
                             <option value="">Make</option>
-                            <option value="toyota">Toyota</option>
-                            <option value="nissan">Nissan</option>
-                            <option value="honda">Honda</option>
-                            <option value="mazda">Mazda</option>
-                            <option value="subaru">Subaru</option>
-                            <option value="mitsubishi">Mitsubishi</option>
+                            {makes.map((make) => (
+                                <option key={make} value={make}>{make}</option>
+                            ))}
                         </select>
 
                         <select
                             className={styles.filterSelect}
                             value={filters.model}
                             onChange={(e) => handleFilterChange('model', e.target.value)}
+                            disabled={!filters.make} // Disable if no make is selected
                         >
-                            <option value="">Model</option>
-                            <option value="skyline">Skyline</option>
-                            <option value="supra">Supra</option>
-                            <option value="rx7">RX-7</option>
-                            <option value="nsx">NSX</option>
+                            <option value="">{filters.make ? 'Model' : 'Select Make First'}</option>
+                            {availableModels.map((model) => (
+                                <option key={model} value={model}>{model}</option>
+                            ))}
                         </select>
 
                         <select
@@ -93,10 +174,9 @@ export default function RecentlyAddedSection({ cars, sidebar }: RecentlyAddedSec
                             onChange={(e) => handleFilterChange('type', e.target.value)}
                         >
                             <option value="">Type</option>
-                            <option value="sedan">Sedan</option>
-                            <option value="coupe">Coupe</option>
-                            <option value="suv">SUV</option>
-                            <option value="sports">Sports Car</option>
+                            {bodyTypes.map((type) => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
                         </select>
 
                         <select
@@ -142,12 +222,30 @@ export default function RecentlyAddedSection({ cars, sidebar }: RecentlyAddedSec
                         </select>
 
                         <div className={styles.resultsCount}>
-                            <span className={styles.countNumber}>{cars.length} items match</span>
+                            <span className={styles.countNumber}>
+                                {loading ? 'Loading...' : searchPerformed ? `${filteredCars.length} items match` : `${cars.length} total vehicles`}
+                            </span>
                         </div>
 
-                        <button className={styles.searchButton}>
-                            SEARCH
-                        </button>
+                        <div className={styles.buttonGroup}>
+                            <button 
+                                className={styles.searchButton}
+                                onClick={applyFilters}
+                                type="button"
+                            >
+                                SEARCH
+                            </button>
+                            
+                            {searchPerformed && (
+                                <button 
+                                    className={styles.resetButton}
+                                    onClick={resetFilters}
+                                    type="button"
+                                >
+                                    RESET
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -166,15 +264,31 @@ export default function RecentlyAddedSection({ cars, sidebar }: RecentlyAddedSec
                     </Link>
                 </div>
 
-                <div className={styles.grid}>
-                    {cars.map((car, index) => (
-                        <CompactCarCard
-                            key={car.id}
-                            car={car}
-                            stockNumber={`SKY-${(5800 + index).toString()}`}
-                        />
-                    ))}
-                </div>
+                {loading ? (
+                    <div className={styles.loadingContainer}>
+                        <div className={styles.spinner}></div>
+                        <p>Loading vehicles...</p>
+                    </div>
+                ) : error ? (
+                    <div className={styles.errorContainer}>
+                        <p className={styles.errorMessage}>{error}</p>
+                        <p>Please try again later.</p>
+                    </div>
+                ) : filteredCars.length === 0 ? (
+                    <div className={styles.emptyContainer}>
+                        <p>No vehicles found.</p>
+                    </div>
+                ) : (
+                    <div className={styles.grid}>
+                        {filteredCars.map((car, index) => (
+                            <CompactCarCard
+                                key={car.id}
+                                car={car}
+                                stockNumber={car.stockNumber || `SKY-${(5800 + index).toString()}`}
+                            />
+                        ))}
+                    </div>
+                )}
 
                 {/* Pagination */}
                 <div className={styles.pagination}>

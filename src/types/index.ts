@@ -40,6 +40,8 @@ export interface FilterOptions {
   drivetrain: string;
   minMileage: number;
   maxMileage: number;
+  steering?: string;
+  priceRange?: string;
 }
 
 export interface ContactFormData {

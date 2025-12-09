@@ -1,77 +1,91 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 // Import directly with relative paths to fix TypeScript errors
 import AdminHeader from '../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../components/admin/AdminSidebar';
+import ProtectedRoute from '../../../components/admin/ProtectedRoute';
+import PermissionGuard from '../../../components/admin/PermissionGuard';
+import { vehicleApi } from '@/lib/api';
 import styles from './vehicles.module.css';
 
-// Sample data
-const sampleVehicles = [
-  {
-    id: '1',
-    type: 'stock',
-    year: 2020,
-    make: 'Toyota',
-    model: 'Supra',
-    price: 58000,
-    mileage: 15000,
-    status: 'available',
-    image: '/cars/supra.png'
-  },
-  {
-    id: '2',
-    type: 'auction',
-    year: 1998,
-    make: 'Nissan',
-    model: 'Skyline GT-R',
-    price: 45000,
-    mileage: 80000,
-    status: 'auction',
-    image: '/cars/gtr.png'
-  },
-  {
-    id: '3',
-    type: 'stock',
-    year: 1993,
-    make: 'Mazda',
-    model: 'RX-7',
-    price: 38000,
-    mileage: 90000,
-    status: 'available',
-    image: '/cars/rx7.png'
-  },
-  {
-    id: '4',
-    type: 'stock',
-    year: 2021,
-    make: 'Honda',
-    model: 'Civic Type R',
-    price: 42000,
-    mileage: 5000,
-    status: 'sold',
-    image: '/cars/civic.png'
-  },
-  {
-    id: '5',
-    type: 'auction',
-    year: 1994,
-    make: 'Toyota',
-    model: 'Supra',
-    price: 85000,
-    mileage: 60000,
-    status: 'auction',
-    image: '/cars/supra.png'
-  }
-];
+// Define vehicle interface
+interface Vehicle {
+  _id: string;
+  id?: string;
+  type: 'stock' | 'auction';
+  year: number;
+  make: string;
+  model: string;
+  price: number;
+  mileage: number;
+  status: string;
+  images: string[];
+  image?: string;
+}
 
 export default function VehiclesPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   
-  const filteredVehicles = sampleVehicles.filter(vehicle => {
+  // Fetch vehicles from API
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        setLoading(true);
+        const response = await vehicleApi.getAllVehicles();
+        
+        // Process vehicles to ensure they have the required fields
+        const processedVehicles = response.data.map((vehicle: any) => ({
+          ...vehicle,
+          id: vehicle._id, // Add id field for compatibility
+          image: vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : '/cars/placeholder.png'
+        }));
+        
+        setVehicles(processedVehicles);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching vehicles:', err);
+        setError('Failed to load vehicles. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    fetchVehicles();
+  }, []);
+  
+  // Handle vehicle deletion
+  const handleDeleteVehicle = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      setDeleteLoading(id);
+      setDeleteError(null);
+      
+      // Call API to delete vehicle
+      await vehicleApi.deleteVehicle(id);
+      
+      // Remove vehicle from state
+      setVehicles(prevVehicles => prevVehicles.filter(vehicle => vehicle._id !== id));
+      
+      setDeleteLoading(null);
+    } catch (err) {
+      console.error(`Error deleting vehicle with ID ${id}:`, err);
+      setDeleteError(`Failed to delete vehicle. Please try again.`);
+      setDeleteLoading(null);
+    }
+  };
+  
+  const filteredVehicles = vehicles.filter(vehicle => {
     const matchesType = activeTab === 'all' ? true : vehicle.type === activeTab;
     const matchesSearch = searchTerm 
       ? `${vehicle.year} ${vehicle.make} ${vehicle.model}`.toLowerCase().includes(searchTerm.toLowerCase())
@@ -82,9 +96,9 @@ export default function VehiclesPage() {
   
   // Count vehicles by type
   const vehicleCounts = {
-    all: sampleVehicles.length,
-    stock: sampleVehicles.filter(v => v.type === 'stock').length,
-    auction: sampleVehicles.filter(v => v.type === 'auction').length
+    all: vehicles.length,
+    stock: vehicles.filter(v => v.type === 'stock').length,
+    auction: vehicles.filter(v => v.type === 'auction').length
   };
   
   return (
@@ -92,6 +106,33 @@ export default function VehiclesPage() {
       <AdminSidebar />
       <div className={styles.mainContent}>
         <AdminHeader title="Vehicles" />
+        
+        <ProtectedRoute
+          requiredPermission={{ resource: 'vehicles', action: 'read' }}
+        >
+          {error && (
+          <div className={styles.errorMessage}>
+            <p>{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className={styles.retryButton}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        
+        {deleteError && (
+          <div className={styles.errorMessage}>
+            <p>{deleteError}</p>
+            <button 
+              onClick={() => setDeleteError(null)}
+              className={styles.closeButton}
+            >
+              Close
+            </button>
+          </div>
+        )}
         
         <div className={styles.pageHeader}>
           <div className={styles.searchContainer}>
@@ -136,18 +177,27 @@ export default function VehiclesPage() {
             </button>
           </div>
           
-          <Link href="/admin/vehicles/stock/new" className={styles.addButton}>
-            <span>Add New Vehicle</span>
-          </Link>
+          <PermissionGuard
+            requiredPermission={{ resource: 'vehicles', action: 'create' }}
+          >
+            <Link href="/admin/vehicles/stock/new" className={styles.addButton}>
+              <span>Add New Vehicle</span>
+            </Link>
+          </PermissionGuard>
         </div>
         
-        {filteredVehicles.length > 0 ? (
+        {loading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p className={styles.loadingMessage}>Loading vehicles...</p>
+          </div>
+        ) : filteredVehicles.length > 0 ? (
           <div className={styles.vehicleGrid}>
             {filteredVehicles.map(vehicle => (
               <div key={vehicle.id} className={styles.vehicleCard}>
                 <div className={styles.cardImageContainer}>
                   <Image
-                    src={vehicle.image}
+                    src={vehicle.image || '/cars/placeholder.png'}
                     alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     width={300}
                     height={200}
@@ -193,21 +243,37 @@ export default function VehiclesPage() {
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </Link>
-                  <Link 
-                    href={`/admin/vehicles/${vehicle.type}/${vehicle.id}/edit`} 
-                    className={`${styles.cardButton} ${styles.editButton}`}
+                  <PermissionGuard
+                    requiredPermission={{ resource: 'vehicles', action: 'update' }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                  </Link>
-                  <button className={`${styles.cardButton} ${styles.deleteButton}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 6h18"></path>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                  </button>
+                    <Link 
+                      href={`/admin/vehicles/${vehicle.type}/${vehicle.id}/edit`} 
+                      className={`${styles.cardButton} ${styles.editButton}`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </Link>
+                  </PermissionGuard>
+                  <PermissionGuard
+                    requiredPermission={{ resource: 'vehicles', action: 'delete' }}
+                  >
+                    <button 
+                      className={`${styles.cardButton} ${styles.deleteButton}`}
+                      onClick={() => handleDeleteVehicle(vehicle._id)}
+                      disabled={deleteLoading === vehicle._id}
+                    >
+                      {deleteLoading === vehicle._id ? (
+                        <div className={styles.buttonSpinner}></div>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"></path>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      )}
+                    </button>
+                  </PermissionGuard>
                 </div>
               </div>
             ))}
@@ -233,6 +299,7 @@ export default function VehiclesPage() {
             </button>
           </div>
         )}
+        </ProtectedRoute>
       </div>
     </div>
   );

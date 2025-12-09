@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { auctionCarsData } from '@/data/auctionData';
+import { auctionService } from '@/lib/auctionService';
+import { vehicleApi } from '@/lib/api';
+import { AuctionCar } from '@/types/auction';
 import AdminHeader from '../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../components/admin/AdminSidebar';
+import ProtectedRoute from '../../../../components/admin/ProtectedRoute';
+import PermissionGuard from '../../../../components/admin/PermissionGuard';
 import styles from './auction.module.css';
 
 type AuctionStatus = 'all' | 'live' | 'upcoming' | 'past';
@@ -13,9 +17,32 @@ type AuctionStatus = 'all' | 'live' | 'upcoming' | 'past';
 export default function AuctionVehiclesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<AuctionStatus>('all');
+  const [auctionCars, setAuctionCars] = useState<AuctionCar[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  
+  // Fetch auction cars from API
+  useEffect(() => {
+    const fetchAuctionCars = async () => {
+      try {
+        setLoading(true);
+        const cars = await auctionService.getAllAuctionVehicles();
+        setAuctionCars(cars);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching auction cars:', err);
+        setError('Failed to load auction vehicles. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    fetchAuctionCars();
+  }, []);
   
   // Apply search and status filter
-  const filteredVehicles = auctionCarsData.filter(car => {
+  const filteredVehicles = auctionCars.filter(car => {
     const matchesSearch = searchTerm 
       ? `${car.year} ${car.make} ${car.model} ${car.auctionHouse}`.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
@@ -28,9 +55,9 @@ export default function AuctionVehiclesPage() {
   });
   
   // Count vehicles by status
-  const liveCount = auctionCarsData.filter(car => car.auctionStatus === 'live').length;
-  const upcomingCount = auctionCarsData.filter(car => car.auctionStatus === 'upcoming').length;
-  const pastCount = auctionCarsData.filter(car => car.auctionStatus === 'past').length;
+  const liveCount = auctionCars.filter(car => car.auctionStatus === 'live').length;
+  const upcomingCount = auctionCars.filter(car => car.auctionStatus === 'upcoming').length;
+  const pastCount = auctionCars.filter(car => car.auctionStatus === 'past').length;
   
   // Format currency in JPY
   const formatJPY = (amount: number) => {
@@ -67,17 +94,51 @@ export default function AuctionVehiclesPage() {
     }
   };
   
+  // Handle vehicle deletion
+  const handleDeleteVehicle = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this auction vehicle? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      setDeleteLoading(id);
+      setDeleteError(null);
+      
+      // Call API to delete vehicle
+      await vehicleApi.deleteVehicle(id);
+      
+      // Remove vehicle from state
+      setAuctionCars(prevCars => prevCars.filter(car => car.id !== id));
+      
+      setDeleteLoading(null);
+    } catch (err) {
+      console.error(`Error deleting auction vehicle with ID ${id}:`, err);
+      setDeleteError(`Failed to delete auction vehicle. Please try again.`);
+      setDeleteLoading(null);
+    }
+  };
+  
   return (
     <div className={styles.dashboardLayout}>
       <AdminSidebar />
       <div className={styles.mainContent}>
         <AdminHeader title="Auction Vehicles" />
         
-        <div className={styles.container}>
+        <ProtectedRoute
+          requiredPermission={{ resource: 'vehicles', action: 'read' }}
+        >
+          <div className={styles.container}>
           <div className={styles.header}>
-            <Link href="/admin/vehicles/auction/new" className={styles.addButton}>
-              Add New Auction
-            </Link>
+            <PermissionGuard
+              requiredPermission={{ resource: 'vehicles', action: 'create' }}
+            >
+              <Link href="/admin/vehicles/auction/new" className={styles.addButton}>
+                Add New Auction
+              </Link>
+            </PermissionGuard>
+            {loading && <span className={styles.loadingText}>Loading auction data...</span>}
+            {error && <span className={styles.errorText}>{error}</span>}
+            {deleteError && <span className={styles.errorText}>{deleteError}</span>}
           </div>
           
           <div className={styles.filters}>
@@ -122,7 +183,7 @@ export default function AuctionVehiclesPage() {
           
           <div className={styles.stats}>
             <div className={styles.statCard}>
-              <span className={styles.statValue}>{auctionCarsData.length}</span>
+              <span className={styles.statValue}>{auctionCars.length}</span>
               <span className={styles.statLabel}>Total Auctions</span>
             </div>
             <div className={styles.statCard}>
@@ -155,7 +216,26 @@ export default function AuctionVehiclesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredVehicles.length > 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={9} className={styles.loadingCell}>
+                      <div className={styles.loadingSpinner}></div>
+                      <p>Loading auction vehicles...</p>
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={9} className={styles.errorCell}>
+                      <p>{error}</p>
+                      <button 
+                        onClick={() => window.location.reload()}
+                        className={styles.retryButton}
+                      >
+                        Retry
+                      </button>
+                    </td>
+                  </tr>
+                ) : filteredVehicles.length > 0 ? (
                   filteredVehicles.map(car => (
                     <tr key={car.id} className={styles.tableRow}>
                       <td className={styles.imageCell}>
@@ -216,12 +296,24 @@ export default function AuctionVehiclesPage() {
                         <Link href={`/admin/vehicles/auction/${car.id}`} className={styles.actionButton}>
                           View
                         </Link>
-                        <Link href={`/admin/vehicles/auction/${car.id}/edit`} className={styles.actionButton}>
-                          Edit
-                        </Link>
-                        <button className={`${styles.actionButton} ${styles.deleteButton}`}>
-                          Delete
-                        </button>
+                        <PermissionGuard
+                          requiredPermission={{ resource: 'vehicles', action: 'update' }}
+                        >
+                          <Link href={`/admin/vehicles/auction/${car.id}/edit`} className={styles.actionButton}>
+                            Edit
+                          </Link>
+                        </PermissionGuard>
+                        <PermissionGuard
+                          requiredPermission={{ resource: 'vehicles', action: 'delete' }}
+                        >
+                          <button 
+                            className={`${styles.actionButton} ${styles.deleteButton}`}
+                            onClick={() => handleDeleteVehicle(car.id)}
+                            disabled={deleteLoading === car.id}
+                          >
+                            {deleteLoading === car.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </PermissionGuard>
                       </td>
                     </tr>
                   ))
@@ -236,6 +328,7 @@ export default function AuctionVehiclesPage() {
             </table>
           </div>
         </div>
+        </ProtectedRoute>
       </div>
     </div>
   );

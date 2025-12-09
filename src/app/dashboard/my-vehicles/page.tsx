@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { carsData } from '@/data/mockData';
+import { bookmarkApi } from '@/lib/api';
 import styles from './page.module.css';
 
 type VehicleCategory = 'all' | 'saved' | 'bids' | 'purchased';
 
-// Mock data for user's vehicles
-const mockUserVehicles = {
-  saved: carsData.slice(0, 5).map(car => ({ ...car, savedAt: new Date().toISOString() })),
+// Initial empty state for user's vehicles
+const initialUserVehicles = {
+  saved: [],
   bids: carsData.slice(5, 8).map(car => ({ 
     ...car, 
     bidAmount: Math.floor(Math.random() * 5000) + 15000,
@@ -28,19 +29,67 @@ const mockUserVehicles = {
 export default function MyVehiclesPage() {
   const [activeCategory, setActiveCategory] = useState<VehicleCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [userVehicles, setUserVehicles] = useState(initialUserVehicles);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Fetch bookmarks on component mount
+  useEffect(() => {
+    const fetchBookmarks = async () => {
+      try {
+        const response = await bookmarkApi.getBookmarks();
+        
+        // Map bookmarks to the expected format
+        const savedVehicles = response.bookmarks.map((bookmark: any) => ({
+          ...bookmark.vehicle,
+          savedAt: bookmark.createdAt,
+          bookmarkId: bookmark._id,
+          notes: bookmark.notes
+        }));
+        
+        setUserVehicles(prev => ({
+          ...prev,
+          saved: savedVehicles
+        }));
+      } catch (err) {
+        console.error('Error fetching bookmarks:', err);
+        setError('Failed to load saved vehicles');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBookmarks();
+  }, []);
+  
+  // Handle removing a bookmark
+  const handleRemoveBookmark = async (bookmarkId: string) => {
+    try {
+      await bookmarkApi.removeBookmark(bookmarkId);
+      
+      // Remove the bookmark from state
+      setUserVehicles(prev => ({
+        ...prev,
+        saved: prev.saved.filter((vehicle: any) => vehicle.bookmarkId !== bookmarkId)
+      }));
+    } catch (err) {
+      console.error('Error removing bookmark:', err);
+      setError('Failed to remove saved vehicle');
+    }
+  };
 
   // Filter vehicles based on active category and search query
   const getFilteredVehicles = () => {
-    let vehicles = [];
+    let vehicles: Array<any> = [];
     
     if (activeCategory === 'all') {
       vehicles = [
-        ...mockUserVehicles.saved.map(v => ({ ...v, type: 'saved' })),
-        ...mockUserVehicles.bids.map(v => ({ ...v, type: 'bids' })),
-        ...mockUserVehicles.purchased.map(v => ({ ...v, type: 'purchased' }))
+        ...userVehicles.saved.map((v: any) => ({ ...v, type: 'saved' })),
+        ...userVehicles.bids.map((v: any) => ({ ...v, type: 'bids' })),
+        ...userVehicles.purchased.map((v: any) => ({ ...v, type: 'purchased' }))
       ];
     } else {
-      vehicles = mockUserVehicles[activeCategory].map(v => ({ ...v, type: activeCategory }));
+      vehicles = userVehicles[activeCategory].map((v: any) => ({ ...v, type: activeCategory }));
     }
     
     if (searchQuery) {
@@ -111,19 +160,19 @@ export default function MyVehiclesPage() {
             className={`${styles.tab} ${activeCategory === 'saved' ? styles.activeTab : ''}`}
             onClick={() => setActiveCategory('saved')}
           >
-            Saved <span className={styles.count}>{mockUserVehicles.saved.length}</span>
+            Saved <span className={styles.count}>{userVehicles.saved.length}</span>
           </button>
           <button 
             className={`${styles.tab} ${activeCategory === 'bids' ? styles.activeTab : ''}`}
             onClick={() => setActiveCategory('bids')}
           >
-            My Bids <span className={styles.count}>{mockUserVehicles.bids.length}</span>
+            My Bids <span className={styles.count}>{userVehicles.bids.length}</span>
           </button>
           <button 
             className={`${styles.tab} ${activeCategory === 'purchased' ? styles.activeTab : ''}`}
             onClick={() => setActiveCategory('purchased')}
           >
-            Purchased <span className={styles.count}>{mockUserVehicles.purchased.length}</span>
+            Purchased <span className={styles.count}>{userVehicles.purchased.length}</span>
           </button>
         </div>
         
@@ -245,7 +294,10 @@ export default function MyVehiclesPage() {
                       <Link href={`/inventory/${vehicle.id}`} className={styles.viewButton}>
                         View Details
                       </Link>
-                      <button className={styles.removeButton}>
+                      <button 
+                        className={styles.removeButton}
+                        onClick={() => handleRemoveBookmark(vehicle.bookmarkId)}
+                      >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6"></polyline>
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>

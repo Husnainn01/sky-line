@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AdminHeader from '../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../components/admin/AdminSidebar';
+import { apiRequest } from '../../../../lib/api';
 import styles from './newUser.module.css';
 
 // Define permission types
@@ -74,11 +75,16 @@ export default function NewUserPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user' as 'admin' | 'user',
+    role: 'admin' as 'superadmin' | 'admin' | 'editor' | 'viewer',
     company: '',
     phone: '',
-    status: 'active' as 'active' | 'disabled'
+    status: 'active' as 'active' | 'inactive' | 'suspended'
   });
+  
+  // Form submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
   
   // Permissions state
   const [permissions, setPermissions] = useState<Permission[]>(
@@ -87,8 +93,6 @@ export default function NewUserPage() {
   
   // Form validation state
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -106,27 +110,36 @@ export default function NewUserPage() {
   };
   
   // Handle role change
-  const handleRoleChange = (role: 'admin' | 'user') => {
+  const handleRoleChange = (role: 'superadmin' | 'admin' | 'editor' | 'viewer') => {
     setFormData(prev => ({ ...prev, role }));
     
-    // If changing to admin, enable all permissions
-    if (role === 'admin') {
+    // Set permissions based on role
+    if (role === 'superadmin' || role === 'admin') {
+      // Admins and superadmins get all permissions
       setPermissions(prevPermissions => 
         prevPermissions.map(p => ({ ...p, enabled: true }))
       );
-    } else {
-      // Reset to default permissions for standard users
+    } else if (role === 'editor') {
+      // Editors get view and edit permissions but not delete or system settings
       setPermissions(prevPermissions => 
         prevPermissions.map(p => ({ 
           ...p, 
-          enabled: ['view_vehicles', 'view_auctions', 'view_orders'].includes(p.id)
+          enabled: !p.id.includes('delete') && !p.id.includes('system')
+        }))
+      );
+    } else {
+      // Viewers only get view permissions
+      setPermissions(prevPermissions => 
+        prevPermissions.map(p => ({ 
+          ...p, 
+          enabled: p.id.startsWith('view_')
         }))
       );
     }
   };
   
   // Handle status change
-  const handleStatusChange = (status: 'active' | 'disabled') => {
+  const handleStatusChange = (status: 'active' | 'inactive' | 'suspended') => {
     setFormData(prev => ({ ...prev, status }));
   };
   
@@ -168,22 +181,57 @@ export default function NewUserPage() {
   };
   
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (validateForm()) {
-      setIsSubmitting(true);
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setErrors({});
+    
+    try {
+      // Convert permissions to the format expected by the backend
+      const enabledPermissions = permissions
+        .filter(p => p.enabled)
+        .map(p => ({
+          resource: p.id.split('_')[1], // Extract resource name from permission ID
+          actions: {
+            create: p.id.includes('create') || p.id.includes('edit'),
+            read: true, // All enabled permissions can read
+            update: p.id.includes('edit'),
+            delete: p.id.includes('delete')
+          }
+        }));
       
-      // Simulate API call
+      // Create the admin user
+      const response = await apiRequest('/admin/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+          company: formData.company,
+          phone: formData.phone,
+          status: formData.status,
+          customPermissions: enabledPermissions
+        }),
+      });
+      
+      setSubmitSuccess(true);
+      setSubmitMessage(response.message || 'Admin created successfully');
+      
+      // Redirect to users list after successful submission
       setTimeout(() => {
-        setIsSubmitting(false);
-        setSubmitSuccess(true);
-        
-        // Redirect to users list after successful submission
-        setTimeout(() => {
-          router.push('/admin/users');
-        }, 1500);
-      }, 1000);
+        router.push('/admin/users');
+      }, 3000);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to create admin user';
+      setErrors(prev => ({ ...prev, submit: errorMessage }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -210,7 +258,18 @@ export default function NewUserPage() {
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
-              <span>User created successfully! Redirecting...</span>
+              <span>{submitMessage || 'Admin user created successfully! Redirecting...'}</span>
+            </div>
+          )}
+          
+          {errors.submit && (
+            <div className={styles.errorAlert}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>{errors.submit}</span>
             </div>
           )}
           
@@ -312,13 +371,13 @@ export default function NewUserPage() {
                     <input 
                       type="radio" 
                       name="role" 
-                      checked={formData.role === 'user'} 
-                      onChange={() => handleRoleChange('user')} 
+                      checked={formData.role === 'superadmin'} 
+                      onChange={() => handleRoleChange('superadmin')} 
                       className={styles.radioInput}
                     />
                     <div className={styles.radioContent}>
-                      <div className={styles.radioTitle}>Standard User</div>
-                      <div className={styles.radioDescription}>Regular user with limited permissions</div>
+                      <div className={styles.radioTitle}>Super Admin</div>
+                      <div className={styles.radioDescription}>Full access to all features and system settings</div>
                     </div>
                   </label>
                 </div>
@@ -333,7 +392,37 @@ export default function NewUserPage() {
                     />
                     <div className={styles.radioContent}>
                       <div className={styles.radioTitle}>Administrator</div>
-                      <div className={styles.radioDescription}>Full access to all features and settings</div>
+                      <div className={styles.radioDescription}>Administrative access with some restrictions</div>
+                    </div>
+                  </label>
+                </div>
+                <div className={styles.roleOption}>
+                  <label className={styles.radioLabel}>
+                    <input 
+                      type="radio" 
+                      name="role" 
+                      checked={formData.role === 'editor'} 
+                      onChange={() => handleRoleChange('editor')} 
+                      className={styles.radioInput}
+                    />
+                    <div className={styles.radioContent}>
+                      <div className={styles.radioTitle}>Editor</div>
+                      <div className={styles.radioDescription}>Can view and edit content but not delete</div>
+                    </div>
+                  </label>
+                </div>
+                <div className={styles.roleOption}>
+                  <label className={styles.radioLabel}>
+                    <input 
+                      type="radio" 
+                      name="role" 
+                      checked={formData.role === 'viewer'} 
+                      onChange={() => handleRoleChange('viewer')} 
+                      className={styles.radioInput}
+                    />
+                    <div className={styles.radioContent}>
+                      <div className={styles.radioTitle}>Viewer</div>
+                      <div className={styles.radioDescription}>Read-only access to content</div>
                     </div>
                   </label>
                 </div>
@@ -341,22 +430,38 @@ export default function NewUserPage() {
               
               <div className={styles.statusToggle}>
                 <span className={styles.statusLabel}>Account Status:</span>
-                <div className={styles.toggleSwitch}>
-                  <input 
-                    type="checkbox" 
-                    id="status-toggle" 
-                    checked={formData.status === 'active'} 
-                    onChange={() => handleStatusChange(formData.status === 'active' ? 'disabled' : 'active')} 
-                    className={styles.toggleInput}
-                  />
-                  <label htmlFor="status-toggle" className={styles.toggleLabel}>
-                    <span className={styles.toggleInner}></span>
-                    <span className={styles.toggleSwitch}></span>
+                <div className={styles.statusOptions}>
+                  <label className={styles.statusOption}>
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      checked={formData.status === 'active'} 
+                      onChange={() => handleStatusChange('active')} 
+                      className={styles.radioInput}
+                    />
+                    <span>Active</span>
+                  </label>
+                  <label className={styles.statusOption}>
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      checked={formData.status === 'inactive'} 
+                      onChange={() => handleStatusChange('inactive')} 
+                      className={styles.radioInput}
+                    />
+                    <span>Inactive</span>
+                  </label>
+                  <label className={styles.statusOption}>
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      checked={formData.status === 'suspended'} 
+                      onChange={() => handleStatusChange('suspended')} 
+                      className={styles.radioInput}
+                    />
+                    <span>Suspended</span>
                   </label>
                 </div>
-                <span className={styles.statusValue}>
-                  {formData.status === 'active' ? 'Active' : 'Disabled'}
-                </span>
               </div>
             </div>
             

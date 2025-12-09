@@ -3,11 +3,15 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import styles from './Navbar.module.css';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
+    const router = useRouter();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [language, setLanguage] = useState('English');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userName, setUserName] = useState('');
 
     useEffect(() => {
         const handleScroll = () => {
@@ -15,6 +19,46 @@ export default function Navbar() {
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+    
+    // Check if user is logged in
+    useEffect(() => {
+        // Check for auth token in localStorage
+        const checkLoginStatus = () => {
+            const token = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('user');
+            
+            if (token && userData) {
+                setIsLoggedIn(true);
+                try {
+                    const user = JSON.parse(userData);
+                    setUserName(user.name || '');
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            } else {
+                setIsLoggedIn(false);
+                setUserName('');
+            }
+        };
+        
+        // Check on initial load
+        checkLoginStatus();
+        
+        // Set up event listener for storage changes
+        const handleStorageChange = () => {
+            checkLoginStatus();
+        };
+        
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check every time the component is focused
+        window.addEventListener('focus', checkLoginStatus);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('focus', checkLoginStatus);
+        };
     }, []);
 
     return (
@@ -51,8 +95,20 @@ export default function Navbar() {
                                 <option value="Русский">Русский</option>
                             </select>
                         </div>
-                        <Link href="/auth/login" className={styles.topBarLink}>Login</Link>
-                        <Link href="/auth/register" className={styles.topBarLinkButton}>Register</Link>
+                        
+                        {isLoggedIn ? (
+                            <>
+                                <span className={styles.userWelcome}>Welcome, {userName.split(' ')[0]}</span>
+                                <Link href="/dashboard" className={styles.topBarLinkButton}>
+                                    Dashboard
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link href="/auth/login" className={styles.topBarLink}>Login</Link>
+                                <Link href="/auth/register" className={styles.topBarLinkButton}>Register</Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

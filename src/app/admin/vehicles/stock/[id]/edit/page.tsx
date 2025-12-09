@@ -3,19 +3,62 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { carsData } from '@/data/mockData';
 import AdminHeader from '../../../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../../../components/admin/AdminSidebar';
+import ImageUploader, { UploadedImage } from '../../../../../../components/admin/ImageUploader';
+import ConfirmDialog from '../../../../../../components/admin/ConfirmDialog';
+import { getAuthToken, verifySession } from '../../../../../../utils/sessionManager';
 import styles from '../../new/vehicleForm.module.css';
 
 export default function EditVehiclePage() {
   const params = useParams();
   const router = useRouter();
-  const id = params.id as string;
+  
+  // Extract ID from URL and ensure it's not undefined
+  let id = params?.id as string;
+  
+  // Debug params
+  console.log('Params:', params);
+  console.log('Raw ID:', id);
+  
+  // Fix for the 'undefined' string issue
+  if (id === 'undefined' || !id) {
+    console.error('Invalid ID: ID is undefined');
+    // In Next.js App Router, we can't access router.query directly
+    // Instead, we'll need to extract from the current URL
+    // Check if window is available (client-side only)
+    if (typeof window !== 'undefined') {
+      const urlParts = window.location.pathname.split('/');
+      const potentialId = urlParts[urlParts.length - 2]; // The ID should be the second-to-last part
+      if (potentialId && potentialId !== 'edit') {
+        id = potentialId;
+        console.log('Extracted ID from URL path:', id);
+      } else {
+        console.error('Could not extract ID from URL path');
+      }
+    } else {
+      console.log('Running on server side, cannot extract ID from URL');
+    }
+  }
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [images, setImages] = useState<UploadedImage[]>([]);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  
+  // Predefined badges
+  const predefinedBadges = [
+    { id: 'hot', label: 'Hot Stock', color: '#ef4444' },
+    { id: '50off', label: '50% Off', color: '#f59e0b' },
+    { id: 'winter', label: 'Winter Special', color: '#3b82f6' },
+    { id: 'new', label: 'New Arrival', color: '#10b981' },
+    { id: 'limited', label: 'Limited Edition', color: '#8b5cf6' },
+    { id: 'sale', label: 'On Sale', color: '#ec4899' },
+  ];
+  
+  // Custom badge state
+  const [showCustomBadge, setShowCustomBadge] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -27,7 +70,6 @@ export default function EditVehiclePage() {
     transmission: 'Manual',
     fuelType: 'Gasoline',
     drivetrain: 'RWD',
-    image: '',
     description: '',
     features: '',
     condition: 'Excellent',
@@ -40,47 +82,134 @@ export default function EditVehiclePage() {
     color: '',
     doors: '',
     stockNumber: '',
-    steering: 'Right Hand'
+    steering: 'Right Hand',
+    badge: '',
+    customBadge: '',
+    customBadgeColor: '#c70f0f'
   });
   
   // Load vehicle data
   useEffect(() => {
-    const vehicle = carsData.find(car => car.id === id);
+    const fetchVehicle = async () => {
+      try {
+        // Check if ID is valid
+        if (!id) {
+          console.error('Vehicle ID is undefined');
+          setNotFound(true);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Get the authentication token
+        const token = getAuthToken();
+        if (!token) {
+          console.error('Authentication required');
+          router.push('/admin/login');
+          return;
+        }
+
+        console.log(`Fetching vehicle with ID: ${id}`);
+        const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setNotFound(true);
+          } else if (response.status === 401) {
+            router.push('/admin/login');
+          } else {
+            throw new Error('Failed to fetch vehicle data');
+          }
+          return;
+        }
+        
+        const data = await response.json();
+        const vehicle = data.data;
+        
+        if (!vehicle) {
+          setNotFound(true);
+          return;
+        }
+        
+        // Ensure vehicle has an id property
+        if (!vehicle.id && vehicle._id) {
+          vehicle.id = vehicle._id;
+        }
+        
+        console.log('Fetched vehicle data:', vehicle);
+        
+        // Set up images array from vehicle data
+        if (vehicle.images && vehicle.images.length > 0) {
+          const uploadedImages: UploadedImage[] = vehicle.images.map((url: string, index: number) => ({
+            id: `existing-${index}`,
+            file: null,
+            preview: url,
+            name: url.split('/').pop() || `image-${index}.jpg`
+          }));
+          setImages(uploadedImages);
+        }
+        
+        // Handle badge data
+        let badgeId = '';
+        let customBadgeText = '';
+        let customBadgeColor = '#c70f0f';
+        
+        if (vehicle.badge) {
+          // Check if it's a predefined badge
+          const matchingBadge = predefinedBadges.find(b => 
+            b.label === vehicle.badge.text && b.color === vehicle.badge.color
+          );
+          
+          if (matchingBadge) {
+            badgeId = matchingBadge.id;
+          } else {
+            // It's a custom badge
+            badgeId = 'custom';
+            customBadgeText = vehicle.badge.text;
+            customBadgeColor = vehicle.badge.color;
+            setShowCustomBadge(true);
+          }
+        }
+        
+        // Convert vehicle data to form data format with proper type handling
+        setFormData({
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          price: vehicle.price.toString(),
+          mileage: vehicle.mileage.toString(),
+          transmission: vehicle.transmission,
+          fuelType: vehicle.fuelType,
+          drivetrain: vehicle.driveType,
+          description: vehicle.description,
+          features: Array.isArray(vehicle.features) ? vehicle.features.join(', ') : '',
+          condition: vehicle.condition,
+          location: vehicle.location,
+          available: vehicle.status === 'available',
+          bodyType: vehicle.bodyType || 'Coupe',
+          vin: vehicle.vin || '',
+          engine: vehicle.engineSize || '',
+          cylinders: vehicle.specifications?.cylinders || '',
+          color: vehicle.exteriorColor || '',
+          doors: vehicle.doors?.toString() || '',
+          stockNumber: vehicle.stockNumber || '',
+          steering: vehicle.specifications?.steering || 'Right Hand',
+          badge: badgeId,
+          customBadge: customBadgeText,
+          customBadgeColor: customBadgeColor
+        });
+      } catch (error) {
+        console.error('Error fetching vehicle:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    if (!vehicle) {
-      setNotFound(true);
-      setIsLoading(false);
-      return;
-    }
-    
-    // Convert vehicle data to form data format with proper type handling
-    setFormData({
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      price: vehicle.price.toString(),
-      mileage: vehicle.mileage.toString(),
-      transmission: vehicle.transmission,
-      fuelType: vehicle.fuelType,
-      drivetrain: vehicle.drivetrain,
-      image: vehicle.image,
-      description: vehicle.description,
-      features: vehicle.features.join(', '),
-      condition: vehicle.condition,
-      location: vehicle.location,
-      available: vehicle.available,
-      bodyType: vehicle.bodyType || 'Coupe',
-      vin: vehicle.vin || '',
-      engine: vehicle.engine || '',
-      cylinders: vehicle.cylinders?.toString() || '',
-      color: vehicle.color || '',
-      doors: vehicle.doors?.toString() || '',
-      stockNumber: vehicle.stockNumber || '',
-      steering: vehicle.steering || 'Right Hand',
-    });
-    
-    setIsLoading(false);
-  }, [id]);
+    fetchVehicle();
+  }, [id, router]);
   
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -96,9 +225,33 @@ export default function EditVehiclePage() {
     }
   };
   
+  // Open cancel confirmation dialog
+  const openCancelConfirm = () => {
+    setShowCancelConfirm(true);
+  };
+  
+  // Close cancel confirmation dialog
+  const closeCancelConfirm = () => {
+    setShowCancelConfirm(false);
+  };
+  
+  // Handle cancel edit
+  const handleCancel = () => {
+    setShowCancelConfirm(false);
+    router.push(`/admin/vehicles/stock/${id}`);
+  };
+  
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that at least one image is uploaded
+    if (images.length === 0) {
+      // Scroll to the images section
+      document.querySelector('#images-section')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -108,26 +261,98 @@ export default function EditVehiclePage() {
         .map(feature => feature.trim())
         .filter(feature => feature !== '');
       
+      // Prepare badge data
+      let badgeData = null;
+      if (formData.badge === 'custom' && formData.customBadge) {
+        badgeData = {
+          text: formData.customBadge,
+          color: formData.customBadgeColor
+        };
+      } else if (formData.badge) {
+        const selectedBadge = predefinedBadges.find(b => b.id === formData.badge);
+        if (selectedBadge) {
+          badgeData = {
+            text: selectedBadge.label,
+            color: selectedBadge.color
+          };
+        }
+      }
+      
       // Prepare data for submission
       const vehicleData = {
-        ...formData,
-        features: featuresArray,
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
         price: parseFloat(formData.price as string),
         mileage: parseFloat(formData.mileage as string),
-        cylinders: formData.cylinders ? parseInt(formData.cylinders as string, 10) : undefined,
-        doors: formData.doors ? parseInt(formData.doors as string, 10) : undefined,
+        type: 'stock',
+        condition: formData.condition,
+        transmission: formData.transmission,
+        fuelType: formData.fuelType,
+        driveType: formData.drivetrain,
+        bodyType: formData.bodyType,
+        exteriorColor: formData.color || 'Not specified',
+        interiorColor: 'Not specified',
+        doors: formData.doors ? parseInt(formData.doors as string, 10) : 2,
+        seats: 4,
+        engineSize: formData.engine || 'Not specified',
+        features: featuresArray,
+        description: formData.description,
+        status: formData.available ? 'available' : 'sold',
+        location: formData.location,
+        vin: formData.vin || undefined,
+        stockNumber: formData.stockNumber || undefined,
+        specifications: {
+          steering: formData.steering,
+          cylinders: formData.cylinders || 'Not specified'
+        },
+        // Use images from the image uploader
+        images: images.map(img => img.preview),
+        badge: badgeData
       };
       
       console.log('Updating vehicle data:', vehicleData);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // First verify the session
+      const isSessionValid = await verifySession();
+      if (!isSessionValid) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      
+      // Then get the token
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+      
+      // Make sure we have a valid ID
+      if (!id) {
+        throw new Error('Vehicle ID is missing');
+      }
+      
+      console.log('Submitting update for vehicle ID:', id);
+      
+      // Send the updated vehicle data to the API
+      const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(vehicleData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update vehicle');
+      }
       
       // Redirect to vehicle detail page after successful update
       router.push(`/admin/vehicles/stock/${id}`);
       
     } catch (error) {
       console.error('Error updating vehicle data:', error);
+      alert(`Failed to update vehicle: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -294,19 +519,17 @@ export default function EditVehiclePage() {
               </div>
             </div>
             
-            <div className={styles.formGroup}>
-              <label htmlFor="image" className={styles.label}>Image URL *</label>
-              <input
-                type="text"
-                id="image"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
-                className={styles.input}
-                placeholder="/cars/example.png"
-                required
+            <div id="images-section" className={styles.formGroup}>
+              <label className={styles.label}>Vehicle Images *</label>
+              <ImageUploader 
+                initialImages={images}
+                onChange={setImages}
+                maxFiles={10}
+                maxSizeMB={5}
               />
-              <p className={styles.helpText}>Enter the path to the image (e.g., /cars/supra.png)</p>
+              {images.length === 0 && (
+                <p className={styles.errorText}>At least one image is required</p>
+              )}
             </div>
             
             <div className={styles.formGroup}>
@@ -541,13 +764,101 @@ export default function EditVehiclePage() {
                 <span>Available for Sale</span>
               </label>
             </div>
+            
+            <div className={styles.formGroup}>
+              <label htmlFor="badge" className={styles.label}>Promotional Badge</label>
+              <select
+                id="badge"
+                name="badge"
+                value={formData.badge}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData(prev => ({ ...prev, badge: value }));
+                  setShowCustomBadge(value === 'custom');
+                }}
+                className={styles.select}
+              >
+                <option value="">No Badge</option>
+                {predefinedBadges.map(badge => (
+                  <option key={badge.id} value={badge.id}>{badge.label}</option>
+                ))}
+                <option value="custom">Custom Badge</option>
+              </select>
+              
+              {formData.badge && formData.badge !== 'custom' && (
+                <div className={styles.badgePreview}>
+                  <span 
+                    className={styles.badge}
+                    style={{ 
+                      backgroundColor: predefinedBadges.find(b => b.id === formData.badge)?.color 
+                    }}
+                  >
+                    {predefinedBadges.find(b => b.id === formData.badge)?.label}
+                  </span>
+                </div>
+              )}
+              
+              {showCustomBadge && (
+                <div className={styles.customBadgeFields}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="customBadge" className={styles.label}>Badge Text</label>
+                      <input
+                        type="text"
+                        id="customBadge"
+                        name="customBadge"
+                        value={formData.customBadge}
+                        onChange={handleChange}
+                        className={styles.input}
+                        placeholder="Special Offer"
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="customBadgeColor" className={styles.label}>Badge Color</label>
+                      <div className={styles.colorPickerContainer}>
+                        <input
+                          type="color"
+                          id="customBadgeColor"
+                          name="customBadgeColor"
+                          value={formData.customBadgeColor}
+                          onChange={handleChange}
+                          className={styles.colorPicker}
+                        />
+                        <input
+                          type="text"
+                          value={formData.customBadgeColor}
+                          onChange={(e) => setFormData(prev => ({ ...prev, customBadgeColor: e.target.value }))}
+                          className={styles.colorInput}
+                          placeholder="#c70f0f"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {formData.customBadge && (
+                    <div className={styles.badgePreview}>
+                      <span 
+                        className={styles.badge}
+                        style={{ backgroundColor: formData.customBadgeColor }}
+                      >
+                        {formData.customBadge}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
         <div className={styles.formActions}>
-          <Link href={`/admin/vehicles/stock/${id}`} className={styles.cancelButton}>
+          <button 
+            type="button" 
+            onClick={openCancelConfirm} 
+            className={styles.cancelButton}
+          >
             Cancel
-          </Link>
+          </button>
           <button 
             type="submit" 
             className={styles.submitButton}
@@ -557,6 +868,17 @@ export default function EditVehiclePage() {
           </button>
         </div>
       </form>
+      
+      {/* Cancel Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        title="Discard Changes"
+        message="Are you sure you want to cancel? All unsaved changes will be lost."
+        confirmText="Discard"
+        cancelText="Continue Editing"
+        onConfirm={handleCancel}
+        onCancel={closeCancelConfirm}
+      />
     </div>
     </div>
     </div>
