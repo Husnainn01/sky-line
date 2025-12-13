@@ -191,6 +191,12 @@
     gap: 0.5rem;
 }
 
+.navItemWithDropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
 .navLink {
     font-family: var(--font-primary, 'Inter', sans-serif);
     font-size: 14px;
@@ -232,7 +238,8 @@
     margin-top: 0.5rem;
 }
 
-.navLink:hover .navDropdown {
+.navLink:hover .navDropdown,
+.navItemWithDropdown:hover .navDropdown {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);

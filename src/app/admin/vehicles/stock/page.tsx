@@ -113,7 +113,7 @@ export default function StockVehiclesPage() {
       : true;
     
     const matchesMake = filterMake 
-      ? car.make === filterMake
+      ? car.make && car.make.trim().toLowerCase() === filterMake.trim().toLowerCase()
       : true;
     
     return matchesSearch && matchesMake;
@@ -181,8 +181,27 @@ export default function StockVehiclesPage() {
     }
   };
   
-  // Get unique makes for filter dropdown
-  const uniqueMakes = Array.from(new Set(vehicles.map(car => car.make))).sort();
+  // Get unique makes for filter dropdown - normalize to prevent duplicates
+  const uniqueMakes = (() => {
+    // Create a map to store unique makes (case-insensitive)
+    const makeMap = new Map();
+    
+    // Process each vehicle
+    vehicles.forEach(car => {
+      if (car.make) {
+        const normalizedMake = car.make.trim();
+        const lowerMake = normalizedMake.toLowerCase();
+        
+        // Only add if we haven't seen this make before (case-insensitive)
+        if (!makeMap.has(lowerMake)) {
+          makeMap.set(lowerMake, normalizedMake);
+        }
+      }
+    });
+    
+    // Return the unique makes, sorted alphabetically
+    return Array.from(makeMap.values()).sort();
+  })();
   
   // Show loading state
   if (loading) {
@@ -286,12 +305,20 @@ export default function StockVehiclesPage() {
           <span className={styles.statLabel}>Total Stock</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statValue}>{vehicles.filter((car: any) => car.available || car.status === 'available').length}</span>
+          <span className={styles.statValue}>{vehicles.filter((car: any) => car.status === 'available' || (car.available && !car.status)).length}</span>
           <span className={styles.statLabel}>Available</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statValue}>{vehicles.filter((car: any) => !car.available && car.status !== 'available').length}</span>
+          <span className={styles.statValue}>{vehicles.filter((car: any) => car.status === 'sold' || (!car.available && !car.status)).length}</span>
           <span className={styles.statLabel}>Sold</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statValue}>{vehicles.filter((car: any) => car.status === 'shipping').length}</span>
+          <span className={styles.statLabel}>Shipping</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statValue}>{vehicles.filter((car: any) => car.status === 'auction').length}</span>
+          <span className={styles.statLabel}>Auction</span>
         </div>
       </div>
       
@@ -342,9 +369,23 @@ export default function StockVehiclesPage() {
                   <td className={styles.priceCell}>${car.price.toLocaleString()}</td>
                   <td>{car.mileage.toLocaleString()} km</td>
                   <td>
-                    <span className={`${styles.statusBadge} ${car.available ? styles.available : styles.sold}`}>
-                      {car.available ? 'Available' : 'Sold'}
-                    </span>
+                    {car.status === 'available' && (
+                      <span className={`${styles.statusBadge} ${styles.available}`}>Available</span>
+                    )}
+                    {car.status === 'sold' && (
+                      <span className={`${styles.statusBadge} ${styles.sold}`}>Sold</span>
+                    )}
+                    {car.status === 'shipping' && (
+                      <span className={`${styles.statusBadge} ${styles.shipping}`}>Shipping</span>
+                    )}
+                    {car.status === 'auction' && (
+                      <span className={`${styles.statusBadge} ${styles.auction}`}>Auction</span>
+                    )}
+                    {!car.status && (
+                      <span className={`${styles.statusBadge} ${car.available ? styles.available : styles.sold}`}>
+                        {car.available ? 'Available' : 'Sold'}
+                      </span>
+                    )}
                   </td>
                   <td className={styles.actionsCell}>
                     <Link href={`/admin/vehicles/stock/${car.id || car._id}`} className={styles.actionButton}>

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { vehicleApi } from '@/lib/api';
+import { auctionService } from '@/lib/auctionService';
 import AdminHeader from '../../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../../components/admin/AdminSidebar';
 import ImageUploader, { UploadedImage } from '../../../../../components/admin/ImageUploader';
@@ -97,49 +97,52 @@ export default function NewAuctionVehiclePage() {
       
       console.log('Submitting auction data:', auctionData);
       
-      // Create vehicle with type auction
-      const vehicleData = {
+      // Create auction vehicle with dedicated auction vehicle data
+      const auctionVehicleData = {
         make: formData.make,
         model: formData.model,
         year: formData.year,
         price: parseFloat(formData.estimatedPrice as string),
-        type: 'auction',
         condition: formData.condition,
         mileage: parseFloat(formData.mileage as string),
         engineSize: formData.engine,
         transmission: formData.transmission,
-        fuelType: 'Gasoline', // Default value
-        driveType: 'RWD', // Default value
-        bodyType: 'Coupe', // Default value
         exteriorColor: formData.color,
-        interiorColor: 'Black', // Default value
-        doors: 2, // Default value
-        seats: 4, // Default value
         
         // Auction specific fields
-        auctionGrade: formData.grade,
-        auctionLocation: formData.auctionHouse,
-        bidEndTime: new Date(formData.auctionDate),
-        startingBid: parseFloat(formData.startingBid as string),
-        currentBid: parseFloat(formData.currentBid as string),
-        minimumBid: parseFloat(formData.startingBid as string),
-        bidIncrement: 10000, // Default value
+        auctionStartDate: new Date(formData.auctionDate),
+        auctionEndDate: new Date(new Date(formData.auctionDate).getTime() + 24 * 60 * 60 * 1000), // Default to 24 hours after start
+        auctionHouse: formData.auctionHouse,
+        auctionStartingBid: parseFloat(formData.startingBid as string),
+        auctionCurrentBid: parseFloat(formData.currentBid as string),
+        auctionFinalPrice: formData.finalPrice ? parseFloat(formData.finalPrice as string) : undefined,
+        auctionSoldStatus: formData.soldStatus as 'sold' | 'unsold' | undefined,
         
-        // Features and specifications
+        // Specifications
+        specifications: {
+          grade: formData.grade,
+          inspectionGrade: formData.inspectionGrade,
+          exteriorGrade: formData.exteriorGrade,
+          interiorGrade: formData.interiorGrade,
+        },
+        
+        // Features and description
         features: featuresArray,
-        specifications: {},
         description: formData.description,
         
         // Media
         images: images.map(img => img.preview),
+        inspectionReport: formData.inspectionReport,
         
-        // Status and logistics
-        status: formData.auctionStatus === 'live' ? 'auction' : formData.auctionStatus === 'past' && formData.soldStatus === 'sold' ? 'sold' : 'available',
-        location: formData.location
+        // Location
+        location: formData.location,
+        
+        // Generate slug
+        slug: `${formData.make.toLowerCase()}-${formData.model.toLowerCase()}-${formData.year}`.replace(/\s+/g, '-'),
       };
       
-      // Send to API
-      const response = await vehicleApi.createVehicle(vehicleData);
+      // Send to API using the auction service
+      const response = await auctionService.createAuctionVehicle(auctionVehicleData);
       console.log('API response:', response);
       
       // Redirect to auction vehicles page after successful submission

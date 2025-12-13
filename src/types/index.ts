@@ -16,6 +16,7 @@ export interface Car {
   condition: string;
   location: string;
   available: boolean;
+  status?: 'available' | 'sold' | 'shipping' | 'auction';
   bodyType?: string;
   vin?: string;
   engine?: string;

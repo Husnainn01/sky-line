@@ -40,6 +40,17 @@ export default function InventoryCarCard({ car }: InventoryCarCardProps) {
                         sizes="(max-width: 768px) 100vw, 280px"
                     />
                     <span className={styles.stockBadge}>Stock No. {stockNumber}</span>
+                    
+                    {/* Status Badge */}
+                    {car.status === 'sold' && (
+                        <span className={styles.statusBadge} style={{ backgroundColor: '#ef4444' }}>SOLD</span>
+                    )}
+                    {car.status === 'shipping' && (
+                        <span className={styles.statusBadge} style={{ backgroundColor: '#3b82f6' }}>SHIPPING</span>
+                    )}
+                    {car.status === 'auction' && (
+                        <span className={styles.statusBadge} style={{ backgroundColor: '#8b5cf6' }}>AUCTION</span>
+                    )}
                 </div>
             </div>
 

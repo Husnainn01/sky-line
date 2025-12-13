@@ -74,7 +74,7 @@ export default function EditVehiclePage() {
     features: '',
     condition: 'Excellent',
     location: 'Tokyo, Japan',
-    available: true,
+    status: 'available',
     bodyType: 'Coupe',
     vin: '',
     engine: '',
@@ -85,6 +85,7 @@ export default function EditVehiclePage() {
     steering: 'Right Hand',
     badge: '',
     customBadge: '',
+    slug: '',
     customBadgeColor: '#c70f0f'
   });
   
@@ -173,8 +174,7 @@ export default function EditVehiclePage() {
             setShowCustomBadge(true);
           }
         }
-        
-        // Convert vehicle data to form data format with proper type handling
+                // Convert vehicle data to form data format with proper type handling
         setFormData({
           make: vehicle.make,
           model: vehicle.model,
@@ -188,7 +188,7 @@ export default function EditVehiclePage() {
           features: Array.isArray(vehicle.features) ? vehicle.features.join(', ') : '',
           condition: vehicle.condition,
           location: vehicle.location,
-          available: vehicle.status === 'available',
+          status: vehicle.status || 'available',
           bodyType: vehicle.bodyType || 'Coupe',
           vin: vehicle.vin || '',
           engine: vehicle.engineSize || '',
@@ -199,7 +199,8 @@ export default function EditVehiclePage() {
           steering: vehicle.specifications?.steering || 'Right Hand',
           badge: badgeId,
           customBadge: customBadgeText,
-          customBadgeColor: customBadgeColor
+          customBadgeColor: customBadgeColor,
+          slug: vehicle.slug || ''
         });
       } catch (error) {
         console.error('Error fetching vehicle:', error);
@@ -211,15 +212,64 @@ export default function EditVehiclePage() {
     fetchVehicle();
   }, [id, router]);
   
-  // Handle input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+  // Helper function to properly capitalize vehicle makes and models
+  const properCapitalize = (text: string): string => {
+    // Special case for common abbreviations like BMW, GMC, etc.
+    const commonAbbreviations = ['bmw', 'gmc', 'amg', 'jdm'];
+    if (commonAbbreviations.includes(text.toLowerCase())) {
+      return text.toUpperCase();
+    }
     
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else if (name === 'features') {
-      setFormData(prev => ({ ...prev, [name]: value }));
+    // For hyphenated names like Alfa-Romeo
+    if (text.includes('-')) {
+      return text.split('-')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join('-');
+    }
+    
+    // Standard title case
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+  
+  // Generate slug from make, model and year
+  const generateSlug = (make: string, model: string, year: number | string) => {
+    return `${make}-${model}-${year}`
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '');
+  };
+
+  // Handle form field changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    // Special handling for make and model fields to ensure proper capitalization
+    if (name === 'make' || name === 'model') {
+      const formattedValue = properCapitalize(value.trim());
+      setFormData(prev => {
+        // Update make or model
+        const updatedData = { ...prev, [name]: formattedValue };
+        
+        // If we have both make and model, update the slug
+        if (updatedData.make && updatedData.model) {
+          updatedData.slug = generateSlug(updatedData.make, updatedData.model, updatedData.year);
+        }
+        
+        return updatedData;
+      });
+    } else if (name === 'year') {
+      setFormData(prev => {
+        // Update year - convert string to number
+        const yearValue = parseInt(value, 10);
+        const updatedData = { ...prev, [name]: yearValue };
+        
+        // If we have make and model, update the slug
+        if (updatedData.make && updatedData.model) {
+          updatedData.slug = generateSlug(updatedData.make, updatedData.model, updatedData.year);
+        }
+        
+        return updatedData;
+      });
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -278,6 +328,9 @@ export default function EditVehiclePage() {
         }
       }
       
+      // Use the slug from formData or generate a new one if it's empty
+      const slug = formData.slug || generateSlug(formData.make, formData.model, formData.year);
+      
       // Prepare data for submission
       const vehicleData = {
         make: formData.make,
@@ -298,10 +351,11 @@ export default function EditVehiclePage() {
         engineSize: formData.engine || 'Not specified',
         features: featuresArray,
         description: formData.description,
-        status: formData.available ? 'available' : 'sold',
+        status: formData.status,
         location: formData.location,
         vin: formData.vin || undefined,
-        stockNumber: formData.stockNumber || undefined,
+        slug: slug, // Use the slug we prepared above
+        stockNumber: formData.stockNumber || `SKY-${formData.make.substring(0, 3).toUpperCase()}-${Date.now().toString().substring(8)}`, // Generate unique stock number if not provided
         specifications: {
           steering: formData.steering,
           cylinders: formData.cylinders || 'Not specified'
@@ -344,6 +398,18 @@ export default function EditVehiclePage() {
       
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Check for duplicate key errors
+        if (response.status === 409 || (errorData.message && errorData.message.includes('duplicate key'))) {
+          if (errorData.message.includes('stockNumber')) {
+            throw new Error('A vehicle with this stock number already exists. Please use a different stock number.');
+          } else if (errorData.message.includes('vin')) {
+            throw new Error('A vehicle with this VIN already exists. Please check the VIN and try again.');
+          } else {
+            throw new Error('Duplicate vehicle information detected. Please check your entries and try again.');
+          }
+        }
+        
         throw new Error(errorData.message || 'Failed to update vehicle');
       }
       
@@ -753,16 +819,20 @@ export default function EditVehiclePage() {
             </div>
             
             <div className={styles.formGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  name="available"
-                  checked={formData.available as boolean}
-                  onChange={(e) => setFormData(prev => ({ ...prev, available: e.target.checked }))}
-                  className={styles.checkbox}
-                />
-                <span>Available for Sale</span>
-              </label>
+              <label htmlFor="status" className={styles.label}>Status *</label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className={styles.select}
+                required
+              >
+                <option value="available">Available for Sale</option>
+                <option value="sold">Sold</option>
+                <option value="shipping">Shipping</option>
+                <option value="auction">In Auction</option>
+              </select>
             </div>
             
             <div className={styles.formGroup}>

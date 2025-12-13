@@ -23,6 +23,9 @@ import bookmarkRoutes from './routes/bookmarkRoutes';
 import securityRoutes from './routes/securityRoutes';
 import profileRoutes from './routes/profileRoutes';
 import vehicleRoutes from './routes/vehicleRoutes';
+import makeRoutes from './routes/makeRoutes';
+import modelRoutes from './routes/modelRoutes';
+import auctionVehicleRoutes from './routes/auctionVehicleRoutes';
 
 // Environment variables have already been logged above
 
@@ -58,6 +61,9 @@ app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/makes', makeRoutes);
+app.use('/api/models', modelRoutes);
+app.use('/api/auction-vehicles', auctionVehicleRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

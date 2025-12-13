@@ -1,65 +1,106 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { vehicleApi } from '@/lib/api';
 import { Car } from '@/types';
 import styles from './page.module.css';
 
-export default function InventoryDetailPage({ params }: { params: { slug: string } }) {
+export default function InventoryDetailPage({ params }: { params: { slug: string } | Promise<{ slug: string }> }) {
     const [car, setCar] = useState<Car | null>(null);
     const [relatedCars, setRelatedCars] = useState<Car[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
+    // Unwrap params Promise with React.use()
+    const resolvedParams = params instanceof Promise ? use(params) : params;
+    const slugParam = resolvedParams?.slug || '';
+    const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
     const normalizedSlug = decodeURIComponent(slug);
 
+    // Helper function to process vehicle data
+    const processVehicleData = (vehicleData: any) => {
+        const mappedCar: Car = {
+            id: vehicleData._id,
+            slug: vehicleData.slug || `${vehicleData.make}-${vehicleData.model}-${vehicleData.year}`.toLowerCase().replace(/\s+/g, '-'),
+            make: vehicleData.make,
+            model: vehicleData.model,
+            year: vehicleData.year,
+            price: vehicleData.price,
+            mileage: vehicleData.mileage,
+            transmission: vehicleData.transmission,
+            fuelType: vehicleData.fuelType,
+            drivetrain: vehicleData.drivetrain,
+            image: vehicleData.images && vehicleData.images.length > 0 ? vehicleData.images[0] : '/cars/placeholder.png',
+            images: vehicleData.images || [],
+            description: vehicleData.description,
+            features: vehicleData.features || [],
+            condition: vehicleData.condition,
+            location: vehicleData.location,
+            available: vehicleData.status !== 'sold',
+            bodyType: vehicleData.bodyType,
+            vin: vehicleData.vin,
+            engine: vehicleData.engineSize,
+            cylinders: vehicleData.cylinders,
+            color: vehicleData.exteriorColor,
+            doors: vehicleData.doors,
+            stockNumber: vehicleData.stockNumber || `SKY-${Math.floor(1000 + Math.random() * 9000)}`,
+            steering: vehicleData.steering
+        };
+        
+        setCar(mappedCar);
+        
+        // Fetch related cars
+        fetchRelatedCars(mappedCar);
+    };
+    
     // Fetch car data when component mounts
     useEffect(() => {
         const fetchCarData = async () => {
             try {
                 setLoading(true);
                 
+                console.log('Fetching car with slug:', normalizedSlug);
+                
                 // First try to find the car by slug
+                console.log('Normalized slug for API request:', normalizedSlug);
                 const response = await vehicleApi.getAllVehicles({ slug: normalizedSlug });
                 
+                console.log('Response from API:', response);
+                
+                // If no results found, try with a more flexible search
+                if (!response.success || !response.data || response.data.length === 0) {
+                    console.log('No exact match found, trying partial match');
+                    
+                    // Extract make, model, year from slug (assuming format: make-model-year)
+                    const slugParts = normalizedSlug.split('-');
+                    if (slugParts.length >= 3) {
+                        const make = slugParts[0];
+                        const model = slugParts[1];
+                        const year = slugParts[slugParts.length - 1]; // Last part might be the year
+                        
+                        console.log(`Trying with make=${make}, model=${model}, year=${year}`);
+                        
+                        // Try to find by make, model and year
+                        const fallbackResponse = await vehicleApi.getAllVehicles({
+                            make,
+                            model,
+                            year
+                        });
+                        
+                        console.log('Fallback response:', fallbackResponse);
+                        
+                        if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
+                            return processVehicleData(fallbackResponse.data[0]);
+                        }
+                    }
+                }
+                
                 if (response.success && response.data && response.data.length > 0) {
-                    // Map API response to Car type
-                    const vehicleData = response.data[0];
-                    const mappedCar: Car = {
-                        id: vehicleData._id,
-                        slug: vehicleData.slug || `${vehicleData.make}-${vehicleData.model}-${vehicleData.year}`.toLowerCase().replace(/\s+/g, '-'),
-                        make: vehicleData.make,
-                        model: vehicleData.model,
-                        year: vehicleData.year,
-                        price: vehicleData.price,
-                        mileage: vehicleData.mileage,
-                        transmission: vehicleData.transmission,
-                        fuelType: vehicleData.fuelType,
-                        drivetrain: vehicleData.drivetrain,
-                        image: vehicleData.images && vehicleData.images.length > 0 ? vehicleData.images[0] : '/cars/placeholder.png',
-                        images: vehicleData.images || [],
-                        description: vehicleData.description,
-                        features: vehicleData.features || [],
-                        condition: vehicleData.condition,
-                        location: vehicleData.location,
-                        available: vehicleData.status !== 'sold',
-                        bodyType: vehicleData.bodyType,
-                        vin: vehicleData.vin,
-                        engine: vehicleData.engineSize,
-                        cylinders: vehicleData.cylinders,
-                        color: vehicleData.exteriorColor,
-                        doors: vehicleData.doors,
-                        stockNumber: vehicleData.stockNumber || `SKY-${Math.floor(1000 + Math.random() * 9000)}`,
-                        steering: vehicleData.steering
-                    };
-                    
-                    setCar(mappedCar);
-                    
-                    // Fetch related cars
-                    fetchRelatedCars(mappedCar);
+                    // Process the first vehicle in the response
+                    processVehicleData(response.data[0]);
                 } else {
                     throw new Error('Vehicle not found');
                 }

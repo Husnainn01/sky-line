@@ -28,9 +28,15 @@ export default function CompactCarCard({ car, stockNumber }: CompactCarCardProps
                 Stock: #{stock}
             </div>
 
-            {/* Sold Badge (if not available) */}
-            {!car.available && (
+            {/* Status Badge */}
+            {car.status === 'sold' && (
                 <div className={styles.soldBadge}>SOLD</div>
+            )}
+            {car.status === 'shipping' && (
+                <div className={styles.soldBadge} style={{ backgroundColor: '#3b82f6' }}>SHIPPING</div>
+            )}
+            {car.status === 'auction' && (
+                <div className={styles.soldBadge} style={{ backgroundColor: '#8b5cf6' }}>AUCTION</div>
             )}
 
             {/* Car Image */}

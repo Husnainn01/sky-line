@@ -252,6 +252,16 @@
   color: #ef4444;
 }
 
+.shipping {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.auction {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
 .actionsCell {
   white-space: nowrap;
   display: flex;

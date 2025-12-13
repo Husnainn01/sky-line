@@ -94,6 +94,7 @@ export default function InventoryPage() {
                         condition: vehicle.condition,
                         location: vehicle.location,
                         available: vehicle.status !== 'sold',
+                        status: vehicle.status,
                         bodyType: vehicle.bodyType,
                         vin: vehicle.vin,
                         engine: vehicle.engineSize,

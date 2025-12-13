@@ -333,6 +333,111 @@ export const profileApi = {
 };
 
 /**
+ * Make API calls
+ */
+export const makeApi = {
+  // Get all makes
+  getAllMakes: async (filters?: any) => {
+    const queryParams = new URLSearchParams();
+    
+    // Add filters to query params if provided
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, value as string);
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest(`/makes${queryString}`);
+  },
+  
+  // Get a single make by ID
+  getMakeById: async (id: string) => {
+    return apiRequest(`/makes/${id}`);
+  },
+  
+  // Get models for a specific make
+  getModelsByMake: async (id: string) => {
+    return apiRequest(`/makes/${id}/models`);
+  },
+  
+  // Create a new make (admin only)
+  createMake: async (makeData: any) => {
+    return apiRequest('/makes', {
+      method: 'POST',
+      body: JSON.stringify(makeData),
+    });
+  },
+  
+  // Update a make (admin only)
+  updateMake: async (id: string, updates: any) => {
+    return apiRequest(`/makes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+  
+  // Delete a make (admin only)
+  deleteMake: async (id: string) => {
+    return apiRequest(`/makes/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
+ * Model API calls
+ */
+export const modelApi = {
+  // Get all models
+  getAllModels: async (filters?: any) => {
+    const queryParams = new URLSearchParams();
+    
+    // Add filters to query params if provided
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, value as string);
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest(`/models${queryString}`);
+  },
+  
+  // Get a single model by ID
+  getModelById: async (id: string) => {
+    return apiRequest(`/models/${id}`);
+  },
+  
+  // Create a new model (admin only)
+  createModel: async (modelData: any) => {
+    return apiRequest('/models', {
+      method: 'POST',
+      body: JSON.stringify(modelData),
+    });
+  },
+  
+  // Update a model (admin only)
+  updateModel: async (id: string, updates: any) => {
+    return apiRequest(`/models/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+  
+  // Delete a model (admin only)
+  deleteModel: async (id: string) => {
+    return apiRequest(`/models/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
  * Vehicle API calls
  */
 export const vehicleApi = {
@@ -384,5 +489,78 @@ export const vehicleApi = {
     return apiRequest(`/vehicles/${id}`, {
       method: 'DELETE',
     });
+  },
+};
+
+/**
+ * Auction Vehicle API calls - separate collection for auction vehicles
+ */
+export const auctionVehicleApi = {
+  // Get all auction vehicles with optional filters
+  getAllAuctionVehicles: async (filters?: any) => {
+    const queryParams = new URLSearchParams();
+    
+    // Add filters to query params if provided
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, value as string);
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest(`/auction-vehicles${queryString}`);
+  },
+  
+  // Get a single auction vehicle by ID
+  getAuctionVehicleById: async (id: string) => {
+    return apiRequest(`/auction-vehicles/${id}`);
+  },
+  
+  // Get auction vehicle by slug
+  getAuctionVehicleBySlug: async (slug: string) => {
+    return apiRequest(`/auction-vehicles/slug/${slug}`);
+  },
+  
+  // Get auction vehicles by status
+  getAuctionVehiclesByStatus: async (status: 'upcoming' | 'live' | 'past') => {
+    return apiRequest(`/auction-vehicles/status/${status}`);
+  },
+  
+  // Create a new auction vehicle
+  createAuctionVehicle: async (vehicleData: any) => {
+    return apiRequest('/auction-vehicles', {
+      method: 'POST',
+      body: JSON.stringify(vehicleData),
+    });
+  },
+  
+  // Update an auction vehicle
+  updateAuctionVehicle: async (id: string, updates: any) => {
+    return apiRequest(`/auction-vehicles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+  
+  // Delete an auction vehicle
+  deleteAuctionVehicle: async (id: string) => {
+    return apiRequest(`/auction-vehicles/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  
+  // Place a bid on an auction vehicle
+  placeBid: async (vehicleId: string, bidAmount: number) => {
+    return apiRequest(`/auction-vehicles/${vehicleId}/bid`, {
+      method: 'POST',
+      body: JSON.stringify({ amount: bidAmount }),
+    });
+  },
+  
+  // Get bid history for an auction vehicle
+  getBidHistory: async (vehicleId: string) => {
+    return apiRequest(`/auction-vehicles/${vehicleId}/bids`);
   },
 };

@@ -1,32 +1,90 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { auctionCarsData } from '@/data';
+import { notFound, useParams } from 'next/navigation';
+import { auctionVehicleApi } from '@/lib/api';
 import { AuctionCar } from '@/types/auction';
+import { AuctionVehicle } from '@/types/auctionVehicle';
+import { mapAuctionVehicleToAuctionCar } from '@/utils/auctionUtils';
 import styles from './page.module.css';
 
-const fallbackCar = auctionCarsData[0];
-
-export default function AuctionDetailPage({ params }: { params: { slug: string } }) {
-  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
-  const normalizedSlug = decodeURIComponent(slug);
-  const car = auctionCarsData.find((car: AuctionCar) => car.slug === normalizedSlug) || fallbackCar;
+export default function AuctionDetailPage() {
+  const [car, setCar] = useState<AuctionCar | null>(null);
+  const [relatedCars, setRelatedCars] = useState<AuctionCar[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   
-  if (!car) {
-    notFound();
+  // Get params using the hook instead
+  const params = useParams();
+  const slug = params.slug as string;
+  const normalizedSlug = decodeURIComponent(slug);
+  
+  useEffect(() => {
+    const fetchAuctionVehicle = async () => {
+      try {
+        setLoading(true);
+        
+        // Directly fetch the auction vehicle by slug
+        const response = await auctionVehicleApi.getAuctionVehicleBySlug(normalizedSlug);
+        
+        if (response.success && response.data) {
+          // Map the vehicle to AuctionCar format
+          const foundCar = mapAuctionVehicleToAuctionCar(response.data as AuctionVehicle);
+          setCar(foundCar);
+          
+          // Fetch related cars (same make or model)
+          const relatedResponse = await auctionVehicleApi.getAllAuctionVehicles({
+            make: foundCar.make,
+            model: foundCar.model,
+            exclude: foundCar.id,
+            limit: 3
+          });
+          
+          if (relatedResponse.success && relatedResponse.data) {
+            const related = relatedResponse.data.map((vehicle: AuctionVehicle) => 
+              mapAuctionVehicleToAuctionCar(vehicle)
+            );
+            setRelatedCars(related);
+          }
+        } else {
+          setError('Vehicle not found');
+        }
+      } catch (err) {
+        console.error('Error fetching auction vehicle:', err);
+        setError('An error occurred while fetching the auction vehicle');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAuctionVehicle();
+  }, [normalizedSlug]);
+  
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading auction details...</p>
+      </div>
+    );
   }
-
+  
+  if (error || !car) {
+    return (
+      <div className={styles.errorContainer}>
+        <p className={styles.errorMessage}>{error || 'Vehicle not found'}</p>
+        <Link href="/auction" className={styles.backButton}>
+          Back to Auctions
+        </Link>
+      </div>
+    );
+  }
+  
   const isLive = car.auctionStatus === 'live';
   const isPast = car.auctionStatus === 'past';
   const isUpcoming = car.auctionStatus === 'upcoming';
-  
-  const relatedCars = auctionCarsData
-    .filter((item: AuctionCar) => 
-      item.id !== car.id && 
-      (item.make === car.make || item.model === car.model)
-    )
-    .slice(0, 3);
 
   return (
     <div className={styles.page}>

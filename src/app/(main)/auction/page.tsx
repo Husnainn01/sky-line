@@ -1,14 +1,50 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { auctionCarsData } from '@/data';
+import { auctionVehicleApi } from '@/lib/api';
 import { AuctionCar } from '@/types/auction';
+import { AuctionVehicle } from '@/types/auctionVehicle';
+import { mapAuctionVehicleToAuctionCar } from '@/utils/auctionUtils';
 import styles from './page.module.css';
 
 export default function AuctionPage() {
-  const upcomingAuctions = auctionCarsData.filter((car: AuctionCar) => car.auctionStatus === 'upcoming');
-  const liveAuctions = auctionCarsData.filter((car: AuctionCar) => car.auctionStatus === 'live');
-  const pastAuctions = auctionCarsData.filter((car: AuctionCar) => car.auctionStatus === 'past');
+  const [auctionVehicles, setAuctionVehicles] = useState<AuctionCar[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchAuctionVehicles = async () => {
+      try {
+        setLoading(true);
+        // Fetch auction vehicles from the dedicated auction vehicle API
+        const response = await auctionVehicleApi.getAllAuctionVehicles();
+        
+        if (response.success && response.data) {
+          // Map the vehicle data to AuctionCar format
+          const mappedAuctionCars = response.data.map((vehicle: AuctionVehicle) => 
+            mapAuctionVehicleToAuctionCar(vehicle)
+          );
+          setAuctionVehicles(mappedAuctionCars);
+        } else {
+          setError('Failed to fetch auction vehicles');
+        }
+      } catch (err) {
+        console.error('Error fetching auction vehicles:', err);
+        setError('An error occurred while fetching auction vehicles');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAuctionVehicles();
+  }, []);
+  
+  // Filter auction vehicles by status
+  const upcomingAuctions = auctionVehicles.filter(car => car.auctionStatus === 'upcoming');
+  const liveAuctions = auctionVehicles.filter(car => car.auctionStatus === 'live');
+  const pastAuctions = auctionVehicles.filter(car => car.auctionStatus === 'past');
 
   return (
     <div className={styles.page}>
@@ -19,6 +55,25 @@ export default function AuctionPage() {
             Browse upcoming auctions, place bids, and let us handle the entire purchasing process
           </p>
         </header>
+        
+        {loading && (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading auction vehicles...</p>
+          </div>
+        )}
+        
+        {error && (
+          <div className={styles.errorContainer}>
+            <p className={styles.errorMessage}>{error}</p>
+            <button 
+              className={styles.retryButton}
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         <section className={styles.processSection}>
           <h2 className={styles.sectionTitle}>How Our Auction Service Works</h2>
@@ -46,7 +101,7 @@ export default function AuctionPage() {
           </div>
         </section>
 
-        {liveAuctions.length > 0 && (
+        {!loading && !error && liveAuctions.length > 0 && (
           <section className={styles.auctionSection}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>
@@ -118,14 +173,15 @@ export default function AuctionPage() {
           </section>
         )}
 
-        <section className={styles.auctionSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Upcoming Auctions</h2>
-            <p className={styles.sectionDescription}>
-              Browse vehicles that will be available at upcoming auctions and prepare your bids.
-            </p>
-          </div>
-          <div className={styles.auctionGrid}>
+        {!loading && !error && upcomingAuctions.length > 0 && (
+          <section className={styles.auctionSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Upcoming Auctions</h2>
+              <p className={styles.sectionDescription}>
+                Browse vehicles that will be available at upcoming auctions and prepare your bids.
+              </p>
+            </div>
+            <div className={styles.auctionGrid}>
             {upcomingAuctions.map((car: AuctionCar) => (
               <article key={car.id} className={styles.auctionCard}>
                 <div className={styles.auctionMedia}>
@@ -182,17 +238,19 @@ export default function AuctionPage() {
                 </div>
               </article>
             ))}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
-        <section className={styles.auctionSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Past Auction Results</h2>
-            <p className={styles.sectionDescription}>
-              View recent auction results to understand market trends and pricing.
-            </p>
-          </div>
-          <div className={styles.auctionGrid}>
+        {!loading && !error && pastAuctions.length > 0 && (
+          <section className={styles.auctionSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Past Auction Results</h2>
+              <p className={styles.sectionDescription}>
+                View recent auction results to understand market trends and pricing.
+              </p>
+            </div>
+            <div className={styles.auctionGrid}>
             {pastAuctions.map((car: AuctionCar) => (
               <article key={car.id} className={styles.auctionCard}>
                 <div className={styles.auctionMedia}>
@@ -249,8 +307,9 @@ export default function AuctionPage() {
                 </div>
               </article>
             ))}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
         <section className={styles.faqSection}>
           <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>

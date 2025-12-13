@@ -161,6 +161,16 @@
   color: white;
 }
 
+.shipping {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.auction {
+  background-color: #8b5cf6;
+  color: white;
+}
+
 .infoCard {
   flex: 1;
   background-color: white;
@@ -286,6 +296,16 @@
 
 .statusSold {
   color: #ef4444;
+  font-weight: 600;
+}
+
+.statusShipping {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.statusAuction {
+  color: #8b5cf6;
   font-weight: 600;
 }
 

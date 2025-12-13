@@ -3,8 +3,11 @@ import { z } from 'zod';
 
 export const VehicleValidation = z.object({
   // Basic Information
-  make: z.string(),
-  model: z.string(),
+  makeId: z.string(),
+  modelId: z.string(),
+  make: z.string(), // For backward compatibility
+  model: z.string(), // For backward compatibility
+  slug: z.string().optional(), // URL-friendly identifier
   year: z.number(),
   price: z.number(),
   type: z.enum(['stock', 'auction']),
@@ -50,8 +53,20 @@ export const VehicleValidation = z.object({
 
 const vehicleSchema = new mongoose.Schema({
   // Basic Information
+  makeId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Make',
+    index: true
+  },
+  modelId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Model',
+    index: true
+  },
+  // Keep string fields for backward compatibility
   make: { type: String, required: true, index: true },
   model: { type: String, required: true, index: true },
+  slug: { type: String, index: true }, // URL-friendly identifier
   year: { type: Number, required: true, index: true },
   price: { type: Number, required: true },
   type: { 
@@ -103,8 +118,8 @@ const vehicleSchema = new mongoose.Schema({
     index: true
   },
   location: { type: String, required: true },
-  vin: String,
-  stockNumber: String,
+  vin: { type: String, unique: true, sparse: true }, // sparse:true allows multiple null values
+  stockNumber: { type: String, unique: true, sparse: true }, // sparse:true allows multiple null values
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
   // Timestamps

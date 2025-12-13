@@ -45,6 +45,7 @@ export default function RecentlyAddedSection({
     // State to track if search has been performed
     const [searchPerformed, setSearchPerformed] = useState(false);
 
+    
     // Update filteredCars when cars prop changes
     useEffect(() => {
         setFilteredCars(cars);
@@ -53,15 +54,24 @@ export default function RecentlyAddedSection({
     // Update available models when make changes
     useEffect(() => {
         if (filters.make) {
-            // Find the matching make in a case-insensitive way
-            const matchingMake = Object.keys(modelsByMake).find(
-                make => make.toLowerCase() === filters.make.toLowerCase()
-            );
+            // Collect all models for the selected make (case-insensitive)
+            const allModelsForMake: string[] = [];
             
-            if (matchingMake) {
-                setAvailableModels(modelsByMake[matchingMake]);
-            } else {
-                setAvailableModels([]);
+            // Look through all makes in modelsByMake
+            Object.keys(modelsByMake).forEach(make => {
+                // If this make matches the selected make (case-insensitive)
+                if (make.toLowerCase() === filters.make.toLowerCase()) {
+                    // Add all models for this make to our collection
+                    allModelsForMake.push(...modelsByMake[make]);
+                }
+            });
+            
+            // Deduplicate models
+            const uniqueModels = Array.from(new Set(allModelsForMake)).sort();
+            setAvailableModels(uniqueModels);
+            
+            if (uniqueModels.length === 0) {
+                console.log('No models found for make:', filters.make);
             }
         } else {
             setAvailableModels([]);
@@ -139,9 +149,19 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('make', e.target.value)}
                         >
                             <option value="">Make</option>
-                            {makes.map((make) => (
-                                <option key={make} value={make}>{make}</option>
-                            ))}
+                            {/* Display each make only once */}
+                            {makes
+                                // Remove duplicates by converting to Set and back to array
+                                .filter((make, index, self) => 
+                                    index === self.findIndex(m => m.toLowerCase() === make.toLowerCase())
+                                )
+                                // Sort alphabetically
+                                .sort()
+                                // Create option elements
+                                .map(make => (
+                                    <option key={make} value={make}>{make}</option>
+                                ))
+                            }
                         </select>
 
                         <select
@@ -151,7 +171,7 @@ export default function RecentlyAddedSection({
                             disabled={!filters.make} // Disable if no make is selected
                         >
                             <option value="">{filters.make ? 'Model' : 'Select Make First'}</option>
-                            {availableModels.map((model) => (
+                            {availableModels.map(model => (
                                 <option key={model} value={model}>{model}</option>
                             ))}
                         </select>
@@ -174,9 +194,19 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('type', e.target.value)}
                         >
                             <option value="">Type</option>
-                            {bodyTypes.map((type) => (
-                                <option key={type} value={type}>{type}</option>
-                            ))}
+                            {/* Display each body type only once */}
+                            {bodyTypes
+                                // Remove duplicates by converting to Set and back to array
+                                .filter((type, index, self) => 
+                                    index === self.findIndex(t => t.toLowerCase() === type.toLowerCase())
+                                )
+                                // Sort alphabetically
+                                .sort()
+                                // Create option elements
+                                .map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                ))
+                            }
                         </select>
 
                         <select

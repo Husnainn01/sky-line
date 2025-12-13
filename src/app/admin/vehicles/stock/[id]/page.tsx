@@ -299,9 +299,23 @@ export default function VehicleDetailPage() {
               height={400}
               className={styles.mainImage}
             />
-            <div className={`${styles.statusBadge} ${vehicle.available ? styles.available : styles.sold}`}>
-              {vehicle.available ? 'Available' : 'Sold'}
-            </div>
+            {vehicle.status === 'available' && (
+              <div className={`${styles.statusBadge} ${styles.available}`}>Available</div>
+            )}
+            {vehicle.status === 'sold' && (
+              <div className={`${styles.statusBadge} ${styles.sold}`}>Sold</div>
+            )}
+            {vehicle.status === 'shipping' && (
+              <div className={`${styles.statusBadge} ${styles.shipping}`}>Shipping</div>
+            )}
+            {vehicle.status === 'auction' && (
+              <div className={`${styles.statusBadge} ${styles.auction}`}>Auction</div>
+            )}
+            {!vehicle.status && (
+              <div className={`${styles.statusBadge} ${vehicle.available ? styles.available : styles.sold}`}>
+                {vehicle.available ? 'Available' : 'Sold'}
+              </div>
+            )}
             
             {vehicle.badge && (
               <div 
@@ -424,9 +438,23 @@ export default function VehicleDetailPage() {
               </div>
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>Status</span>
-                <span className={`${styles.detailValue} ${vehicle.available ? styles.statusAvailable : styles.statusSold}`}>
-                  {vehicle.available ? 'Available' : 'Sold'}
-                </span>
+                {vehicle.status === 'available' && (
+                  <span className={`${styles.detailValue} ${styles.statusAvailable}`}>Available</span>
+                )}
+                {vehicle.status === 'sold' && (
+                  <span className={`${styles.detailValue} ${styles.statusSold}`}>Sold</span>
+                )}
+                {vehicle.status === 'shipping' && (
+                  <span className={`${styles.detailValue} ${styles.statusShipping}`}>Shipping</span>
+                )}
+                {vehicle.status === 'auction' && (
+                  <span className={`${styles.detailValue} ${styles.statusAuction}`}>Auction</span>
+                )}
+                {!vehicle.status && (
+                  <span className={`${styles.detailValue} ${vehicle.available ? styles.statusAvailable : styles.statusSold}`}>
+                    {vehicle.available ? 'Available' : 'Sold'}
+                  </span>
+                )}
               </div>
             </div>
           </div>

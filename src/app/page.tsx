@@ -58,29 +58,68 @@ export default function Home() {
             steering: vehicle.steering
           }));
           
-          // Extract unique makes
-          const uniqueMakes = Array.from(new Set(vehicles
-            .filter(car => car.make) // Filter out undefined makes
-            .map(car => car.make as string)))
-            .sort();
+          // Extract unique makes with case-insensitive deduplication
+          const uniqueMakes = (() => {
+            // First, normalize all makes to lowercase for comparison
+            const makesMap = new Map<string, string>();
+            
+            vehicles.forEach(car => {
+              if (car.make) {
+                const lowerMake = car.make.toLowerCase();
+                // Keep the version with the best capitalization (prefer Title Case)
+                if (!makesMap.has(lowerMake) || 
+                    (car.make !== car.make.toLowerCase() && makesMap.get(lowerMake) === makesMap.get(lowerMake)?.toLowerCase())) {
+                  makesMap.set(lowerMake, car.make);
+                }
+              }
+            });
+            
+            // Extract the properly capitalized unique makes and sort them
+            return Array.from(makesMap.values()).sort();
+          })();
           
-          // Create a mapping of makes to their models
+          // Create a mapping of makes to their models with case-insensitive comparison
           const makeToModels: Record<string, string[]> = {};
           uniqueMakes.forEach(make => {
-            // Get all models for this make
+            // Get all models for this make (case-insensitive)
             const modelsForMake = vehicles
-              .filter(car => car.make === make && car.model) // Filter by make and ensure model exists
+              .filter(car => car.make && make && 
+                car.make.toLowerCase() === make.toLowerCase() && car.model) // Filter by make (case-insensitive) and ensure model exists
               .map(car => car.model as string);
               
-            // Remove duplicates and sort
-            makeToModels[make] = Array.from(new Set(modelsForMake)).sort();
+            // Remove duplicates with case-insensitive comparison
+            const modelMap = new Map<string, string>();
+            modelsForMake.forEach(model => {
+              const lowerModel = model.toLowerCase();
+              if (!modelMap.has(lowerModel) || 
+                  (model !== model.toLowerCase() && modelMap.get(lowerModel) === modelMap.get(lowerModel)?.toLowerCase())) {
+                modelMap.set(lowerModel, model);
+              }
+            });
+            
+            // Extract properly capitalized unique models and sort
+            makeToModels[make] = Array.from(modelMap.values()).sort();
           });
           
-          // Extract unique body types
-          const uniqueBodyTypes = Array.from(new Set(vehicles
-            .filter(car => car.bodyType) // Filter out undefined body types
-            .map(car => car.bodyType as string)))
-            .sort();
+          // Extract unique body types with case-insensitive deduplication
+          const uniqueBodyTypes = (() => {
+            // First, normalize all body types to lowercase for comparison
+            const bodyTypeMap = new Map<string, string>();
+            
+            vehicles.forEach(car => {
+              if (car.bodyType) {
+                const lowerBodyType = car.bodyType.toLowerCase();
+                // Keep the version with the best capitalization (prefer Title Case)
+                if (!bodyTypeMap.has(lowerBodyType) || 
+                    (car.bodyType !== car.bodyType.toLowerCase() && bodyTypeMap.get(lowerBodyType) === bodyTypeMap.get(lowerBodyType)?.toLowerCase())) {
+                  bodyTypeMap.set(lowerBodyType, car.bodyType);
+                }
+              }
+            });
+            
+            // Extract the properly capitalized unique body types and sort them
+            return Array.from(bodyTypeMap.values()).sort();
+          })();
           
           setMakes(uniqueMakes);
           setModelsByMake(makeToModels);

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { auctionService } from '@/lib/auctionService';
-import { vehicleApi } from '@/lib/api';
 import { AuctionCar } from '@/types/auction';
 import AdminHeader from '../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../components/admin/AdminSidebar';
@@ -104,8 +103,8 @@ export default function AuctionVehiclesPage() {
       setDeleteLoading(id);
       setDeleteError(null);
       
-      // Call API to delete vehicle
-      await vehicleApi.deleteVehicle(id);
+      // Call API to delete auction vehicle
+      await auctionService.deleteAuctionVehicle(id);
       
       // Remove vehicle from state
       setAuctionCars(prevCars => prevCars.filter(car => car.id !== id));
