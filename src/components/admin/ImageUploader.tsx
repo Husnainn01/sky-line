@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import styles from './ImageUploader.module.css';
+import { getAuthToken } from '../../utils/sessionManager';
 
 export interface UploadedImage {
   id: string;
@@ -13,6 +14,8 @@ export interface UploadedImage {
   name: string;
   size?: number;
   url?: string; // For existing images from server
+  uploading?: boolean; // Flag to indicate if image is currently uploading
+  error?: boolean; // Flag to indicate if there was an error uploading
 }
 
 interface ImageUploaderProps {
@@ -48,8 +51,42 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     onChange(images);
   }, [images, onChange]);
   
+  // Upload file to R2 storage
+  const uploadFileToR2 = async (file: File): Promise<string> => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      // Create form data for file upload
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('folder', 'vehicles'); // Default folder for vehicle images
+
+      // Upload to R2 via the API
+      const response = await fetch('http://localhost:5001/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await response.json();
+      return data.data.url;
+    } catch (error) {
+      console.error('Error uploading to R2:', error);
+      throw error;
+    }
+  };
+
   // Handle file drop
-  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
     // Check for rejected files
     if (rejectedFiles.length > 0) {
       const rejectionReasons = rejectedFiles.map(rejection => {
@@ -73,16 +110,59 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     
     setError(null);
     
-    // Process accepted files
-    const newImages = acceptedFiles.map(file => ({
-      id: uuidv4(),
-      file,
-      preview: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size
-    }));
-    
-    setImages(prevImages => [...prevImages, ...newImages]);
+    // Process and upload each file
+    try {
+      // Create temporary preview images
+      const tempImages = acceptedFiles.map(file => ({
+        id: uuidv4(),
+        file,
+        preview: URL.createObjectURL(file),
+        name: file.name,
+        size: file.size,
+        uploading: true
+      }));
+      
+      // Add temporary images to the state
+      setImages(prevImages => [...prevImages, ...tempImages]);
+      
+      // Upload each file to R2 and get URLs
+      const uploadPromises = acceptedFiles.map(async (file, index) => {
+        try {
+          const r2Url = await uploadFileToR2(file);
+          return {
+            id: tempImages[index].id,
+            file: undefined, // Clear the file reference after upload
+            preview: r2Url, // Use the R2 URL as preview
+            name: file.name,
+            size: file.size,
+            uploading: false,
+            url: r2Url
+          };
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          return {
+            ...tempImages[index],
+            uploading: false,
+            error: true
+          };
+        }
+      });
+      
+      // Wait for all uploads to complete
+      const uploadedImages = await Promise.all(uploadPromises);
+      
+      // Update images state with uploaded URLs
+      setImages(prevImages => {
+        // Replace temp images with uploaded ones, keep other existing images
+        return prevImages.map(img => {
+          const uploadedImg = uploadedImages.find(u => u.id === img.id);
+          return uploadedImg || img;
+        });
+      });
+    } catch (error) {
+      console.error('Error processing uploads:', error);
+      setError('Failed to upload one or more images. Please try again.');
+    }
   }, [images, maxFiles, maxSizeMB]);
   
   // Configure dropzone
@@ -193,13 +273,29 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                           {...provided.dragHandleProps}
                           className={styles.imageItem}
                         >
-                          <div className={styles.imagePreview}>
+                          <div className={`${styles.imagePreview} ${image.uploading ? styles.uploading : ''} ${image.error ? styles.error : ''}`}>
                             <img src={image.preview} alt={image.name} />
+                            {image.uploading ? (
+                              <div className={styles.uploadingOverlay}>
+                                <div className={styles.spinner}></div>
+                                <span>Uploading...</span>
+                              </div>
+                            ) : image.error ? (
+                              <div className={styles.errorOverlay}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>Upload failed</span>
+                              </div>
+                            ) : null}
                             <button
                               type="button"
                               onClick={() => removeImage(image.id)}
                               className={styles.removeButton}
                               title="Remove image"
+                              disabled={image.uploading}
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>

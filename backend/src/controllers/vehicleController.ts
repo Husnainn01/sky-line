@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Vehicle } from '../models/Vehicle';
 import { VehicleValidation } from '../models/Vehicle';
 import mongoose from 'mongoose';
+import { isR2Url, deleteFileFromR2 } from '../services/storageService';
 
 export const vehicleController = {
   /**
@@ -199,25 +200,19 @@ export const vehicleController = {
       }
       
       // Handle image URLs
-      // For now, if we receive blob URLs from the frontend, replace them with placeholder image URLs
+      // Images should now be uploaded separately via the upload API
+      // and their URLs passed in the vehicleData
       if (vehicleData.images && Array.isArray(vehicleData.images)) {
-        // Replace blob URLs with placeholder image URLs
-        vehicleData.images = vehicleData.images.map((img: string, index: number) => {
-          if (img.startsWith('blob:')) {
-            // Use placeholder images from public directory
-            const placeholders = [
-              '/cars/ae86.png',
-              '/cars/evo.png',
-              '/cars/nsx.png',
-              '/cars/rx7.png',
-              '/cars/silvia.png',
-              '/cars/supra.png',
-              '/cars/gtr.png',
-            ];
-            return placeholders[index % placeholders.length];
-          }
-          return img;
-        });
+        // Filter out any blob URLs (these should have been uploaded separately)
+        vehicleData.images = vehicleData.images.filter((img: string) => !img.startsWith('blob:'));
+        
+        // If no valid images, use a default placeholder
+        if (vehicleData.images.length === 0) {
+          vehicleData.images = ['/cars/placeholder.png'];
+        }
+      } else {
+        // Ensure images is always an array
+        vehicleData.images = ['/cars/placeholder.png'];
       }
       
       // Create new vehicle
@@ -380,23 +375,27 @@ export const vehicleController = {
       
       // Handle image URLs
       if (updates.images && Array.isArray(updates.images)) {
-        // Replace blob URLs with placeholder image URLs
-        updates.images = updates.images.map((img: string, index: number) => {
-          if (img.startsWith('blob:')) {
-            // Use placeholder images from public directory
-            const placeholders = [
-              '/cars/ae86.png',
-              '/cars/evo.png',
-              '/cars/nsx.png',
-              '/cars/rx7.png',
-              '/cars/silvia.png',
-              '/cars/supra.png',
-              '/cars/gtr.png',
-            ];
-            return placeholders[index % placeholders.length];
-          }
-          return img;
-        });
+        // Filter out any blob URLs (these should have been uploaded separately)
+        updates.images = updates.images.filter((img: string) => !img.startsWith('blob:'));
+        
+        // If no valid images, use a default placeholder
+        if (updates.images.length === 0) {
+          updates.images = ['/cars/placeholder.png'];
+        }
+        
+        // Delete old images from R2 if they're being replaced
+        if (vehicle.images && Array.isArray(vehicle.images)) {
+          // Find images that are in the old array but not in the new array
+          const imagesToDelete = vehicle.images.filter(
+            (oldImg: string) => 
+              isR2Url(oldImg) && 
+              !updates.images.includes(oldImg)
+          );
+          
+          // Delete each image from R2 storage
+          Promise.all(imagesToDelete.map(img => deleteFileFromR2(img)))
+            .catch(err => console.error('Error deleting old images:', err));
+        }
       }
       
       // Update the vehicle
@@ -481,6 +480,15 @@ export const vehicleController = {
       //   });
       // }
       
+      // Delete images from R2 storage
+      if (vehicle.images && Array.isArray(vehicle.images)) {
+        const r2Images = vehicle.images.filter(img => isR2Url(img));
+        if (r2Images.length > 0) {
+          Promise.all(r2Images.map(img => deleteFileFromR2(img)))
+            .catch(err => console.error('Error deleting images from R2:', err));
+        }
+      }
+
       // Delete the vehicle
       await Vehicle.findByIdAndDelete(id);
       

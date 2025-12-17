@@ -26,6 +26,7 @@ import vehicleRoutes from './routes/vehicleRoutes';
 import makeRoutes from './routes/makeRoutes';
 import modelRoutes from './routes/modelRoutes';
 import auctionVehicleRoutes from './routes/auctionVehicleRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 
 // Environment variables have already been logged above
 
@@ -64,6 +65,7 @@ app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/makes', makeRoutes);
 app.use('/api/models', modelRoutes);
 app.use('/api/auction-vehicles', auctionVehicleRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

@@ -84,14 +84,25 @@ export default function StockVehiclesPage() {
         console.log('API Response:', data);
         console.log('Vehicles data:', data.data);
         
-        // Ensure each vehicle has a valid ID
+        // Ensure each vehicle has a valid ID and image
         const vehiclesWithValidIds = (data.data || []).map((vehicle: any) => {
           console.log('Vehicle:', vehicle);
+          // Process the vehicle data
+          const processedVehicle = { ...vehicle };
+          
           // If _id exists but id doesn't, use _id as id
           if (vehicle._id && !vehicle.id) {
-            return { ...vehicle, id: vehicle._id };
+            processedVehicle.id = vehicle._id;
           }
-          return vehicle;
+          
+          // Set the main image from the images array
+          if (vehicle.images && vehicle.images.length > 0) {
+            processedVehicle.image = vehicle.images[0];
+          } else {
+            processedVehicle.image = '/cars/placeholder.png';
+          }
+          
+          return processedVehicle;
         });
         
         setVehicles(vehiclesWithValidIds);
@@ -346,7 +357,7 @@ export default function StockVehiclesPage() {
                   <td className={styles.imageCell}>
                     <div className={styles.thumbnailContainer}>
                       <Image
-                        src={car.image}
+                        src={car.image || '/cars/placeholder.png'}
                         alt={`${car.year} ${car.make} ${car.model}`}
                         width={80}
                         height={60}

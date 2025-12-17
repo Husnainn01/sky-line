@@ -143,6 +143,13 @@ export default function VehicleDetailPage() {
         
         console.log('Fetched vehicle data:', vehicle);
         
+        // Ensure vehicle has an image property
+        if (vehicle.images && vehicle.images.length > 0) {
+          vehicle.image = vehicle.images[0];
+        } else {
+          vehicle.image = '/cars/placeholder.png';
+        }
+        
         setVehicle(vehicle);
       } catch (err) {
         console.error('Error fetching vehicle:', err);
@@ -293,7 +300,7 @@ export default function VehicleDetailPage() {
         <div className={styles.mainInfo}>
           <div className={styles.imageContainer}>
             <Image
-              src={vehicle.image}
+              src={vehicle.image || '/cars/placeholder.png'}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               width={600}
               height={400}

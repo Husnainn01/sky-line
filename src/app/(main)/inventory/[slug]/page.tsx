@@ -13,6 +13,7 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
     const [relatedCars, setRelatedCars] = useState<Car[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     // Unwrap params Promise with React.use()
     const resolvedParams = params instanceof Promise ? use(params) : params;
@@ -264,20 +265,78 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
                 <div className={styles.mainLayout}>
                     <div className={styles.mainContent}>
                         <section className={styles.galleryPanel}>
+                            <div className={styles.galleryTopBar}>
+                                <span>Photo Gallery</span>
+                                <div className={styles.galleryActions}>
+                                    <button 
+                                        type="button" 
+                                        className={styles.galleryButton}
+                                        onClick={() => {
+                                            const thumbnailStrip = document.querySelector(`.${styles.thumbnailStrip}`);
+                                            if (thumbnailStrip) {
+                                                if (thumbnailStrip.classList.contains(styles.hiddenThumbnails)) {
+                                                    thumbnailStrip.classList.remove(styles.hiddenThumbnails);
+                                                } else {
+                                                    thumbnailStrip.classList.add(styles.hiddenThumbnails);
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        Hide thumbnails
+                                    </button>
+                                    <button type="button" className={styles.galleryButton}>Download All</button>
+                                </div>
+                            </div>
+                            
                             <div className={styles.primaryImage}>
                                 <Image
-                                    src={galleryImages[0]}
+                                    src={galleryImages[currentImageIndex]}
                                     alt={`${car.year} ${car.make} ${car.model}`}
                                     fill
                                     sizes="(max-width: 1024px) 100vw, 640px"
                                 />
+                                <div className={styles.watermarkContainer}>
+                                    <div className={styles.watermarkDiagonal}>
+                                        {Array(5).fill(0).map((_, i) => (
+                                            <div key={i} className={styles.watermarkRow}>
+                                                {Array(8).fill(0).map((_, j) => (
+                                                    <span key={j} className={styles.watermarkText}>SkylineTRD</span>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                {galleryImages.length > 1 && (
+                                    <div className={styles.imageNavigation}>
+                                        <button 
+                                            onClick={() => setCurrentImageIndex(prev => (prev === 0 ? galleryImages.length - 1 : prev - 1))}
+                                            className={`${styles.navButton} ${styles.prevButton}`}
+                                            aria-label="Previous image"
+                                        >
+                                            ‹
+                                        </button>
+                                        <button 
+                                            onClick={() => setCurrentImageIndex(prev => (prev === galleryImages.length - 1 ? 0 : prev + 1))}
+                                            className={`${styles.navButton} ${styles.nextButton}`}
+                                            aria-label="Next image"
+                                        >
+                                            ›
+                                        </button>
+                                    </div>
+                                )}
                             </div>
+                            
                             {galleryImages.length > 1 && (
                                 <div className={styles.thumbnailStrip}>
                                     {galleryImages.map((imageSrc, index) => (
                                         <div
                                             key={`${imageSrc}-${index}`}
-                                            className={index === 0 ? `${styles.thumbnail} ${styles.thumbnailSelected}` : styles.thumbnail}
+                                            className={index === currentImageIndex ? `${styles.thumbnail} ${styles.thumbnailSelected}` : styles.thumbnail}
+                                            onClick={() => setCurrentImageIndex(index)}
+                                            role="button"
+                                            tabIndex={0}
+                                            onKeyDown={(e) => e.key === 'Enter' && setCurrentImageIndex(index)}
+                                            aria-label={`View image ${index + 1}`}
                                         >
                                             <Image
                                                 src={imageSrc}
@@ -289,13 +348,6 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
                                     ))}
                                 </div>
                             )}
-                            <div className={styles.galleryTopBar}>
-                                <span>Photo Gallery</span>
-                                <div className={styles.galleryActions}>
-                                    <button type="button" className={styles.galleryButton}>Hide thumbnails</button>
-                                    <button type="button" className={styles.galleryButton}>Download All</button>
-                                </div>
-                            </div>
                         </section>
 
                         <section className={styles.overviewSection}>
