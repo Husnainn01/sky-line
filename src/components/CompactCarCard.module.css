@@ -49,6 +49,19 @@
     fill: #ffffff;
 }
 
+.favoriteActive {
+    background: rgba(220, 38, 38, 0.9);
+}
+
+.favoriteActive svg {
+    color: #ffffff;
+}
+
+.favoriteButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* Stock Badge */
 .stockBadge {
     position: absolute;

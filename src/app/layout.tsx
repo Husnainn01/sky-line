@@ -4,6 +4,7 @@ import { Inter, Outfit } from "next/font/google";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SavedVehiclesProvider } from "@/contexts/SavedVehiclesContext";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,13 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable}`}>
-        {!hideHeaderFooter && <Navbar />}
-        <div className={!hideHeaderFooter ? "page-shell" : ""}>
-          <main>
-            {children}
-          </main>
-        </div>
-        {!hideHeaderFooter && <Footer />}
+        <SavedVehiclesProvider>
+          {!hideHeaderFooter && <Navbar />}
+          <div className={!hideHeaderFooter ? "page-shell" : ""}>
+            <main>
+              {children}
+            </main>
+          </div>
+          {!hideHeaderFooter && <Footer />}
+        </SavedVehiclesProvider>
       </body>
     </html>
   );

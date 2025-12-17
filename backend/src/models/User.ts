@@ -19,6 +19,7 @@ export const UserValidation = z.object({
   pendingEmail: z.string().optional(), // Email pending verification
   emailChangeToken: z.string().optional(), // Token for email change verification
   emailChangeExpires: z.date().optional(), // Expiration for email change token
+  savedVehicles: z.array(z.string()).optional(), // Array of saved/liked vehicle IDs
 });
 
 const userSchema = new mongoose.Schema({
@@ -39,6 +40,7 @@ const userSchema = new mongoose.Schema({
   pendingEmail: { type: String, sparse: true }, // Email pending verification
   emailChangeToken: { type: String, sparse: true }, // Token for email change verification
   emailChangeExpires: Date, // Expiration for email change token
+  savedVehicles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle' }], // Array of saved/liked vehicle IDs
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

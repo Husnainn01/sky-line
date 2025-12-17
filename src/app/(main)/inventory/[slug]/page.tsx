@@ -4,16 +4,22 @@ import { useState, useEffect } from 'react';
 import { use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { vehicleApi } from '@/lib/api';
 import { Car } from '@/types';
+import { isAuthenticated } from '@/utils/sessionManager';
+import { useSavedVehicles } from '@/contexts/SavedVehiclesContext';
 import styles from './page.module.css';
 
 export default function InventoryDetailPage({ params }: { params: { slug: string } | Promise<{ slug: string }> }) {
+    const router = useRouter();
     const [car, setCar] = useState<Car | null>(null);
     const [relatedCars, setRelatedCars] = useState<Car[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const { isSaved, saveVehicle, unsaveVehicle, isLoading } = useSavedVehicles();
 
     // Unwrap params Promise with React.use()
     const resolvedParams = params instanceof Promise ? use(params) : params;
@@ -55,6 +61,45 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
         
         // Fetch related cars
         fetchRelatedCars(mappedCar);
+    };
+    
+    // No need for the checkSavedStatus effect as we're using the global context
+    
+    // Handle like/save button click
+    const handleLikeClick = async () => {
+        // Check if user is authenticated
+        if (!isAuthenticated()) {
+            // Show authentication modal
+            setShowAuthModal(true);
+            return;
+        }
+        
+        if (!car || !car.id) return;
+        
+        try {
+            if (isSaved(car.id)) {
+                // Unsave the vehicle
+                await unsaveVehicle(car.id);
+            } else {
+                // Save the vehicle
+                await saveVehicle(car.id);
+            }
+        } catch (error) {
+            console.error('Error saving/unsaving vehicle:', error);
+        }
+    };
+    
+    // Handle login/signup button click
+    const handleAuthClick = (type: 'login' | 'signup') => {
+        // Close the modal
+        setShowAuthModal(false);
+        
+        // Redirect to login or signup page
+        if (type === 'login') {
+            router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname));
+        } else {
+            router.push('/auth/signup?redirect=' + encodeURIComponent(window.location.pathname));
+        }
     };
     
     // Fetch car data when component mounts
@@ -239,6 +284,29 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
 
     return (
         <div className={styles.page}>
+            {showAuthModal && (
+                <div className={styles.authModalOverlay} onClick={() => setShowAuthModal(false)}>
+                    <div className={styles.authModal} onClick={(e) => e.stopPropagation()}>
+                        <button className={styles.closeButton} onClick={() => setShowAuthModal(false)}>&times;</button>
+                        <h3 className={styles.authModalTitle}>Authentication Required</h3>
+                        <p className={styles.authModalText}>Please log in or sign up to save this vehicle to your favorites.</p>
+                        <div className={styles.authModalButtons}>
+                            <button 
+                                className={`${styles.authButton} ${styles.loginButton}`}
+                                onClick={() => handleAuthClick('login')}
+                            >
+                                Log In
+                            </button>
+                            <button 
+                                className={`${styles.authButton} ${styles.signupButton}`}
+                                onClick={() => handleAuthClick('signup')}
+                            >
+                                Sign Up
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className={styles.container}>
                 <nav className={styles.breadcrumbs}>
                     <Link href="/inventory">Inventory</Link>
@@ -268,6 +336,14 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
                             <div className={styles.galleryTopBar}>
                                 <span>Photo Gallery</span>
                                 <div className={styles.galleryActions}>
+                                        <button 
+                                            onClick={handleLikeClick}
+                                            className={`${styles.saveButton} ${car && car.id && isSaved(car.id) ? styles.saved : ''}`}
+                                            disabled={isLoading}
+                                            aria-label={car && car.id && isSaved(car.id) ? 'Unsave vehicle' : 'Save vehicle'}
+                                        >
+                                            {car && car.id && isSaved(car.id) ? '❤️ Saved' : '❤ Save to Favorites'}
+                                        </button>
                                     <button 
                                         type="button" 
                                         className={styles.galleryButton}
