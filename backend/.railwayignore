@@ -1,0 +1,25 @@
+# Ignore node_modules (will be installed by Railway)
+node_modules
+
+# Ignore logs
+logs
+*.log
+
+# Ignore environment variables (will be set in Railway)
+.env.local
+.env.development
+.env.test
+
+# Keep .env for Railway to use
+!.env
+
+# Ignore any local development files
+.DS_Store
+.vscode
+.idea
+
+# Ignore any test files
+tests
+__tests__
+*.test.js
+*.spec.js
