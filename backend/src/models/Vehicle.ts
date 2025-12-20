@@ -36,7 +36,7 @@ export const VehicleValidation = z.object({
 
   // Features and Specifications
   features: z.array(z.string()),
-  specifications: z.record(z.string()),
+  specifications: z.record(z.string(), z.string()),
   description: z.string(),
 
   // Media
