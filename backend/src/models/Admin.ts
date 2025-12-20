@@ -202,7 +202,7 @@ const adminSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-adminSchema.pre('save', async function(next: mongoose.CallbackWithoutResultAndOptionalError) {
+adminSchema.pre<IAdmin>('save', async function(next) {
   const admin = this;
   
   // Only hash the password if it's modified or new
@@ -218,7 +218,7 @@ adminSchema.pre('save', async function(next: mongoose.CallbackWithoutResultAndOp
 });
 
 // Pre-save hook to set default permissions based on role
-adminSchema.pre('save', function(next: mongoose.CallbackWithoutResultAndOptionalError) {
+adminSchema.pre<IAdmin>('save', function(next) {
   const admin = this;
   
   // If this is a new user or the role has changed, set default permissions
@@ -226,10 +226,9 @@ adminSchema.pre('save', function(next: mongoose.CallbackWithoutResultAndOptional
     const roleDefaults = DEFAULT_ROLE_PERMISSIONS[admin.role];
     if (roleDefaults) {
       // We need to handle this differently to avoid type errors
-      // First, remove all existing permissions
-      while (admin.permissions.length > 0) {
-        admin.permissions.pull(admin.permissions[0]._id);
-      }
+      // First, clear all existing permissions
+      // Using splice to clear the array in a type-safe way
+      admin.permissions.splice(0, admin.permissions.length);
       
       // Then add the new permissions one by one
       roleDefaults.permissions.forEach((perm: any) => {
