@@ -202,7 +202,7 @@ const adminSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-adminSchema.pre('save', async function(next) {
+adminSchema.pre('save', async function(next: mongoose.CallbackWithoutResultAndOptionalError) {
   const admin = this;
   
   // Only hash the password if it's modified or new
@@ -218,7 +218,7 @@ adminSchema.pre('save', async function(next) {
 });
 
 // Pre-save hook to set default permissions based on role
-adminSchema.pre('save', function(next) {
+adminSchema.pre('save', function(next: mongoose.CallbackWithoutResultAndOptionalError) {
   const admin = this;
   
   // If this is a new user or the role has changed, set default permissions
