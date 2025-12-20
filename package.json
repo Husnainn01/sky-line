@@ -28,7 +28,8 @@
     "react-dom": "18.2.0",
     "react-dropzone": "^14.2.3",
     "uuid": "^9.0.1",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
