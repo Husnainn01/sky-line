@@ -53,12 +53,25 @@ modelSchema.index({ make: 1, name: 1 }, { unique: true });
 // Create text indexes for searching
 modelSchema.index({ name: 'text', description: 'text' });
 
+// Define interface for Model document
+interface IModel extends mongoose.Document {
+  name: string;
+  slug: string;
+  make: mongoose.Types.ObjectId;
+  description?: string;
+  startYear?: number;
+  endYear?: number;
+  bodyTypes?: string[];
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Pre-save hook to generate slug if not provided
-modelSchema.pre('save', function(next) {
+modelSchema.pre('save', function(this: IModel) {
   if (!this.slug) {
     this.slug = this.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
-  next();
 });
 
 export const Model = mongoose.model('Model', modelSchema);

@@ -43,12 +43,23 @@ const makeSchema = new mongoose.Schema({
 // Create text indexes for searching
 makeSchema.index({ name: 'text', description: 'text' });
 
+// Define interface for Make document
+interface IMake extends mongoose.Document {
+  name: string;
+  slug: string;
+  description?: string;
+  country?: string;
+  logo?: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Pre-save hook to generate slug if not provided
-makeSchema.pre('save', function(next) {
+makeSchema.pre('save', function(this: IMake) {
   if (!this.slug) {
     this.slug = this.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
-  next();
 });
 
 export const Make = mongoose.model('Make', makeSchema);
