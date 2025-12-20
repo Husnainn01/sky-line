@@ -1,11 +1,18 @@
 import { Request, Response } from 'express';
 import { uploadFileToR2, uploadFilesToR2 } from '../services/storageService';
+import multer from 'multer';
+
+// Extend Express Request type to include file and files properties
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] };
+}
 
 export const uploadController = {
   /**
    * Upload a single image
    */
-  async uploadSingleImage(req: Request, res: Response) {
+  async uploadSingleImage(req: MulterRequest, res: Response) {
     try {
       if (!req.file) {
         return res.status(400).json({
@@ -43,7 +50,7 @@ export const uploadController = {
   /**
    * Upload multiple images
    */
-  async uploadMultipleImages(req: Request, res: Response) {
+  async uploadMultipleImages(req: MulterRequest, res: Response) {
     try {
       if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
         return res.status(400).json({
