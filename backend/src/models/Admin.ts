@@ -202,37 +202,32 @@ const adminSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-adminSchema.pre<IAdmin>('save', async function(next) {
-  const admin = this;
-  
+adminSchema.pre('save', async function(this: IAdmin & mongoose.Document) {
   // Only hash the password if it's modified or new
-  if (!admin.isModified('password')) return next();
+  if (!this.isModified('password')) return;
   
   try {
     const salt = await bcrypt.genSalt(10);
-    admin.password = await bcrypt.hash(admin.password, salt);
-    next();
+    this.password = await bcrypt.hash(this.password, salt);
   } catch (error) {
-    next(error as Error);
+    throw error;
   }
 });
 
 // Pre-save hook to set default permissions based on role
-adminSchema.pre<IAdmin>('save', function(next) {
-  const admin = this;
-  
+adminSchema.pre('save', function(this: IAdmin & mongoose.Document) {
   // If this is a new user or the role has changed, set default permissions
-  if (admin.isNew || admin.isModified('role')) {
-    const roleDefaults = DEFAULT_ROLE_PERMISSIONS[admin.role];
+  if (this.isNew || this.isModified('role')) {
+    const roleDefaults = DEFAULT_ROLE_PERMISSIONS[this.role];
     if (roleDefaults) {
       // We need to handle this differently to avoid type errors
       // First, clear all existing permissions
       // Using splice to clear the array in a type-safe way
-      admin.permissions.splice(0, admin.permissions.length);
+      this.permissions.splice(0, this.permissions.length);
       
       // Then add the new permissions one by one
       roleDefaults.permissions.forEach((perm: any) => {
-        admin.permissions.push({
+        this.permissions.push({
           resource: perm.resource,
           actions: {
             create: perm.actions.create,
@@ -244,8 +239,6 @@ adminSchema.pre<IAdmin>('save', function(next) {
       });
     }
   }
-  
-  next();
 });
 
 // Method to compare password
