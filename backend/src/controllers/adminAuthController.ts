@@ -257,7 +257,7 @@ export const adminAuthController = {
         // Check if MFA is required for this admin
         if (admin.mfaEnabled && admin.mfaFactorId) {
           // If MFA is enabled, we need to return a partial auth response
-          console.log(`MFA required for admin ${admin.id} with factor ${admin.mfaFactorId}`);
+          console.log(`MFA required for admin ${admin._id} with factor ${admin.mfaFactorId}`);
           return res.json({
             success: true,
             requiresMfa: true,
