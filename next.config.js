@@ -10,11 +10,11 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // Experimental features
-  experimental: {
-    // These settings help with deployment
-    serverComponentsExternalPackages: ['mongoose'],
-  },
+  // External packages configuration (moved from experimental)
+  serverExternalPackages: ['mongoose'],
+  
+  // Output file tracing configuration (moved from experimental)
+  outputFileTracingRoot: '/app',
   images: {
     domains: ['localhost', 'dffe00b2c327c69b4a869d74b4e7a2a2.r2.cloudflarestorage.com', 'skylinetrd.dffe00b2c327c69b4a869d74b4e7a2a2.r2.cloudflorage.com', 'globaldrivemotors.com', 'vercel.app'],
     unoptimized: true,
