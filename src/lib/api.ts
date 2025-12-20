@@ -1,7 +1,7 @@
 // API utility functions for making requests to the backend
 
-// Backend API URL - change this to your production URL when deploying
-const API_BASE_URL = 'http://localhost:5001/api';
+// Backend API URL - production URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sky-line-production-d185.up.railway.app/api';
 
 /**
  * Make a request to the backend API
