@@ -311,7 +311,7 @@ export const modelController = {
       
       // Check if there are any vehicles associated with this model
       const vehiclesCount = await Vehicle.countDocuments({ 
-        make: model.make,
+        make: model.make.toString(), // Convert ObjectId to string
         model: model.name
       });
       
