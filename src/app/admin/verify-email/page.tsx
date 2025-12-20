@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.module.css';
 
-export default function AdminVerifyEmailPage() {
+// Component that uses searchParams
+function AdminVerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [verificationCode, setVerificationCode] = useState('');
@@ -276,5 +277,28 @@ export default function AdminVerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Export the main component with Suspense boundary
+export default function AdminVerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Loading...</h1>
+          </div>
+          <div className={styles.content}>
+            <div className={styles.loadingState}>
+              <div className={styles.spinner}></div>
+              <p>Please wait while we prepare the verification page...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <AdminVerifyEmailContent />
+    </Suspense>
   );
 }

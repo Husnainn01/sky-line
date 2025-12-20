@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Car } from '@/types';
-import { isAuthenticated } from '@/utils/sessionManager';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSavedVehicles } from '@/contexts/SavedVehiclesContext';
 import styles from './CompactCarCard.module.css';
 
@@ -16,6 +16,7 @@ interface CompactCarCardProps {
 
 export default function CompactCarCard({ car, stockNumber }: CompactCarCardProps) {
     const router = useRouter();
+    const { isAuthenticated } = useAuth();
     const stock = stockNumber || `SKY-${car.id.padStart(4, '0')}`;
     const formattedMileage = `${car.mileage.toLocaleString()} km`;
     const { isSaved, saveVehicle, unsaveVehicle, isLoading } = useSavedVehicles();
@@ -27,7 +28,7 @@ export default function CompactCarCard({ car, stockNumber }: CompactCarCardProps
         e.stopPropagation(); // Prevent event bubbling
         
         // Check if user is authenticated
-        if (!isAuthenticated()) {
+        if (!isAuthenticated) {
             // Redirect to login page with return URL
             router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
             return;

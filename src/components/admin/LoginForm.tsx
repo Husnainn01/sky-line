@@ -64,6 +64,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       // Store token using session manager
       storeAuthToken(data.token, data.user);
       
+      // Ensure token is immediately available for Next.js 15.x
+      console.log('Storing admin token for immediate use');
+      
       if (rememberMe) {
         localStorage.setItem('adminEmail', email);
       } else {
@@ -73,8 +76,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       if (onSuccess) {
         onSuccess();
       } else {
-        // Navigate to dashboard
-        router.push('/admin/dashboard');
+        // Navigate to dashboard - use direct window location for more reliable navigation in Next.js 15.x
+        console.log('Redirecting to admin dashboard after login');
+        window.location.href = '/admin/dashboard';
       }
     } catch (err: any) {
       console.error('Admin login error:', err);
@@ -160,6 +164,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       // Store token using session manager
       storeAuthToken(data.token, data.user);
       
+      // Ensure token is immediately available for Next.js 15.x
+      console.log('Storing admin token after MFA for immediate use');
+      
       if (rememberMe) {
         localStorage.setItem('adminEmail', email);
       } else {
@@ -169,8 +176,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       if (onSuccess) {
         onSuccess();
       } else {
-        // Navigate to dashboard
-        router.push('/admin/dashboard');
+        // Navigate to dashboard - use direct window location for more reliable navigation in Next.js 15.x
+        console.log('Redirecting to admin dashboard after MFA verification');
+        window.location.href = '/admin/dashboard';
       }
     } catch (err: any) {
       setError(err.message || 'MFA verification failed');

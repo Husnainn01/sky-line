@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { profileApi } from '@/lib/api';
 import styles from '../verify-email/page.module.css'; // Reuse existing styles
 
-export default function VerifyEmailChangePage() {
+// Component that uses searchParams
+function VerifyEmailChangeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -85,5 +86,23 @@ export default function VerifyEmailChangePage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Export the main component with Suspense boundary
+export default function VerifyEmailChangePage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.loadingState}>
+            <h1>Loading...</h1>
+            <p>Please wait while we prepare the verification page...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <VerifyEmailChangeContent />
+    </Suspense>
   );
 }

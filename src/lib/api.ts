@@ -15,10 +15,20 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
     ...(options.headers as Record<string, string> || {}),
   };
   
-  // Get admin auth token if available
+  // Get auth token if available - check both user and admin tokens
   const adminToken = typeof window !== 'undefined' ? localStorage.getItem('adminAuthToken') : null;
-  if (adminToken) {
+  const userToken = typeof window !== 'undefined' ? localStorage.getItem('userAuthToken') : null;
+  
+  // Use the appropriate token based on the endpoint
+  if (endpoint.startsWith('/admin') && adminToken) {
     headers['Authorization'] = `Bearer ${adminToken}`;
+  } else if (!endpoint.startsWith('/admin') && userToken) {
+    headers['Authorization'] = `Bearer ${userToken}`;
+  }
+  
+  // For debugging
+  if (endpoint.startsWith('/admin')) {
+    console.log('Admin API request:', endpoint, 'Token present:', !!adminToken);
   }
   
   const response = await fetch(url, {
@@ -29,6 +39,39 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const data = await response.json();
   
   if (!response.ok) {
+    // Handle 401 Unauthorized errors (token expired or invalid)
+    if (response.status === 401) {
+      console.warn('Authentication token expired or invalid');
+      
+      // Clear the relevant token based on the endpoint
+      if (endpoint.startsWith('/admin')) {
+        localStorage.removeItem('adminAuthToken');
+        localStorage.removeItem('adminUser');
+      } else {
+        localStorage.removeItem('userAuthToken');
+        localStorage.removeItem('userData');
+      }
+      
+      // Redirect to login page if in browser environment
+      if (typeof window !== 'undefined') {
+        // For admin endpoints, redirect to admin login
+        // For user endpoints, redirect to user login
+        if (endpoint.startsWith('/admin')) {
+          console.log('Redirecting to admin login page');
+          // Use a small timeout to allow the current code to complete
+          setTimeout(() => {
+            window.location.href = '/admin/login';
+          }, 100);
+        } else {
+          console.log('Redirecting to user login page');
+          // Use a small timeout to allow the current code to complete
+          // setTimeout(() => {
+          //   window.location.href = '/auth/login';
+          // }, 100);
+        }
+      }
+    }
+    
     // Create a custom error with status code information
     const errorMessage = data.message || 'Something went wrong';
     const error = new Error(`${response.status}: ${errorMessage}`);
@@ -68,16 +111,16 @@ export const authApi = {
       return response;
     }
 
-    // Store token and user data in localStorage
+    // Store token and user data in localStorage - use userAuthToken for regular users
     if (response.token) {
-      localStorage.setItem('adminAuthToken', response.token);
-      localStorage.setItem('adminUser', JSON.stringify(response.user));
+      localStorage.setItem('userAuthToken', response.token);
+      localStorage.setItem('userData', JSON.stringify(response.user));
       
       // If remember me is checked, store email in localStorage
       if (rememberMe) {
-        localStorage.setItem('adminEmail', email);
+        localStorage.setItem('userEmail', email);
       } else {
-        localStorage.removeItem('adminEmail');
+        localStorage.removeItem('userEmail');
       }
     }
 
@@ -99,16 +142,16 @@ export const authApi = {
       body: JSON.stringify({ email, factorId, code, rememberMe }),
     });
 
-    // Store token and user data in localStorage
+    // Store token and user data in localStorage - use userAuthToken for regular users
     if (response.token) {
-      localStorage.setItem('adminAuthToken', response.token);
-      localStorage.setItem('adminUser', JSON.stringify(response.user));
+      localStorage.setItem('userAuthToken', response.token);
+      localStorage.setItem('userData', JSON.stringify(response.user));
       
       // If remember me is checked, store email in localStorage
       if (rememberMe) {
-        localStorage.setItem('adminEmail', email);
+        localStorage.setItem('userEmail', email);
       } else {
-        localStorage.removeItem('adminEmail');
+        localStorage.removeItem('userEmail');
       }
       
       // Clear temporary MFA session data
@@ -137,10 +180,10 @@ export const authApi = {
   
   // Logout user
   logout: async () => {
-    // Clear admin auth token and user data
-    localStorage.removeItem('adminAuthToken');
-    localStorage.removeItem('adminUser');
-    localStorage.removeItem('adminEmail');
+    // Clear user auth token and user data
+    localStorage.removeItem('userAuthToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('userEmail');
     
     return apiRequest('/auth/logout', {
       method: 'POST',
@@ -170,50 +213,44 @@ export const authApi = {
  * Dashboard API calls
  */
 export const dashboardApi = {
-  // Get dashboard data with mock data for now
-  // This will be replaced with a real API call once the backend endpoint is implemented
+  // Get dashboard data for the user
   getDashboardData: async () => {
-    // For now, return mock data instead of making an API call
-    // This avoids the 401 error since there's no proper admin dashboard endpoint yet
-    return {
-      success: true,
-      monthlyRevenue: [
-        { month: 'Jan', amount: 65000 },
-        { month: 'Feb', amount: 72000 },
-        { month: 'Mar', amount: 58000 },
-        { month: 'Apr', amount: 75000 },
-        { month: 'May', amount: 82000 },
-        { month: 'Jun', amount: 95000 },
-        { month: 'Jul', amount: 105000 },
-        { month: 'Aug', amount: 92000 },
-        { month: 'Sep', amount: 86000 },
-        { month: 'Oct', amount: 94000 },
-        { month: 'Nov', amount: 98000 },
-        { month: 'Dec', amount: 120000 },
-      ],
-      vehiclesByType: {
-        stock: 86,
-        auction: 38,
-        sold: 45,
-        pending: 12,
-      },
-      topSellingModels: [
-        { model: 'Toyota Supra', count: 12, percentage: 15 },
-        { model: 'Nissan Skyline', count: 10, percentage: 12.5 },
-        { model: 'Honda NSX', count: 8, percentage: 10 },
-        { model: 'Mazda RX-7', count: 7, percentage: 8.75 },
-        { model: 'Mitsubishi Evo', count: 6, percentage: 7.5 },
-      ],
-      recentOrders: [
-        { id: 'ORD-7829', customer: 'John Smith', vehicle: '2002 Nissan Skyline GT-R', amount: 42500, status: 'completed', date: '2023-11-28' },
-        { id: 'ORD-7830', customer: 'Emma Johnson', vehicle: '1995 Toyota Supra RZ', amount: 68000, status: 'processing', date: '2023-11-29' },
-        { id: 'ORD-7831', customer: 'Michael Brown', vehicle: '1992 Mazda RX-7 FD', amount: 35000, status: 'processing', date: '2023-11-30' },
-        { id: 'ORD-7832', customer: 'Sarah Davis', vehicle: '1991 Honda NSX', amount: 75000, status: 'pending', date: '2023-12-01' },
-      ]
-    };
-    
-    // Commented out until backend endpoint is implemented
-    // return apiRequest('/dashboard');
+    try {
+      // Try to fetch real data from the API
+      return await apiRequest('/user/dashboard');
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      
+      // If API fails, generate data based on saved vehicles and other available data
+      const savedVehiclesResponse = await apiRequest('/saved-vehicles');
+      const savedVehicles = savedVehiclesResponse.success ? savedVehiclesResponse.data : [];
+      
+      // Calculate stats based on real saved vehicles data
+      return {
+        success: true,
+        stats: {
+          savedVehicles: savedVehicles.length,
+          vehiclesOwned: 0, // Will be implemented when purchase functionality is added
+          activeShipments: 0, // Will be implemented when shipment functionality is added
+          totalSpent: 0, // Will be implemented when payment functionality is added
+        },
+        featuredVehicles: savedVehicles.slice(0, 3).map((vehicle: any) => ({
+          id: vehicle._id || vehicle.id,
+          make: vehicle.make || 'Unknown',
+          model: vehicle.model || 'Vehicle',
+          year: vehicle.year || new Date().getFullYear(),
+          price: vehicle.price || 0,
+          image: vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : '/cars/placeholder.png',
+          status: 'saved'
+        })),
+        recentSearches: [],
+        accountStatus: {
+          emailVerified: true,
+          profileComplete: true,
+          paymentMethodsAdded: false
+        }
+      };
+    }
   },
 };
 

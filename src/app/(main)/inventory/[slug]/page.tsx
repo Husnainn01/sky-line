@@ -4,15 +4,16 @@ import { useState, useEffect } from 'react';
 import { use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { vehicleApi } from '@/lib/api';
 import { Car } from '@/types';
-import { isAuthenticated } from '@/utils/sessionManager';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSavedVehicles } from '@/contexts/SavedVehiclesContext';
 import styles from './page.module.css';
 
-export default function InventoryDetailPage({ params }: { params: { slug: string } | Promise<{ slug: string }> }) {
+export default function InventoryDetailPage() {
     const router = useRouter();
+    const { isAuthenticated } = useAuth();
     const [car, setCar] = useState<Car | null>(null);
     const [relatedCars, setRelatedCars] = useState<Car[]>([]);
     const [loading, setLoading] = useState(true);
@@ -21,10 +22,10 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
     const [showAuthModal, setShowAuthModal] = useState(false);
     const { isSaved, saveVehicle, unsaveVehicle, isLoading } = useSavedVehicles();
 
-    // Unwrap params Promise with React.use()
-    const resolvedParams = params instanceof Promise ? use(params) : params;
-    const slugParam = resolvedParams?.slug || '';
-    const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
+    // Get slug from URL params using useParams hook
+    const params = useParams();
+    const slugParam = params?.slug || '';
+    const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam as string;
     const normalizedSlug = decodeURIComponent(slug);
 
     // Helper function to process vehicle data
@@ -68,7 +69,7 @@ export default function InventoryDetailPage({ params }: { params: { slug: string
     // Handle like/save button click
     const handleLikeClick = async () => {
         // Check if user is authenticated
-        if (!isAuthenticated()) {
+        if (!isAuthenticated) {
             // Show authentication modal
             setShowAuthModal(true);
             return;

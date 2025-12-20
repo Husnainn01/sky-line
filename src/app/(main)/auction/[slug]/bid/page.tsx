@@ -1,20 +1,28 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { useParams, notFound } from 'next/navigation';
 import { auctionCarsData } from '@/data';
 import { AuctionCar } from '@/types/auction';
 import styles from './page.module.css';
 
 const fallbackCar = auctionCarsData[0];
 
-export default function BidPage({ params }: { params: { slug: string } }) {
-  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
-  const normalizedSlug = decodeURIComponent(slug);
-  const car = auctionCarsData.find((car: AuctionCar) => car.slug === normalizedSlug) || fallbackCar;
+export default function BidPage() {
+  const params = useParams();
+  const [car, setCar] = useState<AuctionCar | null>(null);
+  
+  useEffect(() => {
+    const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug as string;
+    const normalizedSlug = decodeURIComponent(slug);
+    const foundCar = auctionCarsData.find((car: AuctionCar) => car.slug === normalizedSlug) || fallbackCar;
+    setCar(foundCar);
+  }, [params]);
   
   if (!car) {
-    notFound();
+    return <div>Loading...</div>;
   }
 
   // Only allow bidding on live auctions

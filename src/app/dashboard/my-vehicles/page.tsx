@@ -4,76 +4,236 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { carsData } from '@/data/mockData';
-import { bookmarkApi } from '@/lib/api';
+import { savedVehiclesApi } from '@/lib/savedVehiclesApi';
+import { useSavedVehicles } from '@/contexts/SavedVehiclesContext';
+import { vehicleApi } from '@/lib/api';
+import { Car } from '@/types';
 import styles from './page.module.css';
 
 type VehicleCategory = 'all' | 'saved' | 'bids' | 'purchased';
 
+// Define types for our vehicle data
+interface SavedVehicle {
+  id: string;
+  vehicleId?: string;
+  savedAt: string;
+  [key: string]: any;
+}
+
+interface BidVehicle {
+  id: string;
+  bidAmount: number;
+  bidStatus: string;
+  bidDate: string;
+  [key: string]: any;
+}
+
+interface PurchasedVehicle {
+  id: string;
+  purchaseDate: string;
+  deliveryStatus: string;
+  trackingNumber: string;
+  [key: string]: any;
+}
+
+interface UserVehicles {
+  saved: SavedVehicle[];
+  bids: BidVehicle[];
+  purchased: PurchasedVehicle[];
+}
+
 // Initial empty state for user's vehicles
-const initialUserVehicles = {
+const initialUserVehicles: UserVehicles = {
   saved: [],
-  bids: carsData.slice(5, 8).map(car => ({ 
-    ...car, 
-    bidAmount: Math.floor(Math.random() * 5000) + 15000,
-    bidStatus: ['pending', 'outbid', 'winning'][Math.floor(Math.random() * 3)],
-    bidDate: new Date().toISOString()
-  })),
-  purchased: carsData.slice(8, 10).map(car => ({ 
-    ...car, 
-    purchaseDate: new Date().toISOString(),
-    deliveryStatus: ['processing', 'shipped', 'delivered'][Math.floor(Math.random() * 3)],
-    trackingNumber: `JDM-${Math.floor(Math.random() * 1000000)}`
-  }))
+  bids: [],
+  purchased: []
 };
 
 export default function MyVehiclesPage() {
+  const { savedVehicles, refreshSavedVehicles, unsaveVehicle, isLoading: savedVehiclesLoading } = useSavedVehicles();
   const [activeCategory, setActiveCategory] = useState<VehicleCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [userVehicles, setUserVehicles] = useState(initialUserVehicles);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [savedVehicleDetails, setSavedVehicleDetails] = useState<any[]>([]);
   
-  // Fetch bookmarks on component mount
+  // Fetch saved vehicles details when savedVehicles IDs change
   useEffect(() => {
-    const fetchBookmarks = async () => {
-      try {
-        const response = await bookmarkApi.getBookmarks();
-        
-        // Map bookmarks to the expected format
-        const savedVehicles = response.bookmarks.map((bookmark: any) => ({
-          ...bookmark.vehicle,
-          savedAt: bookmark.createdAt,
-          bookmarkId: bookmark._id,
-          notes: bookmark.notes
-        }));
-        
+    const fetchSavedVehicleDetails = async () => {
+      if (!savedVehicles || savedVehicles.length === 0) {
         setUserVehicles(prev => ({
           ...prev,
-          saved: savedVehicles
+          saved: []
         }));
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        
+        // Get all saved vehicles with full details
+        const response = await savedVehiclesApi.getSavedVehicles();
+        
+        if (response.success && response.data) {
+          // Map the database vehicle objects to our frontend Car type
+          const savedVehicleDetails = response.data.map((dbVehicle: any) => {
+            // Extract the MongoDB _id as our vehicle ID
+            const vehicleId = dbVehicle._id || dbVehicle.id;
+            
+            // Map database fields to our Car interface
+            const formattedVehicle: Car = {
+              id: vehicleId,
+              slug: dbVehicle.slug || `${(dbVehicle.make || 'unknown').toLowerCase().replace(/\s+/g, '-')}-${(dbVehicle.model || 'model').toLowerCase().replace(/\s+/g, '-')}-${dbVehicle.year || new Date().getFullYear()}`,
+              make: dbVehicle.make || 'Unknown Make',
+              model: dbVehicle.model || 'Unknown Model',
+              year: dbVehicle.year || new Date().getFullYear(),
+              price: dbVehicle.price || 0,
+              mileage: dbVehicle.mileage || 0,
+              transmission: dbVehicle.transmission || 'Manual',
+              fuelType: dbVehicle.fuelType || 'Gasoline',
+              drivetrain: dbVehicle.driveType || 'RWD', // Note: database uses driveType, frontend uses drivetrain
+              image: dbVehicle.images && dbVehicle.images.length > 0 ? dbVehicle.images[0] : '/cars/placeholder.png',
+              images: dbVehicle.images || [],
+              description: dbVehicle.description || '',
+              features: dbVehicle.features || [],
+              condition: dbVehicle.condition || 'Used',
+              location: dbVehicle.location || 'Unknown',
+              available: dbVehicle.status === 'available',
+              status: dbVehicle.status || 'available',
+              bodyType: dbVehicle.bodyType || 'Unknown',
+              vin: dbVehicle.vin,
+              engine: dbVehicle.engineSize, // Note: database uses engineSize, frontend uses engine
+              cylinders: dbVehicle.specifications?.cylinders,
+              color: dbVehicle.exteriorColor, // Note: database uses exteriorColor, frontend uses color
+              doors: dbVehicle.doors,
+              stockNumber: dbVehicle.stockNumber || `SKY-${vehicleId.slice(-4).padStart(4, '0')}`,
+              steering: dbVehicle.steering
+            };
+            
+            return {
+              ...formattedVehicle,
+              savedAt: dbVehicle.createdAt || new Date().toISOString(),
+            } as SavedVehicle;
+          });
+          
+          setSavedVehicleDetails(savedVehicleDetails);
+          setUserVehicles(prev => ({
+            ...prev,
+            saved: savedVehicleDetails
+          }));
+        } else {
+          // Fallback to individual vehicle fetching if the saved vehicles endpoint doesn't return full details
+          const vehicleDetailsPromises = savedVehicles.map(async (vehicleId) => {
+            try {
+              // Try to fetch from API
+              const vehicleDetails = await vehicleApi.getVehicleById(vehicleId);
+              
+              // Map to our Car interface
+              const formattedVehicle: Car = {
+                id: vehicleId,
+                slug: vehicleDetails.slug || `${(vehicleDetails.make || 'unknown').toLowerCase().replace(/\s+/g, '-')}-${(vehicleDetails.model || 'model').toLowerCase().replace(/\s+/g, '-')}-${vehicleDetails.year || new Date().getFullYear()}`,
+                make: vehicleDetails.make || 'Unknown Make',
+                model: vehicleDetails.model || 'Unknown Model',
+                year: vehicleDetails.year || new Date().getFullYear(),
+                price: vehicleDetails.price || 0,
+                mileage: vehicleDetails.mileage || 0,
+                transmission: vehicleDetails.transmission || 'Manual',
+                fuelType: vehicleDetails.fuelType || 'Gasoline',
+                drivetrain: vehicleDetails.driveType || vehicleDetails.drivetrain || 'RWD',
+                image: vehicleDetails.images && vehicleDetails.images.length > 0 ? vehicleDetails.images[0] : '/cars/placeholder.png',
+                images: vehicleDetails.images || [],
+                description: vehicleDetails.description || '',
+                features: vehicleDetails.features || [],
+                condition: vehicleDetails.condition || 'Used',
+                location: vehicleDetails.location || 'Unknown',
+                available: vehicleDetails.status === 'available',
+                status: vehicleDetails.status || 'available',
+                bodyType: vehicleDetails.bodyType || 'Unknown',
+                vin: vehicleDetails.vin,
+                engine: vehicleDetails.engineSize || vehicleDetails.engine,
+                cylinders: vehicleDetails.specifications?.cylinders || vehicleDetails.cylinders,
+                color: vehicleDetails.exteriorColor || vehicleDetails.color,
+                doors: vehicleDetails.doors,
+                stockNumber: vehicleDetails.stockNumber || `SKY-${vehicleId.slice(-4).padStart(4, '0')}`,
+                steering: vehicleDetails.steering
+              };
+              
+              return {
+                ...formattedVehicle,
+                savedAt: new Date().toISOString(),
+              } as SavedVehicle;
+            } catch (error) {
+              console.error(`Error fetching details for vehicle ${vehicleId}:`, error);
+              
+              // Fallback to mock data if API fails
+              const { carsData } = await import('@/data/mockData');
+              const mockVehicle = carsData.find(car => car.id === vehicleId);
+              
+              if (mockVehicle) {
+                return {
+                  ...mockVehicle,
+                  savedAt: new Date().toISOString(),
+                } as SavedVehicle;
+              }
+              
+              // Last resort fallback
+              return {
+                id: vehicleId,
+                slug: `unknown-vehicle-${vehicleId}`,
+                make: 'Unknown Make',
+                model: 'Unknown Model',
+                year: new Date().getFullYear(),
+                price: 0,
+                mileage: 0,
+                transmission: 'Manual',
+                fuelType: 'Gasoline',
+                drivetrain: 'RWD',
+                image: '/cars/placeholder.png',
+                description: 'No description available',
+                features: [],
+                condition: 'Unknown',
+                location: 'Unknown',
+                available: true,
+                savedAt: new Date().toISOString(),
+              } as SavedVehicle;
+            }
+          });
+          
+          const vehicleDetails = (await Promise.all(vehicleDetailsPromises)).filter(Boolean) as SavedVehicle[];
+          
+          setSavedVehicleDetails(vehicleDetails);
+          setUserVehicles(prev => ({
+            ...prev,
+            saved: vehicleDetails
+          }));
+        }
       } catch (err) {
-        console.error('Error fetching bookmarks:', err);
+        console.error('Error fetching saved vehicle details:', err);
         setError('Failed to load saved vehicles');
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchBookmarks();
+    fetchSavedVehicleDetails();
+  }, [savedVehicles, refreshSavedVehicles]);
+  
+  // Initial fetch of saved vehicles
+  useEffect(() => {
+    refreshSavedVehicles();
   }, []);
   
-  // Handle removing a bookmark
-  const handleRemoveBookmark = async (bookmarkId: string) => {
+  // Handle removing a saved vehicle
+  const handleRemoveSavedVehicle = async (vehicleId: string) => {
     try {
-      await bookmarkApi.removeBookmark(bookmarkId);
+      await unsaveVehicle(vehicleId);
       
-      // Remove the bookmark from state
-      setUserVehicles(prev => ({
-        ...prev,
-        saved: prev.saved.filter((vehicle: any) => vehicle.bookmarkId !== bookmarkId)
-      }));
+      // The savedVehicles context will update automatically
+      // and trigger a re-fetch of the vehicle details
     } catch (err) {
-      console.error('Error removing bookmark:', err);
+      console.error('Error removing saved vehicle:', err);
       setError('Failed to remove saved vehicle');
     }
   };
@@ -291,12 +451,12 @@ export default function MyVehiclesPage() {
                   <div className={styles.savedInfo}>
                     <p className={styles.savedDate}>Saved on {formatDate(vehicle.savedAt)}</p>
                     <div className={styles.cardActions}>
-                      <Link href={`/inventory/${vehicle.id}`} className={styles.viewButton}>
+                      <Link href={`/inventory/${vehicle.slug || vehicle.id}`} className={styles.viewButton}>
                         View Details
                       </Link>
                       <button 
                         className={styles.removeButton}
-                        onClick={() => handleRemoveBookmark(vehicle.bookmarkId)}
+                        onClick={() => handleRemoveSavedVehicle(vehicle.id || vehicle.vehicleId)}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6"></polyline>

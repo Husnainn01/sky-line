@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
@@ -10,7 +10,8 @@ import { AuctionVehicle } from '@/types/auctionVehicle';
 import { mapAuctionVehicleToAuctionCar } from '@/utils/auctionUtils';
 import styles from './page.module.css';
 
-export default function AuctionDetailPage() {
+// Component that uses useParams hook
+function AuctionDetailContent() {
   const [car, setCar] = useState<AuctionCar | null>(null);
   const [relatedCars, setRelatedCars] = useState<AuctionCar[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -433,5 +434,19 @@ export default function AuctionDetailPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+// Export the main component with Suspense boundary
+export default function AuctionDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading auction details...</p>
+      </div>
+    }>
+      <AuctionDetailContent />
+    </Suspense>
   );
 }

@@ -1,13 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
-import { authApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
-export default function LoginPage() {
+// Component that uses searchParams
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get('redirect') || '/dashboard';
+  
+  const { login, verifyMfa, isLoading: authLoading, isAuthenticated } = useAuth();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -32,7 +38,7 @@ export default function LoginPage() {
 
   // Check for saved email in localStorage on component mount
   useEffect(() => {
-    const savedEmail = localStorage.getItem('rememberedEmail');
+    const savedEmail = localStorage.getItem('userEmail');
     if (savedEmail) {
       setFormData(prev => ({
         ...prev,
@@ -41,6 +47,13 @@ export default function LoginPage() {
       }));
     }
   }, []);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push(redirectPath);
+    }
+  }, [isAuthenticated, redirectPath, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +61,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Call our backend API using the utility
-      const data = await authApi.login(formData.email, formData.password, formData.rememberMe);
+      // Call login from AuthContext
+      const data = await login(formData.email, formData.password, formData.rememberMe);
       
       // Check if MFA is required
       if (data.requiresMfa) {
@@ -61,8 +74,8 @@ export default function LoginPage() {
         return;
       }
       
-      // Redirect to dashboard on successful login
-      router.push('/dashboard');
+      // Redirect to the original path or dashboard
+      router.push(redirectPath);
     } catch (err: any) {
       // Format the error message for better user experience
       let errorMessage = 'Invalid email or password';
@@ -91,11 +104,11 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // Verify MFA code
-      await authApi.verifyMfaLogin(mfaFactorId, mfaCode);
+      // Verify MFA code using AuthContext
+      await verifyMfa(mfaFactorId, mfaCode);
       
-      // Redirect to dashboard on successful verification
-      router.push('/dashboard');
+      // Redirect to the original path or dashboard
+      router.push(redirectPath);
     } catch (err: any) {
       // Format the error message for better user experience
       let errorMessage = 'Invalid verification code';
@@ -252,5 +265,25 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Export the main component with Suspense boundary
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.formWrapper}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Loading...</h1>
+              <p className={styles.subtitle}>Please wait while we prepare the login page...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

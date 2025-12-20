@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { authApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import styles from './layout.module.css';
 
 const menuItems = [
@@ -91,15 +91,12 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const { user, logout, isAuthenticated } = useAuth();
   
-  // Load user data from localStorage
-  useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  }, []);
+  // Redirect to login if not authenticated
+  if (typeof window !== 'undefined' && !isAuthenticated && !user) {
+    router.push('/auth/login');
+  }
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   
@@ -117,23 +114,14 @@ export default function DashboardLayout({
     }
   };
   
-  // Handle logout
+  // Handle logout using AuthContext
   const handleLogout = async () => {
     try {
-      await authApi.logout();
-      
-      // Clear local storage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      
-      // Redirect to login page
-      router.push('/auth/login');
+      await logout();
+      // Redirect will be handled by the AuthContext
     } catch (error) {
       console.error('Logout error:', error);
-      
-      // Even if the API call fails, clear local storage and redirect
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      // Force redirect to login page if logout fails
       router.push('/auth/login');
     }
   };

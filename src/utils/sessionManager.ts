@@ -2,39 +2,121 @@
  * Session Manager utility for handling WorkOS sessions and local authentication
  */
 
-// Store token in localStorage as a fallback
+// Store admin token in localStorage
 export const storeAuthToken = (token: string, user: any) => {
-  localStorage.setItem('adminAuthToken', token);
-  localStorage.setItem('adminUser', JSON.stringify(user));
-};
-
-// Get auth token from localStorage
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem('adminAuthToken');
-};
-
-// Get user from localStorage
-export const getUser = (): any | null => {
-  const userJson = localStorage.getItem('adminUser');
-  if (!userJson) return null;
-  
-  try {
-    return JSON.parse(userJson);
-  } catch (e) {
-    console.error('Error parsing user JSON:', e);
-    return null;
+  if (typeof window !== 'undefined') {
+    try {
+      // Store token and user data
+      localStorage.setItem('adminAuthToken', token);
+      localStorage.setItem('adminUser', JSON.stringify(user));
+      
+      // For debugging
+      console.log('Admin auth token stored successfully');
+    } catch (error) {
+      console.error('Error storing admin auth token:', error);
+    }
+  } else {
+    console.warn('Cannot store admin auth token: window is undefined');
   }
 };
 
-// Check if user is authenticated
+// Store user token in localStorage
+export const storeUserAuthToken = (token: string, user: any) => {
+  if (typeof window !== 'undefined') {
+    try {
+      // Store token and user data
+      localStorage.setItem('userAuthToken', token);
+      localStorage.setItem('userData', JSON.stringify(user));
+      
+      // For debugging
+      console.log('User auth token stored successfully');
+    } catch (error) {
+      console.error('Error storing user auth token:', error);
+    }
+  } else {
+    console.warn('Cannot store user auth token: window is undefined');
+  }
+};
+
+// Get admin auth token from localStorage
+export const getAuthToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    try {
+      return localStorage.getItem('adminAuthToken');
+    } catch (error) {
+      console.error('Error getting admin auth token:', error);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Get user auth token from localStorage
+export const getUserAuthToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    try {
+      return localStorage.getItem('userAuthToken');
+    } catch (error) {
+      console.error('Error getting user auth token:', error);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Get admin user from localStorage
+export const getUser = (): any | null => {
+  if (typeof window !== 'undefined') {
+    try {
+      const userJson = localStorage.getItem('adminUser');
+      if (!userJson) return null;
+      
+      return JSON.parse(userJson);
+    } catch (e) {
+      console.error('Error getting/parsing admin user JSON:', e);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Get regular user from localStorage
+export const getUserData = (): any | null => {
+  if (typeof window !== 'undefined') {
+    try {
+      const userJson = localStorage.getItem('userData');
+      if (!userJson) return null;
+      
+      return JSON.parse(userJson);
+    } catch (e) {
+      console.error('Error getting/parsing user JSON:', e);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Check if admin is authenticated
 export const isAuthenticated = (): boolean => {
   return !!getAuthToken();
 };
 
-// Clear authentication data
+// Check if regular user is authenticated
+export const isUserAuthenticated = (): boolean => {
+  return !!getUserAuthToken();
+};
+
+// Clear admin authentication data
 export const clearAuth = () => {
   localStorage.removeItem('adminAuthToken');
   localStorage.removeItem('adminUser');
+};
+
+// Clear user authentication data
+export const clearUserAuth = () => {
+  localStorage.removeItem('userAuthToken');
+  localStorage.removeItem('userData');
+  localStorage.removeItem('userEmail');
 };
 
 // Verify session with WorkOS (to be called on important operations or app initialization)
@@ -64,7 +146,7 @@ export const verifySession = async (): Promise<boolean> => {
   }
 };
 
-// Logout function that handles both local and WorkOS session
+// Admin logout function that handles both local and WorkOS session
 export const logout = async (): Promise<boolean> => {
   const token = getAuthToken();
   
@@ -86,6 +168,32 @@ export const logout = async (): Promise<boolean> => {
     console.error('Error during logout:', error);
     // Still clear local storage even if API call fails
     clearAuth();
+    return false;
+  }
+};
+
+// User logout function
+export const userLogout = async (): Promise<boolean> => {
+  const token = getUserAuthToken();
+  
+  try {
+    if (token) {
+      // Call your backend API to invalidate the session
+      await fetch('http://localhost:5001/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    }
+    
+    // Clear local storage regardless of API call success
+    clearUserAuth();
+    return true;
+  } catch (error) {
+    console.error('Error during user logout:', error);
+    // Still clear local storage even if API call fails
+    clearUserAuth();
     return false;
   }
 };

@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import styles from './Navbar.module.css';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
     const router = useRouter();
+    const { user, isAuthenticated, logout } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [language, setLanguage] = useState('English');
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState('');
 
     useEffect(() => {
         const handleScroll = () => {
@@ -21,45 +21,7 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
     
-    // Check if user is logged in
-    useEffect(() => {
-        // Check for auth token in localStorage
-        const checkLoginStatus = () => {
-            const token = localStorage.getItem('authToken');
-            const userData = localStorage.getItem('user');
-            
-            if (token && userData) {
-                setIsLoggedIn(true);
-                try {
-                    const user = JSON.parse(userData);
-                    setUserName(user.name || '');
-                } catch (error) {
-                    console.error('Error parsing user data:', error);
-                }
-            } else {
-                setIsLoggedIn(false);
-                setUserName('');
-            }
-        };
-        
-        // Check on initial load
-        checkLoginStatus();
-        
-        // Set up event listener for storage changes
-        const handleStorageChange = () => {
-            checkLoginStatus();
-        };
-        
-        window.addEventListener('storage', handleStorageChange);
-        
-        // Also check every time the component is focused
-        window.addEventListener('focus', checkLoginStatus);
-        
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('focus', checkLoginStatus);
-        };
-    }, []);
+    // No need to check login status manually - AuthContext handles this
 
     return (
         <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
@@ -96,12 +58,13 @@ export default function Navbar() {
                             </select>
                         </div>
                         
-                        {isLoggedIn ? (
+                        {isAuthenticated && user ? (
                             <>
-                                <span className={styles.userWelcome}>Welcome, {userName.split(' ')[0]}</span>
+                                <span className={styles.userWelcome}>Welcome, {user.name?.split(' ')[0] || user.email?.split('@')[0]}</span>
                                 <Link href="/dashboard" className={styles.topBarLinkButton}>
                                     Dashboard
                                 </Link>
+                                <button onClick={() => logout()} className={styles.topBarLink}>Logout</button>
                             </>
                         ) : (
                             <>
