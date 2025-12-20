@@ -8,7 +8,7 @@ import RecentlyAddedSection from '@/components/sections/RecentlyAddedSection';
 import HowToPurchaseSection from '@/components/sections/HowToPurchaseSection';
 import FAQSection from '@/components/sections/FAQSection';
 import Sidebar from '@/components/Sidebar';
-import styles from './(main)/page.module.css';
+import styles from './main_routes/page.module.css';
 
 export default function Home() {
   const [recentlyAdded, setRecentlyAdded] = useState<Car[]>([]);

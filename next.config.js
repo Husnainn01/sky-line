@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable output standalone to fix client-reference-manifest.js error
+  // Use standard output mode for better compatibility
   // output: 'standalone',
   
   // Disable type checking during build
@@ -13,10 +13,29 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // Experimental features to fix route group issues
+  // Experimental features
   experimental: {
-    // Disable file tracing for route groups with parentheses
-    outputFileTracing: false,
+    // These settings help with deployment
+    serverComponentsExternalPackages: ['mongoose'],
+  },
+  
+  // Redirects to maintain compatibility with old routes
+  async redirects() {
+    return [
+      // Redirect all routes from (main) to main_routes
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'referer',
+            value: '(.*)/\\(main\\)/(.*)'
+          }
+        ],
+        destination: '/:path*',
+        permanent: true,
+      },
+    ];
   },
   images: {
     domains: ['localhost', 'dffe00b2c327c69b4a869d74b4e7a2a2.r2.cloudflarestorage.com', 'skylinetrd.dffe00b2c327c69b4a869d74b4e7a2a2.r2.cloudflorage.com', 'globaldrivemotors.com', 'vercel.app'],
