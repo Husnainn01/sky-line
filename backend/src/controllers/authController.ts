@@ -164,13 +164,7 @@ export const authController = {
           email,
           firstName: name.split(' ')[0],
           lastName: name.split(' ').slice(1).join(' ') || '',
-          password,
-          metadata: {
-            company,
-            phone,
-            status: 'active', // Set the user as active
-            accountCreated: new Date().toISOString()
-          }
+          password
         });
         
         // Send verification email

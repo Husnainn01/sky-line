@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { hashSync } from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
 import dotenv from 'dotenv';
 
@@ -12,7 +12,7 @@ const createAdminUser = async () => {
     const adminUser = {
       name: 'Admin User',
       email: 'admin@jdmglobal.com',
-      password: hashSync('admin123', 10),
+      password: bcrypt.hashSync('admin123', 10),
       role: 'admin'
     };
 

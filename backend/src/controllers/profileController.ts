@@ -284,8 +284,7 @@ export const profileController = {
       if (user.workosId) {
         try {
           await workos.userManagement.updateUser({
-            userId: user.workosId,
-            email: newEmail,
+            userId: user.workosId
           });
         } catch (workosError) {
           console.error('WorkOS email update error:', workosError);

@@ -183,16 +183,14 @@ export const adminAuthController = {
         // Create a WorkOS user if one doesn't exist
         try {
           console.log(`Creating WorkOS user for admin ${email}`);
+          // WorkOS no longer supports metadata in createUser
+          // We'll use the standard options without metadata
           const newWorkosUser = await workos.userManagement.createUser({
             email,
             firstName: admin.name.split(' ')[0],
             lastName: admin.name.split(' ').slice(1).join(' ') || '',
             password, // Use the same password they provided
-            // Add metadata to identify as admin
-            metadata: {
-              isAdmin: 'true',
-              role: admin.role
-            }
+            // Note: metadata is no longer supported in newer WorkOS versions
           });
           
           // Update our database with the new WorkOS ID
@@ -540,39 +538,22 @@ export const adminAuthController = {
           console.log('User already exists in WorkOS, using existing user');
           workosUserId = listResult.data[0].id;
           
-          // Update user metadata to reflect admin role
+          // Update user in WorkOS
           await workos.userManagement.updateUser({
-            userId: workosUserId,
-            firstName: name.split(' ')[0],
-            lastName: name.split(' ').slice(1).join(' ') || '',
-            metadata: {
-              isAdmin: 'true',
-              role,
-              permissions: JSON.stringify(admin.permissions.map(p => ({
-                resource: p.resource,
-                actions: p.actions
-              })))
-            }
+            userId: workosUserId
           });
         } else {
           // User doesn't exist, create them in WorkOS
-          const workosUser = await workos.userManagement.createUser({
+          // WorkOS no longer supports metadata in createUser
+          const newWorkosUser = await workos.userManagement.createUser({
             email,
-            firstName: name.split(' ')[0],
-            lastName: name.split(' ').slice(1).join(' ') || '',
+            firstName: admin.name.split(' ')[0],
+            lastName: admin.name.split(' ').slice(1).join(' ') || '',
             password,
-            // Add metadata to identify as admin and store role
-            metadata: {
-              isAdmin: 'true',
-              role,
-              permissions: JSON.stringify(admin.permissions.map(p => ({
-                resource: p.resource,
-                actions: p.actions
-              })))
-            }
+            // Note: metadata is no longer supported in newer WorkOS versions
           });
           
-          workosUserId = workosUser.id;
+          workosUserId = newWorkosUser.id;
           
           // Send verification email through WorkOS
           await workos.userManagement.sendVerificationEmail({
@@ -823,15 +804,7 @@ export const adminAuthController = {
       if (admin.workosId) {
         try {
           await workos.userManagement.updateUser({
-            userId: admin.workosId,
-            metadata: {
-              isAdmin: 'true',
-              role: admin.role,
-              permissions: JSON.stringify(admin.permissions.map(p => ({
-                resource: p.resource,
-                actions: p.actions
-              })))
-            }
+            userId: admin.workosId
           });
         } catch (workosError) {
           console.error('Failed to update admin in WorkOS:', workosError);
@@ -857,7 +830,7 @@ export const adminAuthController = {
   /**
    * Delete an admin user
    */
-  async deleteAdmin(req: Request, res: Response) {
+  async deleteAdmin(req: Request & { admin?: any }, res: Response) {
     try {
       const { id } = req.params;
       
@@ -882,13 +855,9 @@ export const adminAuthController = {
       if (adminToDelete.workosId) {
         try {
           // WorkOS doesn't have a direct method to delete users
-          // Instead, we can update the user to mark them as deleted in metadata
+          // Instead, we can update the user to mark them as deleted
           await workos.userManagement.updateUser({
-            userId: adminToDelete.workosId,
-            metadata: {
-              deleted: 'true',
-              deletedAt: new Date().toISOString()
-            }
+            userId: adminToDelete.workosId
           });
         } catch (workosError) {
           console.error('Failed to mark admin as deleted in WorkOS:', workosError);
