@@ -149,8 +149,8 @@
 }
 
 .logoIcon {
-    width: 180px;
-    height: 180px;
+    width: 150px;
+    height: 150px;
     flex-shrink: 0;
     display: flex;
     align-items: center;

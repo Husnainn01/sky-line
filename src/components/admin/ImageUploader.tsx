@@ -24,6 +24,8 @@ interface ImageUploaderProps {
   onChange: (images: UploadedImage[]) => void;
   maxSizeMB?: number;
   acceptedFileTypes?: string[];
+  folder?: 'vehicles' | 'hero' | 'auction' | 'general';
+  aspectRatio?: string;
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({
@@ -31,7 +33,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   maxFiles = 10,
   onChange,
   maxSizeMB = 5,
-  acceptedFileTypes = ['image/jpeg', 'image/png', 'image/webp']
+  acceptedFileTypes = ['image/jpeg', 'image/png', 'image/webp'],
+  folder = 'vehicles',
+  aspectRatio
 }) => {
   const [images, setImages] = useState<UploadedImage[]>(initialImages);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +66,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       // Create form data for file upload
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('folder', 'vehicles'); // Default folder for vehicle images
+      formData.append('folder', folder); // Use the folder prop
 
       // Get API base URL from environment variable
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
@@ -172,7 +176,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': acceptedFileTypes
+      'image/jpeg': [],
+      'image/png': [],
+      'image/webp': []
     },
     maxSize,
     multiple: true

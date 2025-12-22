@@ -18,32 +18,11 @@
     left: 0;
     width: 100%;
     height: 100%;
+    background-image: url('/images/hero-car.jpg');
     background-size: cover;
-    background-position: center center; /* Default center positioning */
+    background-position: center right;
     background-repeat: no-repeat;
     z-index: 1;
-    transition: background-position 0.3s ease;
-}
-
-/* Position variations for admin control */
-.positionCenter {
-    background-position: center center;
-}
-
-.positionTop {
-    background-position: center top;
-}
-
-.positionBottom {
-    background-position: center bottom;
-}
-
-.positionLeft {
-    background-position: left center;
-}
-
-.positionRight {
-    background-position: right center;
 }
 
 /* Dark Overlay */

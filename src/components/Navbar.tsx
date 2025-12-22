@@ -84,8 +84,8 @@ export default function Navbar() {
                             <img 
                                 src="/images/logo/footer.png" 
                                 alt="SkylineTRD Logo" 
-                                width={180} 
-                                height={180} 
+                                width={150} 
+                                height={150} 
                             />
                         </div>
                         {/* <div className={styles.logoTextContainer}>

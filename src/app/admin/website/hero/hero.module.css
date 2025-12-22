@@ -244,6 +244,16 @@
   margin-bottom: 1.25rem;
 }
 
+.dimensionsContainer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dimensionsContainer .formGroup {
+  flex: 1;
+}
+
 .formLabel {
   display: block;
   font-size: 0.9rem;
