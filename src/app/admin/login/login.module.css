@@ -52,14 +52,17 @@
 
 .logoWrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
   margin-bottom: 2rem;
 }
 
 .logoIcon {
-  width: 48px;
-  height: 48px;
-  margin-right: 1rem;
+  width: 20px;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
 .logoText {

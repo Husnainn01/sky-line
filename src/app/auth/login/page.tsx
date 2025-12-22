@@ -140,6 +140,15 @@ function LoginContent() {
       <div className={styles.container}>
         <div className={styles.formWrapper}>
           <div className={styles.header}>
+            <div className={styles.logoContainer}>
+              <img 
+                src="/images/logo/footer.png" 
+                alt="SkylineTRD Logo" 
+                width={100} 
+                height={100} 
+                className={styles.logo}
+              />
+            </div>
             <h1 className={styles.title}>Welcome Back</h1>
             <p className={styles.subtitle}>Sign in to access your account</p>
           </div>

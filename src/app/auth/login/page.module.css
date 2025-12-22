@@ -29,6 +29,18 @@
   margin-bottom: 2rem;
 }
 
+.logoContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
 .title {
   font-size: 1.75rem;
   font-weight: 700;

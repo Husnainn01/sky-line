@@ -20,7 +20,7 @@ export default function RegisterSuccessPage() {
           <h1 className={styles.title}>Registration Successful!</h1>
           
           <p className={styles.message}>
-            Thank you for creating an account with JDM Global. We've sent a verification email to your inbox. 
+            Thank you for creating an account with SkylineTRD. We've sent a verification email to your inbox. 
             Please check your email and follow the instructions to verify your account.
           </p>
           

@@ -31,7 +31,17 @@
 .logoGroup {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+
+    margin-bottom: 1rem;
+}
+
+.footerLogo {
+    width: 200px;
+    height: auto;
+    object-fit: contain;
+    margin: 0;
+    padding: 0;
+    display: block;
 }
 
 .logoMark {
@@ -222,6 +232,11 @@
 
     .brandBlock {
         max-width: none;
+    }
+    
+    .footerLogo {
+        width: 40px;
+        height: 40px;
     }
 }
 

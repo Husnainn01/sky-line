@@ -130,8 +130,11 @@ export default function Footer() {
                 <div className={styles.topRow}>
                     <div className={styles.brandBlock}>
                         <div className={styles.logoGroup}>
-                            <span className={styles.logoMark}>JDM</span>
-                            <span className={styles.logoWord}>Global</span>
+                            <img 
+                                src="/images/logo/footer.png" 
+                                alt="SkylineTRD Logo" 
+                                className={styles.footerLogo}
+                            />
                         </div>
                         <p className={styles.brandTagline}>
                             Premium Japanese vehicles exported worldwide. Tailored sourcing, transparent inspections, and end-to-end logistics on every shipment.

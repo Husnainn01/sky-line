@@ -240,8 +240,17 @@ export default function RegisterPage() {
           {registrationStep === 'form' && (
             <>
               <div className={styles.header}>
+                <div className={styles.logoContainer}>
+                  <img 
+                    src="/images/logo/footer.png" 
+                    alt="SkylineTRD Logo" 
+                    width={100} 
+                    height={100} 
+                    className={styles.logo}
+                  />
+                </div>
                 <h1 className={styles.title}>Create Account</h1>
-                <p className={styles.subtitle}>Join our global automotive community</p>
+                <p className={styles.subtitle}>Join our automotive community</p>
               </div>
 
               {error && <div className={styles.error}>{error}</div>}
@@ -401,6 +410,15 @@ export default function RegisterPage() {
           {registrationStep === 'verification' && (
             <>
               <div className={styles.header}>
+                <div className={styles.logoContainer}>
+                  <img 
+                    src="/images/logo/footer.png" 
+                    alt="SkylineTRD Logo" 
+                    width={100} 
+                    height={100} 
+                    className={styles.logo}
+                  />
+                </div>
                 <h1 className={styles.title}>Verify Email</h1>
                 <p className={styles.subtitle}>A verification email has been sent to {tempRegistrationData ? tempRegistrationData.email : ''}</p>
               </div>
@@ -456,6 +474,15 @@ export default function RegisterPage() {
           {registrationStep === 'success' && (
             <div className={styles.successContainer}>
               <div className={styles.header}>
+                <div className={styles.logoContainer}>
+                  <img 
+                    src="/images/logo/footer.png" 
+                    alt="SkylineTRD Logo" 
+                    width={100} 
+                    height={100} 
+                    className={styles.logo}
+                  />
+                </div>
                 <h1 className={styles.title}>Registration Complete!</h1>
                 <p className={styles.subtitle}>Your account has been created successfully.</p>
               </div>

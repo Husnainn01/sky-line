@@ -1,5 +1,58 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Rewrites for routes in main_routes directory
+  async rewrites() {
+    return [
+      {
+        source: '/about',
+        destination: '/main_routes/about',
+      },
+      {
+        source: '/auction',
+        destination: '/main_routes/auction',
+      },
+      {
+        source: '/auction/:slug',
+        destination: '/main_routes/auction/:slug',
+      },
+      {
+        source: '/auction/:slug/:subpath*',
+        destination: '/main_routes/auction/:slug/:subpath*',
+      },
+      {
+        source: '/contact',
+        destination: '/main_routes/contact',
+      },
+      {
+        source: '/faq',
+        destination: '/main_routes/faq',
+      },
+      {
+        source: '/inventory',
+        destination: '/main_routes/inventory',
+      },
+      {
+        source: '/inventory/:slug',
+        destination: '/main_routes/inventory/:slug',
+      },
+      {
+        source: '/inventory/:slug/:subpath*',
+        destination: '/main_routes/inventory/:slug/:subpath*',
+      },
+      {
+        source: '/process',
+        destination: '/main_routes/process',
+      },
+      {
+        source: '/quote',
+        destination: '/main_routes/quote',
+      },
+      {
+        source: '/shipping',
+        destination: '/main_routes/shipping',
+      },
+    ];
+  },
   // Disable type checking during build
   typescript: {
     ignoreBuildErrors: true,

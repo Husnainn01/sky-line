@@ -14,18 +14,13 @@ export default function AdminLoginPage() {
           <div className={styles.brandingContent}>
             <div className={styles.logoWrapper}>
               <div className={styles.logoIcon}>
-                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="40" height="40" rx="8" fill="url(#gradient)" />
-                  <path d="M10 15L20 10L30 15V25L20 30L10 25V15Z" fill="white" fillOpacity="0.9" />
-                  <defs>
-                    <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#DC2626" />
-                      <stop offset="1" stopColor="#991B1B" />
-                    </linearGradient>
-                  </defs>
-                </svg>
+                <Image 
+                  src="/images/logo/footer.png" 
+                  alt="SkylineTRD Logo" 
+                  width={100} 
+                  height={100} 
+                />
               </div>
-              <h1 className={styles.logoText}>Skyline TRD</h1>
             </div>
             
             <div className={styles.heroContent}>
