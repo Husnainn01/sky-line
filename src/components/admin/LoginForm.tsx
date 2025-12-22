@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './LoginForm.module.css';
 import { storeAuthToken } from '../../utils/sessionManager';
+import { apiRequest } from '../../lib/api';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -36,20 +37,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     try {
       console.log('Admin login attempt with:', { email, password, rememberMe });
       
-      // Call the admin login API
-      const response = await fetch('http://localhost:5001/api/admin/auth/login', {
+      // Call the admin login API using apiRequest
+      const data = await apiRequest('/admin/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email, password, rememberMe }),
       });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      // apiRequest already handles errors and JSON parsing
       
       // Check if MFA is required
       if (data.requiresMfa) {
@@ -110,20 +103,11 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     setError('');
     
     try {
-      // Call the API to resend verification email
-      const response = await fetch('http://localhost:5001/api/admin/auth/resend-verification', {
+      // Call the API to resend verification email using apiRequest
+      const data = await apiRequest('/admin/auth/resend-verification', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email }),
       });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to resend verification email');
-      }
       
       setError('Verification email has been resent. Please check your inbox.');
     } catch (err: any) {
@@ -141,12 +125,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     setIsLoading(true);
     
     try {
-      // Call the MFA verification API
-      const response = await fetch('http://localhost:5001/api/admin/auth/verify-mfa', {
+      // Call the MFA verification API using apiRequest
+      const data = await apiRequest('/admin/auth/verify-mfa', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ 
           email, 
           factorId: mfaFactorId, 
@@ -154,12 +135,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           rememberMe 
         }),
       });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'MFA verification failed');
-      }
       
       // Store token using session manager
       storeAuthToken(data.token, data.user);

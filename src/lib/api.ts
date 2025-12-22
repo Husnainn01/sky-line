@@ -1,7 +1,12 @@
 // API utility functions for making requests to the backend
 
-// Backend API URL - production URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sky-line-production-d185.up.railway.app/api';
+// Backend API URL - from environment variable only
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+// Throw an error if API_BASE_URL is not set
+if (!API_BASE_URL) {
+  console.error('NEXT_PUBLIC_API_URL environment variable is not set');
+}
 
 /**
  * Make a request to the backend API

@@ -60,7 +60,7 @@ const socialLinks = [
 
 const contactItems = [
     {
-        label: 'Aichi Ken Nagoya, Japan',
+        label: 'Aichi Prefecture, Nagoya, Japan',
         icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M12 21s7-4.35 7-11a7 7 0 10-14 0c0 6.65 7 11 7 11z" strokeLinecap="round" strokeLinejoin="round" />
@@ -69,7 +69,7 @@ const contactItems = [
         )
     },
     {
-        label: '+81 (0)52 598 4435',
+        label: '+81 90 4296 9045',
         icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M22 16.92v3a2 2 0 01-2.18 2c-9.06-.8-16.14-7.86-16.92-16.92A2 2 0 014.9 2h3a1 1 0 011 .78l1.2 5a1 1 0 01-.45 1.05l-1.7 1.13a12.05 12.05 0 006.11 6.11l1.13-1.7a1 1 0 011.05-.45l5 1.2a1 1 0 01.79 1z" strokeLinecap="round" strokeLinejoin="round" />
@@ -77,7 +77,7 @@ const contactItems = [
         )
     },
     {
-        label: 'hello@jdmglobal.com',
+        label:'info@sky-linetrd.com',
         icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" />
@@ -182,7 +182,7 @@ export default function Footer() {
                 </div>
 
                 <div className={styles.bottomRow}>
-                    <p className={styles.copyright}>&copy; {currentYear} JDM Global. All rights reserved.</p>
+                    <p className={styles.copyright}>&copy; {currentYear} Skyline TRD. All rights reserved.</p>
                     <nav className={styles.bottomNav} aria-label="Footer">
                         {bottomLinks.map((item) => (
                             <Link key={item.label} href={item.href} className={styles.bottomLink}>

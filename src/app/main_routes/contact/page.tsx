@@ -64,26 +64,19 @@ export default function ContactPage() {
 
   const offices = [
     {
-      name: 'Tokyo Headquarters',
-      address: '1-2-3 Shibaura, Minato-ku, Tokyo 108-0023, Japan',
-      phone: '+81 3-1234-5678',
-      email: 'tokyo@skylinejdm.com',
-      hours: 'Monday - Friday: 9:00 AM - 6:00 PM (JST)',
-    },
-    {
-      name: 'Osaka Branch',
-      address: '4-5-6 Umeda, Kita-ku, Osaka 530-0001, Japan',
-      phone: '+81 6-1234-5678',
-      email: 'osaka@skylinejdm.com',
+      name: 'Nagoya Headquarters',
+      address: 'Aichi Prefecture, Nagoya, Japan',
+      phone: '+81 90 4296 9045',
+      email: 'info@skylinejdm.com',
       hours: 'Monday - Friday: 9:00 AM - 6:00 PM (JST)',
     },
   ];
 
   const contactInfo = {
-    phone: '+81 3-1234-5678',
+    phone: '+81 90 4296 9045',
     email: 'info@skylinejdm.com',
-    address: '1-2-3 Shibaura, Minato-ku, Tokyo 108-0023, Japan',
-    whatsapp: '+81 90-1234-5678',
+    address: 'Aichi Prefecture, Nagoya, Japan',
+    whatsapp: '+81 90 4296 9045',
     line: '@skylinejdm',
     hours: 'Monday - Friday: 9:00 AM - 6:00 PM (JST)',
   };
