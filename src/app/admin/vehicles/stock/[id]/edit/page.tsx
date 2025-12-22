@@ -110,7 +110,11 @@ export default function EditVehiclePage() {
         }
 
         console.log(`Fetching vehicle with ID: ${id}`);
-        const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+        
+        // Get API base URL from environment variable
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -386,8 +390,11 @@ export default function EditVehiclePage() {
       
       console.log('Submitting update for vehicle ID:', id);
       
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Send the updated vehicle data to the API
-      const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

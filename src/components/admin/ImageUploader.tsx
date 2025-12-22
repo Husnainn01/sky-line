@@ -64,8 +64,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       formData.append('image', file);
       formData.append('folder', 'vehicles'); // Default folder for vehicle images
 
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Upload to R2 via the API
-      const response = await fetch('http://localhost:5001/api/upload/image', {
+      const response = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

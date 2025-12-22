@@ -209,8 +209,11 @@ export default function NewVehiclePage() {
         throw new Error('Authentication required. Please log in again.');
       }
       
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Make API call to create vehicle
-      const response = await fetch('http://localhost:5001/api/vehicles', {
+      const response = await fetch(`${API_BASE_URL}/vehicles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

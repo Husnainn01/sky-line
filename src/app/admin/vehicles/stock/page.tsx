@@ -66,7 +66,10 @@ export default function StockVehiclesPage() {
           return;
         }
         
-        const response = await fetch('http://localhost:5001/api/vehicles/type/stock', {
+        // Get API base URL from environment variable
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        const response = await fetch(`${API_BASE_URL}/vehicles/type/stock`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -168,8 +171,11 @@ export default function StockVehiclesPage() {
         throw new Error('Authentication required. Please log in again.');
       }
       
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Make API call to delete vehicle
-      const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

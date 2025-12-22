@@ -111,7 +111,11 @@ export default function VehicleDetailPage() {
         }
 
         console.log(`Fetching vehicle details with ID: ${id}`);
-        const response = await fetch(`http://localhost:5001/api/vehicles/${id}`, {
+        
+        // Get API base URL from environment variable
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -198,8 +202,11 @@ export default function VehicleDetailPage() {
         throw new Error('Vehicle ID is missing');
       }
       
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Make API call to delete vehicle
-      const response = await fetch(`http://localhost:5001/api/vehicles/${vehicleId}`, {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

@@ -37,8 +37,11 @@ function AdminVerifyEmailContent() {
     setMessage('Verifying your email...');
     
     try {
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Call the backend API to verify the email
-      const response = await fetch('http://localhost:5001/api/admin/auth/verify-email', {
+      const response = await fetch(`${API_BASE_URL}/admin/auth/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,8 +80,11 @@ function AdminVerifyEmailContent() {
     setMessage('');
     
     try {
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Call the API to send verification code
-      const response = await fetch('http://localhost:5001/api/admin/auth/resend-verification', {
+      const response = await fetch(`${API_BASE_URL}/admin/auth/resend-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,8 +125,11 @@ function AdminVerifyEmailContent() {
     setMessage('Verifying your email...');
     
     try {
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
       // Call the backend API to verify the email
-      const response = await fetch('http://localhost:5001/api/admin/auth/verify-email', {
+      const response = await fetch(`${API_BASE_URL}/admin/auth/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
