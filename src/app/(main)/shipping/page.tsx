@@ -2,15 +2,73 @@
 import React from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+
+// Define the ShippingSchedule type to match the backend model
+type ShippingSchedule = {
+  id: string;
+  destination: string;
+  departureDate: string;
+  arrivalDate: string;
+  vessel: string;
+  notes?: string;
+  isActive: boolean;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 export default function ShippingPage() {
+  const [shippingSchedules, setShippingSchedules] = useState<ShippingSchedule[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     destination: '',
     departurePort: '',
     status: '',
     dateRange: '',
   });
+  
+  // Fetch shipping schedules from API
+  useEffect(() => {
+    const fetchShippingSchedules = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        const response = await fetch(`${API_BASE_URL}/shipping-schedules`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch shipping schedules');
+        }
+        
+        const data = await response.json();
+        console.log('API Response:', data);
+        
+        if (data.success && data.data) {
+          // Map MongoDB _id to id for frontend consistency
+          const mappedData = data.data
+            .filter((item: any) => item.isActive) // Only show active schedules
+            .map((item: any) => ({
+              ...item,
+              id: item._id // Map _id to id
+            }));
+          console.log('Mapped shipping schedules:', mappedData);
+          setShippingSchedules(mappedData);
+        } else {
+          console.log('No shipping schedules found or invalid data');
+          setShippingSchedules([]);
+        }
+      } catch (err) {
+        console.error('Error fetching shipping schedules:', err);
+        setError('Failed to load shipping schedules. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchShippingSchedules();
+  }, []);
 
   const ports = [
     'Yokohama',
@@ -54,44 +112,7 @@ export default function ShippingPage() {
     });
   };
 
-  const upcomingShipments = [
-    {
-      route: 'Japan to USA (West Coast)',
-      vessel: 'GRAND MARK',
-      departure: '2023-12-15',
-      arrival: '2023-12-30',
-      status: 'open',
-      capacity: '80%',
-      port: 'Yokohama → Los Angeles',
-    },
-    {
-      route: 'Japan to Australia',
-      vessel: 'NEPTUNE ACE',
-      departure: '2023-12-18',
-      arrival: '2024-01-02',
-      status: 'limited',
-      capacity: '90%',
-      port: 'Osaka → Melbourne',
-    },
-    {
-      route: 'Japan to Europe',
-      vessel: 'MORNING COMPOSER',
-      departure: '2023-12-20',
-      arrival: '2024-01-10',
-      status: 'open',
-      capacity: '60%',
-      port: 'Tokyo → Rotterdam',
-    },
-    {
-      route: 'Japan to New Zealand',
-      vessel: 'TRANS FUTURE 7',
-      departure: '2023-12-22',
-      arrival: '2024-01-05',
-      status: 'closed',
-      capacity: '100%',
-      port: 'Kawasaki → Auckland',
-    },
-  ];
+  // No mock data - using data from API
 
   const shippingRates = [
     {
@@ -167,20 +188,14 @@ export default function ShippingPage() {
   ];
 
     const filteredShipments = useMemo(() => {
-    return upcomingShipments.filter(shipment => {
-      if (filters.destination && !shipment.route.toLowerCase().includes(filters.destination.toLowerCase())) {
+    return shippingSchedules.filter(schedule => {
+      if (filters.destination && !schedule.destination.toLowerCase().includes(filters.destination.toLowerCase())) {
         return false;
       }
-      if (filters.departurePort && !shipment.port.split('→')[0].trim().includes(filters.departurePort)) {
-        return false;
-      }
-      if (filters.status && shipment.status !== filters.status) {
-        return false;
-      }
-      // Add date range filtering logic here if needed
+      // Date range filtering logic can be added here if needed
       return true;
     });
-  }, [upcomingShipments, filters]);
+  }, [shippingSchedules, filters]);
 
   return (
     <div className={styles.page}>
@@ -283,44 +298,56 @@ export default function ShippingPage() {
 
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Upcoming Shipping Schedule</h2>
-          <div className={styles.scheduleGrid}>
-            {filteredShipments.map((shipment) => (
-              <div key={shipment.vessel} className={styles.scheduleCard}>
-                <div className={styles.scheduleHeader}>
-                  <span className={styles.scheduleIcon}>🚢</span>
-                  <h3 className={styles.scheduleTitle}>{shipment.route}</h3>
+          
+          {isLoading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Loading shipping schedules...</p>
+            </div>
+          ) : error ? (
+            <div className={styles.errorContainer}>
+              <div className={styles.errorIcon}>⚠️</div>
+              <h3 className={styles.errorTitle}>Error loading shipping schedules</h3>
+              <p>{error}</p>
+            </div>
+          ) : filteredShipments.length > 0 ? (
+            <div className={styles.scheduleGrid}>
+              {filteredShipments.map((schedule) => (
+                <div key={schedule.id} className={styles.scheduleCard}>
+                  <div className={styles.scheduleHeader}>
+                    <span className={styles.scheduleIcon}>🚢</span>
+                    <h3 className={styles.scheduleTitle}>{schedule.destination}</h3>
+                  </div>
+                  <div className={styles.scheduleDetails}>
+                    <div className={styles.scheduleRow}>
+                      <span className={styles.scheduleLabel}>Vessel</span>
+                      <span className={styles.scheduleValue}>{schedule.vessel}</span>
+                    </div>
+                    <div className={styles.scheduleRow}>
+                      <span className={styles.scheduleLabel}>Departure</span>
+                      <span className={styles.scheduleValue}>{new Date(schedule.departureDate).toLocaleDateString()}</span>
+                    </div>
+                    <div className={styles.scheduleRow}>
+                      <span className={styles.scheduleLabel}>Arrival</span>
+                      <span className={styles.scheduleValue}>{new Date(schedule.arrivalDate).toLocaleDateString()}</span>
+                    </div>
+                    {schedule.notes && (
+                      <div className={styles.scheduleRow}>
+                        <span className={styles.scheduleLabel}>Notes</span>
+                        <span className={styles.scheduleValue}>{schedule.notes}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className={styles.scheduleDetails}>
-                  <div className={styles.scheduleRow}>
-                    <span className={styles.scheduleLabel}>Vessel</span>
-                    <span className={styles.scheduleValue}>{shipment.vessel}</span>
-                  </div>
-                  <div className={styles.scheduleRow}>
-                    <span className={styles.scheduleLabel}>Ports</span>
-                    <span className={styles.scheduleValue}>{shipment.port}</span>
-                  </div>
-                  <div className={styles.scheduleRow}>
-                    <span className={styles.scheduleLabel}>Departure</span>
-                    <span className={styles.scheduleValue}>{shipment.departure}</span>
-                  </div>
-                  <div className={styles.scheduleRow}>
-                    <span className={styles.scheduleLabel}>Arrival</span>
-                    <span className={styles.scheduleValue}>{shipment.arrival}</span>
-                  </div>
-                  <div className={styles.scheduleRow}>
-                    <span className={styles.scheduleLabel}>Capacity</span>
-                    <span className={styles.scheduleValue}>{shipment.capacity}</span>
-                  </div>
-                  <div className={styles.scheduleRow}>
-                    <span className={styles.scheduleLabel}>Status</span>
-                    <span className={`${styles.scheduleStatus} ${styles['status' + shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)]}`}>
-                      {shipment.status.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.noResults}>
+              <div className={styles.noResultsIcon}>🔍</div>
+              <h3 className={styles.noResultsTitle}>No shipping schedules found</h3>
+              <p>Try adjusting your filters or check back later</p>
+            </div>
+          )}
         </section>
 
         <section className={styles.section}>

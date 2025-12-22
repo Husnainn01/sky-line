@@ -195,6 +195,23 @@
     gap: 0.5rem;
 }
 
+/* CTA Button - Get Quote */
+.ctaButton {
+    background-color: #dc2626; /* Red background */
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin-left: 0.5rem;
+}
+
+.ctaButton:hover {
+    background-color: #b91c1c; /* Darker red on hover */
+    transform: translateY(-1px);
+}
+
 .navItemWithDropdown {
     position: relative;
     display: flex;

@@ -29,6 +29,8 @@ import auctionVehicleRoutes from './routes/auctionVehicleRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import savedVehiclesRoutes from './routes/savedVehiclesRoutes';
 import heroSectionRoutes from './routes/heroSectionRoutes';
+import faqRoutes from './routes/faqRoutes';
+import shippingScheduleRoutes from './routes/shippingScheduleRoutes';
 
 // Environment variables have already been logged above
 
@@ -70,6 +72,8 @@ app.use('/api/auction-vehicles', auctionVehicleRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/saved-vehicles', savedVehiclesRoutes);
 app.use('/api/hero-sections', heroSectionRoutes);
+app.use('/api/faqs', faqRoutes);
+app.use('/api/shipping-schedules', shippingScheduleRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
 
@@ -9,109 +9,14 @@ type FAQ = {
   question: string;
   answer: string;
   category: string;
+  order: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
-const faqData: FAQ[] = [
-  // Vehicle Import
-  {
-    id: 'import-1',
-    category: 'vehicle-import',
-    question: 'What are the requirements for importing a vehicle to my country?',
-    answer: 'Requirements vary by country but generally include: vehicle age restrictions, emissions standards compliance, safety regulations, import duties, and proper documentation. We assist with all necessary paperwork and ensure vehicles meet your country\'s requirements.',
-  },
-  {
-    id: 'import-2',
-    category: 'vehicle-import',
-    question: 'How long does the import process take?',
-    answer: 'The import process typically takes 6-8 weeks from purchase to delivery. This includes auction purchase, documentation, shipping, and customs clearance. Timing can vary based on destination country and specific requirements.',
-  },
-  {
-    id: 'import-3',
-    category: 'vehicle-import',
-    question: 'What documents are needed for vehicle import?',
-    answer: 'Required documents include: Bill of Lading, Export Certificate, Purchase Invoice, Vehicle Registration, Inspection Certificate, and Import Declaration. We handle all documentation preparation on your behalf.',
-  },
-
-  // Auction Process
-  {
-    id: 'auction-1',
-    category: 'auction',
-    question: 'How do I participate in Japanese car auctions?',
-    answer: 'Through our service, you can access all major Japanese auto auctions. Simply tell us your desired vehicle and maximum budget. We\'ll handle the bidding process, inspection, and provide real-time updates.',
-  },
-  {
-    id: 'auction-2',
-    category: 'auction',
-    question: 'What does the auction grade mean?',
-    answer: 'Auction grades range from 0-5, with 5 being the best. They indicate the vehicle\'s overall condition, including exterior, interior, and mechanical state. We provide detailed grade explanations and inspection reports.',
-  },
-  {
-    id: 'auction-3',
-    category: 'auction',
-    question: 'Can I inspect the vehicle before bidding?',
-    answer: 'While physical inspection isn\'t possible for overseas buyers, we provide detailed auction inspection reports, photos, and our expert assessment. Our team physically inspects vehicles when possible.',
-  },
-
-  // Shipping & Logistics
-  {
-    id: 'shipping-1',
-    category: 'shipping',
-    question: 'What shipping methods are available?',
-    answer: 'We offer container shipping (shared or exclusive) and RoRo (Roll-on/Roll-off) shipping. Container shipping provides better protection, while RoRo is more economical for operational vehicles.',
-  },
-  {
-    id: 'shipping-2',
-    category: 'shipping',
-    question: 'How are vehicles protected during shipping?',
-    answer: 'Vehicles are securely fastened in containers or on RoRo vessels. We provide comprehensive marine insurance coverage against damage or loss during transit.',
-  },
-  {
-    id: 'shipping-3',
-    category: 'shipping',
-    question: 'Can I track my vehicle during shipping?',
-    answer: 'Yes, we provide regular updates and tracking information. You\'ll receive notifications at key stages: departure from Japan, transit updates, and arrival at destination port.',
-  },
-
-  // Payment & Costs
-  {
-    id: 'payment-1',
-    category: 'payment',
-    question: 'What payment methods do you accept?',
-    answer: 'We accept bank transfers, credit cards, and other secure payment methods. All transactions are processed through secure channels with detailed invoicing.',
-  },
-  {
-    id: 'payment-2',
-    category: 'payment',
-    question: 'What costs are involved besides the vehicle price?',
-    answer: 'Additional costs include: auction fees, shipping costs, insurance, import duties, and our service fee. We provide a detailed cost breakdown before purchase.',
-  },
-  {
-    id: 'payment-3',
-    category: 'payment',
-    question: 'Do you offer financing options?',
-    answer: 'While we don\'t provide direct financing, we can recommend trusted partners who specialize in international auto financing. Terms vary by country.',
-  },
-
-  // After-Sales
-  {
-    id: 'aftersales-1',
-    category: 'after-sales',
-    question: 'What warranty options are available?',
-    answer: 'We offer various warranty packages for mechanical and electrical components. Coverage periods and terms vary. Extended warranties are available through our partners.',
-  },
-  {
-    id: 'aftersales-2',
-    category: 'after-sales',
-    question: 'Can you help with parts and maintenance?',
-    answer: 'Yes, we maintain relationships with parts suppliers and can assist in sourcing genuine or aftermarket parts. We can also recommend specialized mechanics in your area.',
-  },
-  {
-    id: 'aftersales-3',
-    category: 'after-sales',
-    question: 'What post-purchase support do you provide?',
-    answer: 'We offer ongoing support including documentation assistance, parts sourcing, maintenance advice, and technical support. Our team remains available after delivery.',
-  },
-];
+// Empty initial state - will be populated from API
+const initialFaqData: FAQ[] = [];
 
 const categories = [
   { id: 'all', name: 'All Questions', icon: '📋' },
@@ -123,9 +28,53 @@ const categories = [
 ];
 
 export default function FAQPage() {
+  const [faqData, setFaqData] = useState<FAQ[]>(initialFaqData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [openQuestions, setOpenQuestions] = useState<string[]>([]);
+
+  // Fetch FAQs from API
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        const response = await fetch(`${API_BASE_URL}/faqs`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch FAQs');
+        }
+        
+        const data = await response.json();
+        console.log('API Response:', data);
+        
+        if (data.success && data.data) {
+          // Map MongoDB _id to id for frontend consistency
+          const mappedData = data.data
+            .filter((item: any) => item.isActive) // Only show active FAQs
+            .map((item: any) => ({
+              ...item,
+              id: item._id // Map _id to id
+            }));
+          console.log('Mapped FAQs:', mappedData);
+          setFaqData(mappedData);
+        } else {
+          console.log('No FAQs found or invalid data');
+          setFaqData([]);
+        }
+      } catch (err) {
+        console.error('Error fetching FAQs:', err);
+        setError('Failed to load FAQs. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFAQs();
+  }, []);
 
   const filteredFAQs = useMemo(() => {
     return faqData.filter(faq => {
@@ -135,7 +84,7 @@ export default function FAQPage() {
         faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [faqData, activeCategory, searchQuery]);
 
   const toggleQuestion = (id: string) => {
     setOpenQuestions(prev => 
@@ -177,7 +126,18 @@ export default function FAQPage() {
           />
         </div>
 
-        {filteredFAQs.length > 0 ? (
+        {isLoading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading FAQs...</p>
+          </div>
+        ) : error ? (
+          <div className={styles.errorContainer}>
+            <div className={styles.errorIcon}>⚠️</div>
+            <h3 className={styles.errorTitle}>Error loading FAQs</h3>
+            <p>{error}</p>
+          </div>
+        ) : filteredFAQs.length > 0 ? (
           <div className={styles.faqGrid}>
             {filteredFAQs.map(faq => (
               <div key={faq.id} className={styles.faqCard}>

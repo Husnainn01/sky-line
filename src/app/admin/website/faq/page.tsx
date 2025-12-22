@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAuthToken } from '../../../../utils/sessionManager';
 import Link from 'next/link';
 import AdminHeader from '../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../components/admin/AdminSidebar';
@@ -16,63 +17,68 @@ interface FAQItem {
   category: string;
   order: number;
   isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Sample FAQ categories
-const faqCategories = [
-  'General',
-  'Shipping',
-  'Payment',
-  'Vehicles',
-  'Import Process'
+// FAQ categories - matching the frontend categories
+const faqCategoryOptions = [
+  { value: 'vehicle-import', label: 'Vehicle Import' },
+  { value: 'auction', label: 'Auction Process' },
+  { value: 'shipping', label: 'Shipping & Logistics' },
+  { value: 'payment', label: 'Payment & Costs' },
+  { value: 'after-sales', label: 'After-Sales Support' }
 ];
 
-// Sample FAQ data
-const initialFAQs: FAQItem[] = [
-  {
-    id: '1',
-    question: 'How do I purchase a vehicle from your website?',
-    answer: 'You can browse our inventory and select a vehicle you\'re interested in. Click on the "Inquire" button to start the purchase process. Our team will guide you through the steps including payment, shipping, and import documentation.',
-    category: 'General',
-    order: 1,
-    isActive: true
-  },
-  {
-    id: '2',
-    question: 'What payment methods do you accept?',
-    answer: 'We accept bank transfers, credit cards, and cryptocurrency payments. A deposit is required to secure your vehicle, with the balance due before shipping.',
-    category: 'Payment',
-    order: 1,
-    isActive: true
-  },
-  {
-    id: '3',
-    question: 'How long does shipping take?',
-    answer: 'Shipping times vary depending on your location. Typically, it takes 4-8 weeks from Japan to the US, 6-10 weeks to Europe, and 3-6 weeks to Australia. We provide tracking information once your vehicle is in transit.',
-    category: 'Shipping',
-    order: 1,
-    isActive: true
-  },
-  {
-    id: '4',
-    question: 'Do you provide import assistance?',
-    answer: 'Yes, we handle all the necessary paperwork for importing your vehicle. Our team is experienced with import regulations for the US, EU, UK, Australia, and many other countries.',
-    category: 'Import Process',
-    order: 1,
-    isActive: true
-  },
-  {
-    id: '5',
-    question: 'What documentation will I receive with my vehicle?',
-    answer: 'All vehicles come with export certificates, auction sheets (when applicable), de-registration documents, and our own inspection reports. We also provide all necessary customs documentation.',
-    category: 'Vehicles',
-    order: 1,
-    isActive: true
-  }
-];
+// Extract just the values for filtering
+const faqCategories = faqCategoryOptions.map(cat => cat.value);
+
+// Empty initial state - will be populated from API
+const initialFAQs: FAQItem[] = [];
 
 export default function FAQManagementPage() {
-  const [faqs, setFaqs] = useState<FAQItem[]>(initialFAQs);
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Fetch FAQs from backend
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        setIsLoading(true);
+        setApiError(null);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        const response = await fetch(`${API_BASE_URL}/faqs`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch FAQs');
+        }
+        
+        const data = await response.json();
+        console.log('API Response:', data);
+        
+        if (data.success && data.data) {
+          // Map MongoDB _id to id for frontend consistency
+          const mappedData = data.data.map((item: any) => ({
+            ...item,
+            id: item._id // Map _id to id
+          }));
+          console.log('Mapped FAQs:', mappedData);
+          setFaqs(mappedData);
+        } else {
+          console.log('No FAQs found or invalid data');
+          setFaqs([]);
+        }
+      } catch (error) {
+        console.error('Error fetching FAQs:', error);
+        setApiError('Failed to load FAQs. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFAQs();
+  }, []);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentFAQ, setCurrentFAQ] = useState<FAQItem | null>(null);
@@ -80,7 +86,7 @@ export default function FAQManagementPage() {
     id: '',  // Will be set when adding
     question: '',
     answer: '',
-    category: 'General',
+    category: 'vehicle-import', // Default to first category
     order: 1,
     isActive: true
   });
@@ -111,9 +117,59 @@ export default function FAQManagementPage() {
   }, {} as Record<string, FAQItem[]>);
   
   // Delete FAQ
-  const deleteFAQ = (id: string) => {
+  const deleteFAQ = async (id: string) => {
     if (confirm('Are you sure you want to delete this FAQ?')) {
-      setFaqs(prevFAQs => prevFAQs.filter(faq => faq.id !== id));
+      try {
+        // Find the FAQ to delete
+        const faqToDelete = faqs.find(faq => faq.id === id);
+        
+        if (!faqToDelete) {
+          alert('FAQ not found');
+          return;
+        }
+        
+        // Get API base URL from environment variable
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        // Get authentication token
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication required. Please log in.');
+        }
+        
+        // Call the API to delete the FAQ
+        const response = await fetch(`${API_BASE_URL}/faqs/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        // Get response text first to check if it's valid JSON
+        const responseText = await response.text();
+        let data;
+        
+        try {
+          // Handle empty response
+          data = responseText ? JSON.parse(responseText) : { success: true };
+        } catch (e) {
+          console.error('Invalid JSON response:', responseText);
+          throw new Error('Server returned invalid JSON');
+        }
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to delete FAQ');
+        }
+        
+        // Update local state with a new array to avoid reference issues
+        setFaqs(prevFaqs => prevFaqs.filter(faq => faq.id !== id));
+        
+        // Show success message
+        alert('FAQ deleted successfully!');
+      } catch (err) {
+        console.error('Error deleting FAQ:', err);
+        alert(`Failed to delete FAQ: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     }
   };
   
@@ -124,46 +180,183 @@ export default function FAQManagementPage() {
   };
   
   // Save edited FAQ
-  const saveEditedFAQ = () => {
+  const saveEditedFAQ = async () => {
     if (currentFAQ) {
-      setFaqs(prevFAQs => 
-        prevFAQs.map(faq => 
-          faq.id === currentFAQ.id ? currentFAQ : faq
-        )
-      );
-      setIsEditModalOpen(false);
+      try {
+        // Get API base URL from environment variable
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        // Get authentication token
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication required. Please log in.');
+        }
+        
+        // Call the API to update the FAQ
+        const response = await fetch(`${API_BASE_URL}/faqs/${currentFAQ.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(currentFAQ)
+        });
+
+        // Get response text first to check if it's valid JSON
+        const responseText = await response.text();
+        let data;
+        
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          console.error('Invalid JSON response:', responseText);
+          throw new Error('Server returned invalid JSON');
+        }
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to update FAQ');
+        }
+        
+        if (data.success) {
+          // Update the FAQ in state
+          setFaqs(prevFAQs => 
+            prevFAQs.map(faq => 
+              faq.id === currentFAQ.id ? { ...data.data, id: data.data._id } : faq
+            )
+          );
+          setIsEditModalOpen(false);
+          alert('FAQ updated successfully!');
+        }
+      } catch (err) {
+        console.error('Error updating FAQ:', err);
+        alert(`Failed to update FAQ: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     }
   };
   
   // Add new FAQ
-  const addNewFAQ = () => {
-    const newId = (Math.max(...faqs.map(faq => parseInt(faq.id))) + 1).toString();
-    
-    // Calculate the next order number for the category
-    const categoryFAQs = faqs.filter(faq => faq.category === newFAQ.category);
-    const nextOrder = categoryFAQs.length > 0 
-      ? Math.max(...categoryFAQs.map(faq => faq.order)) + 1 
-      : 1;
-    
-    setFaqs([...faqs, { ...newFAQ, id: newId, order: nextOrder }]);
-    setNewFAQ({
-      id: '',
-      question: '',
-      answer: '',
-      category: 'General',
-      order: 1,
-      isActive: true
-    });
-    setIsAddModalOpen(false);
+  const addNewFAQ = async () => {
+    try {
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
+      // Get authentication token
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Calculate the next order number for the category
+      const categoryFAQs = faqs.filter(faq => faq.category === newFAQ.category);
+      const nextOrder = categoryFAQs.length > 0 
+        ? Math.max(...categoryFAQs.map(faq => faq.order)) + 1 
+        : 1;
+      
+      // Call the API to create the FAQ
+      const response = await fetch(`${API_BASE_URL}/faqs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...newFAQ, order: nextOrder })
+      });
+
+      // Get response text first to check if it's valid JSON
+      const responseText = await response.text();
+      let data;
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Invalid JSON response:', responseText);
+        throw new Error('Server returned invalid JSON');
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create FAQ');
+      }
+      
+      if (data.success) {
+        // Add the new FAQ to state with proper ID mapping
+        setFaqs(prevFaqs => [...prevFaqs, { ...data.data, id: data.data._id }]);
+        setNewFAQ({
+          id: '',
+          question: '',
+          answer: '',
+          category: 'vehicle-import',
+          order: 1,
+          isActive: true
+        });
+        setIsAddModalOpen(false);
+        alert('FAQ created successfully!');
+      }
+    } catch (err) {
+      console.error('Error creating FAQ:', err);
+      alert(`Failed to create FAQ: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   };
   
   // Toggle FAQ active status
-  const toggleFAQActive = (id: string) => {
-    setFaqs(prevFAQs => 
-      prevFAQs.map(faq => 
-        faq.id === id ? { ...faq, isActive: !faq.isActive } : faq
-      )
-    );
+  const toggleFAQActive = async (id: string) => {
+    try {
+      // Find the FAQ to toggle
+      const faqToToggle = faqs.find(faq => faq.id === id);
+      
+      if (!faqToToggle) {
+        alert('FAQ not found');
+        return;
+      }
+      
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
+      // Get authentication token
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Call the API to update the FAQ
+      const response = await fetch(`${API_BASE_URL}/faqs/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...faqToToggle, isActive: !faqToToggle.isActive })
+      });
+      
+      // Get response text first to check if it's valid JSON
+      const responseText = await response.text();
+      let data;
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Invalid JSON response:', responseText);
+        throw new Error('Server returned invalid JSON');
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update FAQ');
+      }
+      
+      if (data.success) {
+        // Update FAQ in state with proper ID mapping
+        setFaqs(prevFAQs => 
+          prevFAQs.map(faq => 
+            faq.id === id ? { ...data.data, id: data.data._id } : faq
+          )
+        );
+        
+        // Show success message
+        alert(`FAQ ${faqToToggle.isActive ? 'deactivated' : 'activated'} successfully!`);
+      }
+    } catch (err) {
+      console.error('Error updating FAQ:', err);
+      alert(`Failed to update FAQ: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   };
   
   // Toggle FAQ expansion
@@ -273,13 +466,13 @@ export default function FAQManagementPage() {
               >
                 All
               </button>
-              {faqCategories.map(category => (
+              {faqCategoryOptions.map(category => (
                 <button 
-                  key={category}
-                  className={`${styles.filterButton} ${categoryFilter === category ? styles.activeFilter : ''}`}
-                  onClick={() => setCategoryFilter(category)}
+                  key={category.value}
+                  className={`${styles.filterButton} ${categoryFilter === category.value ? styles.activeFilter : ''}`}
+                  onClick={() => setCategoryFilter(category.value)}
                 >
-                  {category}
+                  {category.label}
                 </button>
               ))}
             </div>
@@ -290,7 +483,9 @@ export default function FAQManagementPage() {
           <div className={styles.faqAccordion}>
             {Object.entries(groupedFAQs).map(([category, categoryFAQs]) => (
               <div key={category} className={styles.faqCategory}>
-                <h2 className={styles.categoryTitle}>{category}</h2>
+                <h2 className={styles.categoryTitle}>
+                  {faqCategoryOptions.find(cat => cat.value === category)?.label || category}
+                </h2>
                 
                 {[...categoryFAQs].sort((a, b) => a.order - b.order).map(faq => (
                   <div 
@@ -449,8 +644,8 @@ export default function FAQManagementPage() {
                     value={newFAQ.category}
                     onChange={(e) => setNewFAQ({...newFAQ, category: e.target.value})}
                   >
-                    {faqCategories.map(category => (
-                      <option key={category} value={category}>{category}</option>
+                    {faqCategoryOptions.map(category => (
+                      <option key={category.value} value={category.value}>{category.label}</option>
                     ))}
                   </select>
                 </div>
@@ -537,8 +732,8 @@ export default function FAQManagementPage() {
                     value={currentFAQ.category}
                     onChange={(e) => setCurrentFAQ({...currentFAQ, category: e.target.value})}
                   >
-                    {faqCategories.map(category => (
-                      <option key={category} value={category}>{category}</option>
+                    {faqCategoryOptions.map(category => (
+                      <option key={category.value} value={category.value}>{category.label}</option>
                     ))}
                   </select>
                 </div>

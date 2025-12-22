@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAuthToken } from '../../../../utils/sessionManager';
 import Link from 'next/link';
 import AdminHeader from '../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../components/admin/AdminSidebar';
@@ -8,85 +9,149 @@ import ProtectedRoute from '../../../../components/admin/ProtectedRoute';
 import PermissionGuard from '../../../../components/admin/PermissionGuard';
 import styles from './shipping.module.css';
 
-// Define types for shipping schedules
+// Define types for shipping schedules to match backend model
 interface ShippingSchedule {
   id: string;
-  origin: string;
   destination: string;
   departureDate: string;
   arrivalDate: string;
   vessel: string;
-  status: 'scheduled' | 'in-transit' | 'arrived' | 'delayed';
   notes?: string;
+  isActive: boolean;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Sample shipping schedules data
-const initialShippingSchedules: ShippingSchedule[] = [
-  {
-    id: '1',
-    origin: 'Yokohama, Japan',
-    destination: 'Los Angeles, USA',
-    departureDate: '2023-12-15',
-    arrivalDate: '2024-01-10',
-    vessel: 'Pacific Star',
-    status: 'scheduled',
-    notes: 'Monthly direct route'
-  },
-  {
-    id: '2',
-    origin: 'Osaka, Japan',
-    destination: 'Vancouver, Canada',
-    departureDate: '2023-12-05',
-    arrivalDate: '2023-12-28',
-    vessel: 'Northern Express',
-    status: 'in-transit'
-  },
-  {
-    id: '3',
-    origin: 'Tokyo, Japan',
-    destination: 'Sydney, Australia',
-    departureDate: '2023-11-20',
-    arrivalDate: '2023-12-18',
-    vessel: 'Southern Route',
-    status: 'delayed',
-    notes: 'Delayed due to weather conditions'
-  }
-];
+// Empty initial state - will be populated from API
+const initialShippingSchedules: ShippingSchedule[] = [];
 
 export default function ShippingManagementPage() {
   const [shippingSchedules, setShippingSchedules] = useState<ShippingSchedule[]>(initialShippingSchedules);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Fetch shipping schedules from backend
+  useEffect(() => {
+    const fetchShippingSchedules = async () => {
+      try {
+        setIsLoading(true);
+        setApiError(null);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        const response = await fetch(`${API_BASE_URL}/shipping-schedules`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch shipping schedules');
+        }
+        
+        const data = await response.json();
+        console.log('API Response:', data);
+        
+        if (data.success && data.data) {
+          // Map MongoDB _id to id for frontend consistency
+          const mappedData = data.data.map((item: any) => ({
+            ...item,
+            id: item._id // Map _id to id
+          }));
+          console.log('Mapped shipping schedules:', mappedData);
+          setShippingSchedules(mappedData);
+        } else {
+          console.log('No shipping schedules found or invalid data');
+          setShippingSchedules([]);
+        }
+      } catch (err) {
+        console.error('Error fetching shipping schedules:', err);
+        setApiError('Failed to load shipping schedules. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchShippingSchedules();
+  }, []);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentSchedule, setCurrentSchedule] = useState<ShippingSchedule | null>(null);
   const [newSchedule, setNewSchedule] = useState<ShippingSchedule>({
     id: '',  // Will be set when adding
-    origin: '',
     destination: '',
     departureDate: '',
     arrivalDate: '',
     vessel: '',
-    status: 'scheduled',
-    notes: ''
+    notes: '',
+    isActive: true,
+    order: 0
   });
   
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   
   // Filter schedules
   const filteredSchedules = shippingSchedules.filter(schedule => {
-    const matchesStatus = statusFilter === 'all' ? true : schedule.status === statusFilter;
+    const matchesActive = activeFilter === 'all' ? true : 
+                         (activeFilter === 'active' ? schedule.isActive : !schedule.isActive);
     const matchesSearch = searchTerm 
-      ? `${schedule.origin} ${schedule.destination} ${schedule.vessel}`.toLowerCase().includes(searchTerm.toLowerCase())
+      ? `${schedule.destination} ${schedule.vessel}`.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
     
-    return matchesStatus && matchesSearch;
+    return matchesActive && matchesSearch;
   });
   
   // Delete schedule
-  const deleteSchedule = (id: string) => {
+  const deleteSchedule = async (id: string) => {
     if (confirm('Are you sure you want to delete this shipping schedule?')) {
-      setShippingSchedules(prevSchedules => prevSchedules.filter(schedule => schedule.id !== id));
+      try {
+        // Find the schedule to delete
+        const scheduleToDelete = shippingSchedules.find(schedule => schedule.id === id);
+        
+        if (!scheduleToDelete) {
+          alert('Shipping schedule not found');
+          return;
+        }
+        
+        // Get API base URL from environment variable
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        // Get authentication token
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication required. Please log in.');
+        }
+        
+        // Call the API to delete the shipping schedule
+        const response = await fetch(`${API_BASE_URL}/shipping-schedules/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        // Get response text first to check if it's valid JSON
+        const responseText = await response.text();
+        let data;
+        
+        try {
+          // Handle empty response
+          data = responseText ? JSON.parse(responseText) : { success: true };
+        } catch (e) {
+          console.error('Invalid JSON response:', responseText);
+          throw new Error('Server returned invalid JSON');
+        }
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to delete shipping schedule');
+        }
+        
+        // Update local state with a new array to avoid reference issues
+        setShippingSchedules(prevSchedules => prevSchedules.filter(schedule => schedule.id !== id));
+        
+        // Show success message
+        alert('Shipping schedule deleted successfully!');
+      } catch (err) {
+        console.error('Error deleting shipping schedule:', err);
+        alert(`Failed to delete shipping schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     }
   };
   
@@ -97,48 +162,127 @@ export default function ShippingManagementPage() {
   };
   
   // Save edited schedule
-  const saveEditedSchedule = () => {
+  const saveEditedSchedule = async () => {
     if (currentSchedule) {
-      setShippingSchedules(prevSchedules => 
-        prevSchedules.map(schedule => 
-          schedule.id === currentSchedule.id ? currentSchedule : schedule
-        )
-      );
-      setIsEditModalOpen(false);
+      try {
+        // Get API base URL from environment variable
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        
+        // Get authentication token
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('Authentication required. Please log in.');
+        }
+        
+        // Call the API to update the shipping schedule
+        const response = await fetch(`${API_BASE_URL}/shipping-schedules/${currentSchedule.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(currentSchedule)
+        });
+
+        // Get response text first to check if it's valid JSON
+        const responseText = await response.text();
+        let data;
+        
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          console.error('Invalid JSON response:', responseText);
+          throw new Error('Server returned invalid JSON');
+        }
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to update shipping schedule');
+        }
+        
+        if (data.success) {
+          // Update the shipping schedule in state
+          setShippingSchedules(prevSchedules => 
+            prevSchedules.map(schedule => 
+              schedule.id === currentSchedule.id ? { ...data.data, id: data.data._id } : schedule
+            )
+          );
+          setIsEditModalOpen(false);
+          alert('Shipping schedule updated successfully!');
+        }
+      } catch (err) {
+        console.error('Error updating shipping schedule:', err);
+        alert(`Failed to update shipping schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     }
   };
   
   // Add new schedule
-  const addNewSchedule = () => {
-    const newId = (Math.max(...shippingSchedules.map(schedule => parseInt(schedule.id))) + 1).toString();
-    setShippingSchedules([...shippingSchedules, { ...newSchedule, id: newId }]);
-    setNewSchedule({
-      id: '',
-      origin: '',
-      destination: '',
-      departureDate: '',
-      arrivalDate: '',
-      vessel: '',
-      status: 'scheduled',
-      notes: ''
-    });
-    setIsAddModalOpen(false);
+  const addNewSchedule = async () => {
+    try {
+      // Get API base URL from environment variable
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      
+      // Get authentication token
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Calculate the next order number
+      const nextOrder = shippingSchedules.length > 0 
+        ? Math.max(...shippingSchedules.map(schedule => schedule.order)) + 1 
+        : 1;
+      
+      // Call the API to create the shipping schedule
+      const response = await fetch(`${API_BASE_URL}/shipping-schedules`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...newSchedule, order: nextOrder })
+      });
+
+      // Get response text first to check if it's valid JSON
+      const responseText = await response.text();
+      let data;
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Invalid JSON response:', responseText);
+        throw new Error('Server returned invalid JSON');
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create shipping schedule');
+      }
+      
+      if (data.success) {
+        // Add the new shipping schedule to state with proper ID mapping
+        setShippingSchedules(prevSchedules => [...prevSchedules, { ...data.data, id: data.data._id }]);
+        setNewSchedule({
+          id: '',
+          destination: '',
+          departureDate: '',
+          arrivalDate: '',
+          vessel: '',
+          notes: '',
+          isActive: true,
+          order: 0
+        });
+        setIsAddModalOpen(false);
+        alert('Shipping schedule created successfully!');
+      }
+    } catch (err) {
+      console.error('Error creating shipping schedule:', err);
+      alert(`Failed to create shipping schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   };
   
-  // Get status badge class
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'scheduled':
-        return styles.scheduledBadge;
-      case 'in-transit':
-        return styles.inTransitBadge;
-      case 'arrived':
-        return styles.arrivedBadge;
-      case 'delayed':
-        return styles.delayedBadge;
-      default:
-        return '';
-    }
+  // Get active status badge class
+  const getActiveBadgeClass = (isActive: boolean) => {
+    return isActive ? styles.activeBadge : styles.inactiveBadge;
   };
 
   return (
@@ -192,34 +336,22 @@ export default function ShippingManagementPage() {
             <span className={styles.filterLabel}>Status:</span>
             <div className={styles.filterButtons}>
               <button 
-                className={`${styles.filterButton} ${statusFilter === 'all' ? styles.activeFilter : ''}`}
-                onClick={() => setStatusFilter('all')}
+                className={`${styles.filterButton} ${activeFilter === 'all' ? styles.activeFilter : ''}`}
+                onClick={() => setActiveFilter('all')}
               >
                 All
               </button>
               <button 
-                className={`${styles.filterButton} ${statusFilter === 'scheduled' ? styles.activeFilter : ''}`}
-                onClick={() => setStatusFilter('scheduled')}
+                className={`${styles.filterButton} ${activeFilter === 'active' ? styles.activeFilter : ''}`}
+                onClick={() => setActiveFilter('active')}
               >
-                Scheduled
+                Active
               </button>
               <button 
-                className={`${styles.filterButton} ${statusFilter === 'in-transit' ? styles.activeFilter : ''}`}
-                onClick={() => setStatusFilter('in-transit')}
+                className={`${styles.filterButton} ${activeFilter === 'inactive' ? styles.activeFilter : ''}`}
+                onClick={() => setActiveFilter('inactive')}
               >
-                In Transit
-              </button>
-              <button 
-                className={`${styles.filterButton} ${statusFilter === 'arrived' ? styles.activeFilter : ''}`}
-                onClick={() => setStatusFilter('arrived')}
-              >
-                Arrived
-              </button>
-              <button 
-                className={`${styles.filterButton} ${statusFilter === 'delayed' ? styles.activeFilter : ''}`}
-                onClick={() => setStatusFilter('delayed')}
-              >
-                Delayed
+                Inactive
               </button>
             </div>
           </div>
@@ -229,7 +361,6 @@ export default function ShippingManagementPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Origin</th>
                 <th>Destination</th>
                 <th>Departure Date</th>
                 <th>Arrival Date</th>
@@ -243,14 +374,13 @@ export default function ShippingManagementPage() {
               {filteredSchedules.length > 0 ? (
                 filteredSchedules.map(schedule => (
                   <tr key={schedule.id} className={styles.tableRow}>
-                    <td>{schedule.origin}</td>
                     <td>{schedule.destination}</td>
                     <td>{new Date(schedule.departureDate).toLocaleDateString()}</td>
                     <td>{new Date(schedule.arrivalDate).toLocaleDateString()}</td>
                     <td>{schedule.vessel}</td>
                     <td>
-                      <span className={`${styles.statusBadge} ${getStatusBadgeClass(schedule.status)}`}>
-                        {schedule.status.charAt(0).toUpperCase() + schedule.status.slice(1).replace('-', ' ')}
+                      <span className={`${styles.statusBadge} ${getActiveBadgeClass(schedule.isActive)}`}>
+                        {schedule.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td>{schedule.notes || '-'}</td>
@@ -309,17 +439,6 @@ export default function ShippingManagementPage() {
               </div>
               
               <div className={styles.modalBody}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="origin" className={styles.formLabel}>Origin</label>
-                  <input 
-                    type="text" 
-                    id="origin" 
-                    className={styles.formInput}
-                    value={newSchedule.origin}
-                    onChange={(e) => setNewSchedule({...newSchedule, origin: e.target.value})}
-                    placeholder="e.g., Yokohama, Japan"
-                  />
-                </div>
                 
                 <div className={styles.formGroup}>
                   <label htmlFor="destination" className={styles.formLabel}>Destination</label>
@@ -370,17 +489,15 @@ export default function ShippingManagementPage() {
                 </div>
                 
                 <div className={styles.formGroup}>
-                  <label htmlFor="status" className={styles.formLabel}>Status</label>
+                  <label htmlFor="isActive" className={styles.formLabel}>Status</label>
                   <select 
-                    id="status" 
+                    id="isActive" 
                     className={styles.formSelect}
-                    value={newSchedule.status}
-                    onChange={(e) => setNewSchedule({...newSchedule, status: e.target.value as ShippingSchedule['status']})}
+                    value={newSchedule.isActive ? 'true' : 'false'}
+                    onChange={(e) => setNewSchedule({...newSchedule, isActive: e.target.value === 'true'})}
                   >
-                    <option value="scheduled">Scheduled</option>
-                    <option value="in-transit">In Transit</option>
-                    <option value="arrived">Arrived</option>
-                    <option value="delayed">Delayed</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
                   </select>
                 </div>
                 
@@ -432,16 +549,6 @@ export default function ShippingManagementPage() {
               </div>
               
               <div className={styles.modalBody}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="edit-origin" className={styles.formLabel}>Origin</label>
-                  <input 
-                    type="text" 
-                    id="edit-origin" 
-                    className={styles.formInput}
-                    value={currentSchedule.origin}
-                    onChange={(e) => setCurrentSchedule({...currentSchedule, origin: e.target.value})}
-                  />
-                </div>
                 
                 <div className={styles.formGroup}>
                   <label htmlFor="edit-destination" className={styles.formLabel}>Destination</label>
@@ -490,17 +597,15 @@ export default function ShippingManagementPage() {
                 </div>
                 
                 <div className={styles.formGroup}>
-                  <label htmlFor="edit-status" className={styles.formLabel}>Status</label>
+                  <label htmlFor="edit-isActive" className={styles.formLabel}>Status</label>
                   <select 
-                    id="edit-status" 
+                    id="edit-isActive" 
                     className={styles.formSelect}
-                    value={currentSchedule.status}
-                    onChange={(e) => setCurrentSchedule({...currentSchedule, status: e.target.value as ShippingSchedule['status']})}
+                    value={currentSchedule.isActive ? 'true' : 'false'}
+                    onChange={(e) => setCurrentSchedule({...currentSchedule, isActive: e.target.value === 'true'})}
                   >
-                    <option value="scheduled">Scheduled</option>
-                    <option value="in-transit">In Transit</option>
-                    <option value="arrived">Arrived</option>
-                    <option value="delayed">Delayed</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
                   </select>
                 </div>
                 
