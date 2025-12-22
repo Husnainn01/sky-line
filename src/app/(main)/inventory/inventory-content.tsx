@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, Suspense } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import SearchFilter from '@/components/SearchFilter';
 import InventoryCarCard from '@/components/InventoryCarCard';
@@ -24,7 +24,7 @@ const bodyTypeIcons: Record<string, string> = {
 const sortOptions = ['Recently Added', 'Price: Low to High', 'Price: High to Low', 'Year: Newest'];
 
 // Component that uses searchParams
-function InventoryContent() {
+export default function InventoryContent() {
     const searchParams = useSearchParams();
     
     const [allCars, setAllCars] = useState<Car[]>([]);
@@ -568,22 +568,4 @@ function InventoryContent() {
             </div>
         </div>
     );
-}
-
-// Export the main component with Suspense boundary
-export default function InventoryPage() {
-  return (
-    <Suspense fallback={
-      <div className={styles.page}>
-        <div className={styles.container}>
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner}></div>
-            <p className={styles.loadingText}>Loading inventory...</p>
-          </div>
-        </div>
-      </div>
-    }>
-      <InventoryContent />
-    </Suspense>
-  );
 }
