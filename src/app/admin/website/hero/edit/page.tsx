@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Loading from '../loading';
 import ImageUploader, { UploadedImage } from '../../../../../components/admin/ImageUploader';
 import AdminHeader from '../../../../../components/admin/AdminHeader';
 import AdminSidebar from '../../../../../components/admin/AdminSidebar';
@@ -25,14 +26,11 @@ interface HeroImage {
   updatedAt?: string;
 }
 
-export default function EditHeroPage() {
+function EditHeroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  // Get ID from query params
   const heroId = searchParams.get('id');
   
-  // Log the extracted ID
   console.log('Hero ID from query params:', heroId);
   
   const [isLoading, setIsLoading] = useState(true);
@@ -440,5 +438,14 @@ export default function EditHeroPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap the edit page with Suspense
+export default function EditHeroPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <EditHeroContent />
+    </Suspense>
   );
 }
