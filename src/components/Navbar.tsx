@@ -30,23 +30,32 @@ export default function Navbar() {
                 <div className={styles.topBarContainer}>
                     <div className={styles.topBarLeft}>
                         <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className={styles.topBarLink}>
-                            <svg className={styles.icon} viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                            </svg>
+                            <img 
+                                src="/images/icons/marker.svg" 
+                                alt="Location icon" 
+                                className={styles.icon}
+                                loading="lazy"
+                            />
                             <span>Nagoya , Japan - Skyline TRD</span>
                         </a>
                         <a href="tel:+81-90-4296-9045" className={styles.topBarLink}>
-                            <svg className={styles.icon} viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                            </svg>
+                            <img 
+                                src="/images/icons/phone-call.svg" 
+                                alt="Phone icon" 
+                                className={styles.icon}
+                                loading="lazy"
+                            />
                             <span>+81 90 4296 9045</span>
                         </a>
                     </div>
                     <div className={styles.topBarRight}>
                         <div className={styles.languageSelector}>
-                            <svg className={styles.icon} viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clipRule="evenodd" />
-                            </svg>
+                            <img 
+                                src="/images/icons/world.svg" 
+                                alt="Language globe icon" 
+                                className={styles.languageIcon}
+                                loading="lazy"
+                            />
                             <select
                                 value={language}
                                 onChange={(e) => setLanguage(e.target.value)}
@@ -105,11 +114,11 @@ export default function Navbar() {
                             </div>
                             <div className={styles.navDropdown}>
                                 <Link href="/inventory" className={styles.dropdownLink}>
-                                    <span className={styles.dropdownIcon}>🚗</span>
-                                    Available Inventory
+                                    {/* <span className={styles.dropdownIcon}>🚗</span> */}
+                                    Stock
                                 </Link>
                                 <Link href="/auction" className={styles.dropdownLink}>
-                                    <span className={styles.dropdownIcon}>🔨</span>
+                                    {/* <span className={styles.dropdownIcon}>🔨</span> */}
                                     Auction Vehicles
                                 </Link>
                             </div>
@@ -125,11 +134,11 @@ export default function Navbar() {
                             </div>
                             <div className={styles.navDropdown}>
                                 <Link href="/process" className={styles.dropdownLink}>
-                                    <span className={styles.dropdownIcon}>📋</span>
+                                    {/* <span className={styles.dropdownIcon}>📋</span> */}
                                     Complete Guide
                                 </Link>
                                 <Link href="/process#banking-details" className={styles.dropdownLink}>
-                                    <span className={styles.dropdownIcon}>🏦</span>
+                                    {/* <span className={styles.dropdownIcon}>🏦</span> */}
                                     Banking Details
                                 </Link>
                             </div>

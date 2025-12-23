@@ -254,25 +254,48 @@ export default function InventoryDetailPage() {
     const stockNumber = car.stockNumber || `SKY-${car.id}`;
     const galleryImages = car.images && car.images.length > 0 ? car.images : [car.image];
 
+    const overviewIconMap: Record<string, string> = {
+        'Stock Number': '/images/icons/box-package-icon.svg',
+        'Make': '/images/icons/car-icon.svg',
+        'Model': '/images/icons/car-rear.svg',
+        'Mileage': '/images/icons/speedometer-color-icon.svg',
+        'Year': '/images/icons/calendar-icon.svg',
+        'Condition': '/images/icons/text-document-check-icon.svg',
+        'Availability': '/images/icons/database-checkmark-icon.svg',
+        'VIN': '/images/icons/',
+        'Body Type': '/images/icons/car-icon.svg',
+        'Color': '/images/icons/paint-palette-icon.svg',
+        'Drive Wheel': '/images/icons/wheel-icon.svg',
+        'Doors': '/images/icons/car-door-icon.svg',
+        'Fuel Type': '/images/icons/gas-pump-icon.svg',
+        'Engine': '/images/icons/piston-icon.svg',
+        'Transmission': '/images/icons/manual-transmission-icon.svg',
+        'Cylinders': '/images/icons/pistons-icon.svg',
+        'Steering': '/images/icons/steering-wheel-icon.svg',
+        'Location': '/images/icons/marker.svg',
+    };
+
+    const getOverviewIcon = (label: string) => overviewIconMap[label] || '/images/icons/car-icon.svg';
+
     const specGroups = [
-        { label: 'Stock Number', value: stockNumber, icon: '📦' },
-        { label: 'Make', value: car.make, icon: '🚘' },
-        { label: 'Model', value: car.model, icon: '🏷️' },
-        { label: 'Mileage', value: `${car.mileage.toLocaleString()} km`, icon: '🛣️' },
-        { label: 'Year', value: car.year, icon: '📅' },
-        { label: 'Condition', value: car.condition, icon: '🧾' },
-        { label: 'Availability', value: car.available ? 'In Stock' : 'Sold', icon: '✅' },
-        { label: 'VIN', value: car.vin || 'N/A', icon: '🧾' },
-        { label: 'Body Type', value: car.bodyType || 'N/A', icon: '🚗' },
-        { label: 'Color', value: car.color || 'N/A', icon: '🎨' },
-        { label: 'Drive Wheel', value: car.drivetrain, icon: '🛞' },
-        { label: 'Doors', value: car.doors ?? 'N/A', icon: '🚪' },
-        { label: 'Fuel Type', value: car.fuelType, icon: '⛽' },
-        { label: 'Engine', value: car.engine || 'N/A', icon: '⚙️' },
-        { label: 'Transmission', value: car.transmission, icon: '🔧' },
-        { label: 'Cylinders', value: car.cylinders ?? 'N/A', icon: '🧱' },
-        { label: 'Steering', value: car.steering || 'N/A', icon: '🕹️' },
-        { label: 'Location', value: car.location, icon: '📍' },
+        { label: 'Stock Number', value: stockNumber },
+        { label: 'Make', value: car.make },
+        { label: 'Model', value: car.model },
+        { label: 'Mileage', value: `${car.mileage.toLocaleString()} km` },
+        { label: 'Year', value: car.year },
+        { label: 'Condition', value: car.condition },
+        { label: 'Availability', value: car.available ? 'In Stock' : 'Sold' },
+        { label: 'VIN', value: car.vin || 'N/A' },
+        { label: 'Body Type', value: car.bodyType || 'N/A' },
+        { label: 'Color', value: car.color || 'N/A' },
+        { label: 'Drive Wheel', value: car.drivetrain },
+        { label: 'Doors', value: car.doors ?? 'N/A' },
+        { label: 'Fuel Type', value: car.fuelType },
+        { label: 'Engine', value: car.engine || 'N/A' },
+        { label: 'Transmission', value: car.transmission },
+        { label: 'Cylinders', value: car.cylinders ?? 'N/A' },
+        { label: 'Steering', value: car.steering || 'N/A' },
+        { label: 'Location', value: car.location },
     ];
 
     const featureList = car.features || [];
@@ -433,15 +456,20 @@ export default function InventoryDetailPage() {
                                 <span className={styles.sectionHint}>Inspection verified specifications</span>
                             </div>
                             <div className={styles.overviewGrid}>
-                                {specGroups.map((spec) => (
-                                    <div key={spec.label} className={styles.overviewItem}>
-                                        <span className={styles.overviewIcon}>{spec.icon}</span>
-                                        <div>
-                                            <span className={styles.overviewLabel}>{spec.label}</span>
-                                            <span className={styles.overviewValue}>{spec.value}</span>
+                                {specGroups.map((spec) => {
+                                    const icon = getOverviewIcon(spec.label);
+                                    return (
+                                        <div key={spec.label} className={styles.overviewItem}>
+                                            <span className={styles.overviewIcon}>
+                                                <img src={icon} alt={`${spec.label} icon`} loading="lazy" />
+                                            </span>
+                                            <div>
+                                                <span className={styles.overviewLabel}>{spec.label}</span>
+                                                <span className={styles.overviewValue}>{spec.value}</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </section>
 

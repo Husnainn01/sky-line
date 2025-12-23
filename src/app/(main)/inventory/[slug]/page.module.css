@@ -620,6 +620,15 @@
 .overviewIcon {
     font-size: 1.1rem;
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overviewIcon img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
 }
 
 .overviewLabel {

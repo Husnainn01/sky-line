@@ -115,6 +115,15 @@
     flex-shrink: 0;
 }
 
+.makeIcon,
+.typeIcon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: saturate(0.85) contrast(1.05);
+}
+
 .link:hover .carIcon {
     color: #dc2626;
 }

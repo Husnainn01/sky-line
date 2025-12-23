@@ -13,26 +13,26 @@ export default function Sidebar({ variant = 'fixed' }: SidebarProps) {
     const sidebarClassName = `${styles.sidebar}${variant === 'inline' ? ` ${styles.inline}` : ''}`;
 
     const makes = [
-        'Toyota',
-        'Honda',
-        'Nissan',
-        'Mazda',
-        'Suzuki',
-        'Mitsubishi',
-        'Daihatsu',
-        'Subaru',
-        'Hino',
-        'Volkswagen'
+        { name: 'Toyota', icon: '/images/icons/logo_toyota.png' },
+        { name: 'Honda', icon: '/images/icons/logo_honda.png' },
+        { name: 'Nissan', icon: '/images/icons/logo_nissan.png' },
+        { name: 'Mazda', icon: '/images/icons/logo_mazda.png' },
+        { name: 'Suzuki', icon: '/images/icons/logo_suzuki.png' },
+        { name: 'Mitsubishi', icon: '/images/icons/logo_mitsubishi.png' },
+        { name: 'Daihatsu', icon: '/images/icons/logo_daihatsu.png' },
+        { name: 'Subaru', icon: '/images/icons/logo_subaru.png' },
+        { name: 'Hino', icon: '/images/icons/logo_hino.png' },
+        { name: 'Volkswagen' }
     ];
 
     const types = [
-        'Sedan',
-        'SUV',
-        'Truck',
-        'Van',
-        'Mini Van',
-        'Commercial',
-        'Agricultural'
+        { name: 'Sedan', query: 'sedan', icon: '/images/icons/icon_type-sedan.svg' },
+        { name: 'SUV', query: 'suv', icon: '/images/icons/icon_type-suv.svg' },
+        { name: 'Truck', query: 'truck', icon: '/images/icons/icon_type-pick-up.svg' },
+        { name: 'Van', query: 'van', icon: '/images/icons/icon_type-van.svg' },
+        { name: 'Mini Van', query: 'mini-van', icon: '/images/icons/icon_type-mini-van.svg' },
+        { name: 'Commercial', query: 'commercial', icon: '/images/icons/icon_type-heavy-equipment.svg' },
+        { name: 'Agricultural', query: 'agricultural', icon: '/images/icons/icon_type-bus.svg' }
     ];
 
     return (
@@ -47,14 +47,23 @@ export default function Sidebar({ variant = 'fixed' }: SidebarProps) {
                 </div>
                 <ul className={styles.list}>
                     {makes.map((make) => (
-                        <li key={make} className={styles.listItem}>
-                            <Link href={`/inventory?make=${make.toLowerCase()}`} className={styles.link}>
-                                <svg className={styles.carIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 17h14v-5l-1.5-4.5h-11L5 12v5z" />
-                                    <circle cx="7.5" cy="17.5" r="1.5" />
-                                    <circle cx="16.5" cy="17.5" r="1.5" />
-                                </svg>
-                                <span>{make}</span>
+                        <li key={make.name} className={styles.listItem}>
+                            <Link href={`/inventory?make=${make.name.toLowerCase()}`} className={styles.link}>
+                                {make.icon ? (
+                                    <img
+                                        src={make.icon}
+                                        alt={`${make.name} logo`}
+                                        className={styles.makeIcon}
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <svg className={styles.carIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M5 17h14v-5l-1.5-4.5h-11L5 12v5z" />
+                                        <circle cx="7.5" cy="17.5" r="1.5" />
+                                        <circle cx="16.5" cy="17.5" r="1.5" />
+                                    </svg>
+                                )}
+                                <span>{make.name}</span>
                             </Link>
                         </li>
                     ))}
@@ -79,14 +88,23 @@ export default function Sidebar({ variant = 'fixed' }: SidebarProps) {
                 </div>
                 <ul className={styles.list}>
                     {types.map((type) => (
-                        <li key={type} className={styles.listItem}>
-                            <Link href={`/inventory?type=${type.toLowerCase().replace(' ', '-')}`} className={styles.link}>
-                                <svg className={styles.carIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 17h14v-5l-1.5-4.5h-11L5 12v5z" />
-                                    <circle cx="7.5" cy="17.5" r="1.5" />
-                                    <circle cx="16.5" cy="17.5" r="1.5" />
-                                </svg>
-                                <span>{type}</span>
+                        <li key={type.name} className={styles.listItem}>
+                            <Link href={`/inventory?type=${type.query}`} className={styles.link}>
+                                {type.icon ? (
+                                    <img
+                                        src={type.icon}
+                                        alt={`${type.name} icon`}
+                                        className={styles.typeIcon}
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <svg className={styles.carIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M5 17h14v-5l-1.5-4.5h-11L5 12v5z" />
+                                        <circle cx="7.5" cy="17.5" r="1.5" />
+                                        <circle cx="16.5" cy="17.5" r="1.5" />
+                                    </svg>
+                                )}
+                                <span>{type.name}</span>
                             </Link>
                         </li>
                     ))}

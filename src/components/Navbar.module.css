@@ -78,6 +78,13 @@
     position: relative;
 }
 
+.languageIcon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: invert(1) brightness(1.2);
+}
+
 .languageDropdown {
     background: transparent;
     border: none;
