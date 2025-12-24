@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import styles from './page.module.css';
 
@@ -114,12 +115,12 @@ const faqData: FAQ[] = [
 ];
 
 const categories = [
-  { id: 'all', name: 'All Questions', icon: '/images/icons/clipboard-icon.svg' },
-  { id: 'vehicle-import', name: 'Vehicle Import', icon: '/images/icons/ship-icon.svg' },
-  { id: 'auction', name: 'Auction Process', icon: '/images/icons/hammer-icon.svg' },
-  { id: 'shipping', name: 'Shipping & Logistics', icon: '/images/icons/package-icon.svg' },
-  { id: 'payment', name: 'Payment & Costs', icon: '/images/icons/credit-card-icon.svg' },
-  { id: 'after-sales', name: 'After-Sales Support', icon: '/images/icons/wrench-icon.svg' },
+  { id: 'all', name: 'All Questions', icon: '/images/icons/globe-line-icon.svg' },
+  { id: 'vehicle-import', name: 'Vehicle Import', icon: '/images/icons/cruise-icon.svg' },
+  { id: 'auction', name: 'Auction Process', icon: '/images/icons/male-services-support-icon.svg' },
+  { id: 'shipping', name: 'Shipping & Logistics', icon: '/images/icons/box-package-icon.svg' },
+  { id: 'payment', name: 'Payment & Costs', icon: '/images/icons/bank-transfer-icon.svg' },
+  { id: 'after-sales', name: 'After-Sales Support', icon: '/images/icons/male-services-support-icon.svg' },
 ];
 
 export default function FAQPage() {
@@ -160,7 +161,15 @@ export default function FAQPage() {
               className={`${styles.categoryButton} ${activeCategory === category.id ? styles.categoryButtonActive : ''}`}
               onClick={() => setActiveCategory(category.id)}
             >
-              <span className={styles.categoryIcon}>{category.icon}</span>
+              <span className={styles.categoryIcon}>
+                <Image
+                  src={category.icon}
+                  alt={`${category.name} icon`}
+                  width={24}
+                  height={24}
+                  className={styles.categoryIconImage}
+                />
+              </span>
               {category.name}
             </button>
           ))}

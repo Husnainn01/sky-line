@@ -68,7 +68,24 @@
 }
 
 .categoryIcon {
-  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.categoryButtonActive .categoryIcon {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.categoryIconImage {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .searchContainer {
