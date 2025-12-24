@@ -114,12 +114,12 @@ const faqData: FAQ[] = [
 ];
 
 const categories = [
-  { id: 'all', name: 'All Questions', icon: '📋' },
-  { id: 'vehicle-import', name: 'Vehicle Import', icon: '🚢' },
-  { id: 'auction', name: 'Auction Process', icon: '🔨' },
-  { id: 'shipping', name: 'Shipping & Logistics', icon: '📦' },
-  { id: 'payment', name: 'Payment & Costs', icon: '💳' },
-  { id: 'after-sales', name: 'After-Sales Support', icon: '🔧' },
+  { id: 'all', name: 'All Questions', icon: '/images/icons/clipboard-icon.svg' },
+  { id: 'vehicle-import', name: 'Vehicle Import', icon: '/images/icons/ship-icon.svg' },
+  { id: 'auction', name: 'Auction Process', icon: '/images/icons/hammer-icon.svg' },
+  { id: 'shipping', name: 'Shipping & Logistics', icon: '/images/icons/package-icon.svg' },
+  { id: 'payment', name: 'Payment & Costs', icon: '/images/icons/credit-card-icon.svg' },
+  { id: 'after-sales', name: 'After-Sales Support', icon: '/images/icons/wrench-icon.svg' },
 ];
 
 export default function FAQPage() {

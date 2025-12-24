@@ -227,10 +227,19 @@
 }
 
 .contactIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contactIcon img {
   width: 20px;
   height: 20px;
-  flex-shrink: 0;
-  margin-top: 0.25rem;
+  object-fit: contain;
 }
 
 .contactText {
@@ -252,9 +261,15 @@
 
 .mapCard {
   position: relative;
-  height: 150px;
+  height: 240px;
   border-radius: 1rem;
   overflow: hidden;
+}
+
+.mapFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .officeHours {
@@ -285,10 +300,10 @@
 }
 
 .socialLink:hover {
-  background: #c70f0f;
+  background: #333;
   color: white;
-  transform: translateY(-2px);
-  border-color: #c70f0f;
+  transform: translateY(-3px);
+  border-color: #333;
 }
 
 .faqSection {

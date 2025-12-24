@@ -64,19 +64,26 @@ export default function ContactPage() {
 
   const offices = [
     {
-      name: 'Nagoya Headquarters',
-      address: 'Aichi Prefecture, Nagoya, Japan',
-      phone: '+81 90 4296 9045',
-      email: 'info@skylinejdm.com',
+      name: 'Tokyo Headquarters',
+      address: '1-2-3 Shibaura, Minato-ku, Tokyo 108-0023, Japan',
+      phone: '+81 3-1234-5678',
+      email: 'tokyo@skylinejdm.com',
+      hours: 'Monday - Friday: 9:00 AM - 6:00 PM (JST)',
+    },
+    {
+      name: 'Osaka Branch',
+      address: '4-5-6 Umeda, Kita-ku, Osaka 530-0001, Japan',
+      phone: '+81 6-1234-5678',
+      email: 'osaka@skylinejdm.com',
       hours: 'Monday - Friday: 9:00 AM - 6:00 PM (JST)',
     },
   ];
 
   const contactInfo = {
-    phone: '+81 90 4296 9045',
+    phone: '+81 3-1234-5678',
     email: 'info@skylinejdm.com',
-    address: 'Aichi Prefecture, Nagoya, Japan',
-    whatsapp: '+81 90 4296 9045',
+    address: '1-2-3 Shibaura, Minato-ku, Tokyo 108-0023, Japan',
+    whatsapp: '+81 90-1234-5678',
     line: '@skylinejdm',
     hours: 'Monday - Friday: 9:00 AM - 6:00 PM (JST)',
   };
@@ -221,23 +228,31 @@ export default function ContactPage() {
               <h3 className={styles.contactTitle}>Contact Information</h3>
               <div className={styles.contactList}>
                 <div className={styles.contactItem}>
-                  <span className={styles.contactIcon}>📞</span>
+                  <span className={styles.contactIcon}>
+                    <img src="/images/icons/phone-call.svg" alt="Phone icon" loading="lazy" />
+                  </span>
                   <a href={`tel:${contactInfo.phone}`} className={styles.contactLink}>
                     {contactInfo.phone}
                   </a>
                 </div>
                 <div className={styles.contactItem}>
-                  <span className={styles.contactIcon}>✉️</span>
+                  <span className={styles.contactIcon}>
+                    <img src="/images/icons/envelope.svg" alt="Email icon" loading="lazy" />
+                  </span>
                   <a href={`mailto:${contactInfo.email}`} className={styles.contactLink}>
                     {contactInfo.email}
                   </a>
                 </div>
                 <div className={styles.contactItem}>
-                  <span className={styles.contactIcon}>📍</span>
+                  <span className={styles.contactIcon}>
+                    <img src="/images/icons/marker.svg" alt="Location icon" loading="lazy" />
+                  </span>
                   <span className={styles.contactText}>{contactInfo.address}</span>
                 </div>
                 <div className={styles.contactItem}>
-                  <span className={styles.contactIcon}>📱</span>
+                  <span className={styles.contactIcon}>
+                    <img src="/images/icons/whatsapp.svg" alt="WhatsApp icon" loading="lazy" />
+                  </span>
                   <a
                     href={`https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}`}
                     className={styles.contactLink}
@@ -248,7 +263,9 @@ export default function ContactPage() {
                   </a>
                 </div>
                 <div className={styles.contactItem}>
-                  <span className={styles.contactIcon}>💬</span>
+                  <span className={styles.contactIcon}>
+                    <img src="/images/icons/line-icon.svg" alt="Chat icon" loading="lazy" />
+                  </span>
                   <span className={styles.contactText}>LINE ID: {contactInfo.line}</span>
                 </div>
                 <div className={styles.officeHours}>
@@ -257,27 +274,34 @@ export default function ContactPage() {
                 </div>
               </div>
               <div className={styles.socialLinks}>
-                <a href="#" className={styles.socialLink} target="_blank" rel="noopener noreferrer">
-                  FB
-                </a>
-                <a href="#" className={styles.socialLink} target="_blank" rel="noopener noreferrer">
-                  TW
-                </a>
-                <a href="#" className={styles.socialLink} target="_blank" rel="noopener noreferrer">
-                  IG
-                </a>
-                <a href="#" className={styles.socialLink} target="_blank" rel="noopener noreferrer">
-                  YT
-                </a>
+                {[
+                  { label: 'Facebook', href: 'https://facebook.com', icon: '/images/icons/facebook-square-icon.svg' },
+                  { label: 'Instagram', href: 'https://instagram.com', icon: '/images/icons/ig-instagram-icon.svg' },
+                  { label: 'TikTok', href: 'https://tiktok.com', icon: '/images/icons/tiktok-rounded-square-icon.svg' },
+                  { label: 'Whatsapp', href: 'https://whatsapp.com', icon: '/images/icons/whatsapp-color-icon.svg' },
+                ].map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    className={styles.socialLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                  >
+                    <img src={social.icon} alt={`${social.label} icon`} loading="lazy" />
+                  </a>
+                ))}
               </div>
             </div>
 
             <div className={styles.mapCard}>
-              <Image
-                src="/images/map.jpg"
-                alt="Office Location"
-                fill
-                style={{ objectFit: 'cover' }}
+              <iframe
+                title="Nagoya Headquarters Location"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3240.904323246493!2d136.89887167642523!3d35.17091537275274!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x600370d17405bfb7%3A0xf66d53295d85f1e6!2sNagoya%2C%20Aichi%2C%20Japan!5e0!3m2!1sen!2sus!4v1734910140000!5m2!1sen!2sus"
+                className={styles.mapFrame}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
               />
             </div>
           </aside>

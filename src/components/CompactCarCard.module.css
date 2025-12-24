@@ -185,9 +185,18 @@
 }
 
 .specIcon {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: #64748b;
+}
+
+.specIcon img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
 }
 
 .ctaRow {

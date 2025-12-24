@@ -28,18 +28,6 @@ const nextConfig = {
         destination: '/main_routes/faq',
       },
       {
-        source: '/inventory',
-        destination: '/main_routes/inventory',
-      },
-      {
-        source: '/inventory/:slug',
-        destination: '/main_routes/inventory/:slug',
-      },
-      {
-        source: '/inventory/:slug/:subpath*',
-        destination: '/main_routes/inventory/:slug/:subpath*',
-      },
-      {
         source: '/process',
         destination: '/main_routes/process',
       },
