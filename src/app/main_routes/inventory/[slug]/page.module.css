@@ -169,40 +169,28 @@
 }
 
 .saveButton {
-    background: #ef4444;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    gap: 0.35rem;
 }
 
-.saveButton:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(239, 68, 68, 0.4);
+.saveIcon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
 }
 
 .saveButton.saved {
-    background: #fee2e2;
-    color: #ef4444;
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
 }
 
-.saveButton.saved:hover {
-    background: #fecaca;
-}
-
-.saveButton:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+.saveButton.saved:hover:not(:disabled) {
+    background: #dc2626;
+    border-color: #dc2626;
 }
 
 .mainLayout {
@@ -258,16 +246,22 @@
 .galleryButton {
     border: 1px solid rgba(148, 163, 184, 0.4);
     border-radius: 999px;
-    padding: 0.35rem 0.75rem;
+    padding: 0.35rem 0.85rem;
     background: rgba(248, 250, 252, 0.9);
     color: #0f172a;
     font-weight: 600;
-    font-size: 0.74rem;
+    font-size: 0.78rem;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.galleryButton:hover {
+.galleryButton:hover:not(:disabled) {
     background: rgba(148, 163, 184, 0.15);
+}
+
+.galleryButton:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 .primaryImage {

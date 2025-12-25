@@ -253,6 +253,7 @@ export default function InventoryDetailPage() {
     
     const stockNumber = car.stockNumber || `SKY-${car.id}`;
     const galleryImages = car.images && car.images.length > 0 ? car.images : [car.image];
+    const isCarSaved = !!(car && car.id && isSaved(car.id));
 
     const overviewIconMap: Record<string, string> = {
         'Stock Number': '/images/icons/box-package-icon.svg',
@@ -360,14 +361,22 @@ export default function InventoryDetailPage() {
                             <div className={styles.galleryTopBar}>
                                 <span>Photo Gallery</span>
                                 <div className={styles.galleryActions}>
-                                        <button 
-                                            onClick={handleLikeClick}
-                                            className={`${styles.saveButton} ${car && car.id && isSaved(car.id) ? styles.saved : ''}`}
-                                            disabled={isLoading}
-                                            aria-label={car && car.id && isSaved(car.id) ? 'Unsave vehicle' : 'Save vehicle'}
-                                        >
-                                            {car && car.id && isSaved(car.id) ? '❤️ Saved' : '❤ Save to Favorites'}
-                                        </button>
+                                    <button 
+                                        onClick={handleLikeClick}
+                                        className={`${styles.galleryButton} ${styles.saveButton} ${isCarSaved ? styles.saved : ''}`}
+                                        disabled={isLoading}
+                                        aria-label={isCarSaved ? 'Unsave vehicle' : 'Save vehicle'}
+                                    >
+                                        <Image
+                                            src={isCarSaved ? '/images/icons/red-heart-icon.svg' : '/images/icons/heart-thin-icon.svg'}
+                                            alt=""
+                                            width={18}
+                                            height={18}
+                                            className={styles.saveIcon}
+                                            aria-hidden="true"
+                                        />
+                                        <span>{isCarSaved ? 'Saved' : 'Save to Favorites'}</span>
+                                    </button>
                                     <button 
                                         type="button" 
                                         className={styles.galleryButton}
