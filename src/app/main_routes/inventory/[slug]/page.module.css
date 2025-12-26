@@ -272,12 +272,30 @@
 .primaryImage {
     position: relative;
     width: 100%;
-    padding-top: 62%;
-    border-radius: 18px;
+    height: 480px;
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--border-radius-lg);
     overflow: hidden;
-    background: #d0e4e8;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    min-height: 320px;
+}
+
+.soldBadgeOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.soldBadgeImage {
+    width: 450px;
+    height: auto;
+    object-fit: contain;
+    transform: rotate(-15deg);
 }
 
 .watermarkContainer {
@@ -288,7 +306,25 @@
     bottom: 0;
     pointer-events: none;
     overflow: hidden;
-    z-index: 5;
+    opacity: 0; /* Hide watermark by default */
+}
+
+/* Only show watermark when printing or in print preview */
+@media print {
+    .watermarkContainer {
+        opacity: 0.3; /* Show watermark when printing */
+    }
+}
+
+/* This CSS targets the watermark when the image is being saved */
+.primaryImage:hover .watermarkContainer,
+.primaryImage:active .watermarkContainer {
+    opacity: 0; /* Keep hidden when hovering/clicking */
+}
+
+/* Special class that gets added via JavaScript when right-clicking or downloading */
+.watermarkVisible .watermarkContainer {
+    opacity: 0.3;
 }
 
 .watermarkDiagonal {
@@ -301,23 +337,19 @@
     flex-direction: column;
     justify-content: center;
     transform: rotate(-45deg);
-    opacity: 0.25;
-    animation: watermarkPulse 8s infinite alternate;
-}
-
-@keyframes watermarkPulse {
-    0% { opacity: 0.2; }
-    100% { opacity: 0.3; }
 }
 
 .watermarkRow {
     display: flex;
     justify-content: center;
-    margin: 15px 0;
+    gap: 2rem;
+    margin: 1rem 0;
 }
 
 .watermarkText {
-    font-family: var(--font-display, Arial, sans-serif);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
     font-weight: 800;
     font-size: 1.2rem;
     color: white;

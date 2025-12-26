@@ -81,17 +81,18 @@
 /* Sold Badge */
 .soldBadge {
     position: absolute;
-    bottom: 140px;
-    left: 12px;
+    top: 120px;
+    left: 2px;
     z-index: 10;
-    background: #dc2626;
+    background: rgba(220, 38, 38, 0.9);
     color: #ffffff;
-    padding: 6px 14px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 999px;
     font-family: var(--font-primary, 'Inter', sans-serif);
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Image Container */

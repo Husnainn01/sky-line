@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,7 +20,11 @@ export default function InventoryDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [showWatermark, setShowWatermark] = useState(false);
     const { isSaved, saveVehicle, unsaveVehicle, isLoading } = useSavedVehicles();
+    
+    // Reference to the primary image container
+    const primaryImageRef = useRef<HTMLDivElement>(null);
 
     // Get slug from URL params using useParams hook
     const params = useParams();
@@ -393,17 +397,49 @@ export default function InventoryDetailPage() {
                                     >
                                         Hide thumbnails
                                     </button>
-                                    <button type="button" className={styles.galleryButton}>Download All</button>
+                                    <button 
+                                        type="button" 
+                                        className={styles.galleryButton}
+                                        onClick={() => {
+                                            // Show watermark when downloading
+                                            setShowWatermark(true);
+                                            // Keep watermark visible for 3 seconds
+                                            setTimeout(() => setShowWatermark(false), 3000);
+                                        }}
+                                    >
+                                        Download All
+                                    </button>
                                 </div>
                             </div>
                             
-                            <div className={styles.primaryImage}>
+                            <div 
+                                className={`${styles.primaryImage} ${showWatermark ? styles.watermarkVisible : ''}`}
+                                ref={primaryImageRef}
+                                onContextMenu={(e) => {
+                                    // Show watermark on right-click
+                                    setShowWatermark(true);
+                                    // Reset watermark after 3 seconds
+                                    setTimeout(() => setShowWatermark(false), 3000);
+                                }}
+                            >
                                 <Image
                                     src={galleryImages[currentImageIndex]}
                                     alt={`${car.year} ${car.make} ${car.model}`}
                                     fill
                                     sizes="(max-width: 1024px) 100vw, 640px"
+                                    onDragStart={() => setShowWatermark(true)} // Show watermark when dragging image
                                 />
+                                {!car.available && (
+                                    <div className={styles.soldBadgeOverlay}>
+                                        <Image 
+                                            src="/cars/sold.png"
+                                            alt="Sold"
+                                            width={450}
+                                            height={450}
+                                            className={styles.soldBadgeImage}
+                                        />
+                                    </div>
+                                )}
                                 <div className={styles.watermarkContainer}>
                                     <div className={styles.watermarkDiagonal}>
                                         {Array(5).fill(0).map((_, i) => (

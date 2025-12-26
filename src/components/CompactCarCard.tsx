@@ -69,7 +69,7 @@ export default function CompactCarCard({ car, stockNumber }: CompactCarCardProps
             </div>
 
             {/* Status Badge */}
-            {car.status === 'sold' && (
+            {(!car.available || car.status === 'sold') && (
                 <div className={styles.soldBadge}>SOLD</div>
             )}
             {car.status === 'shipping' && (
