@@ -19,7 +19,7 @@ router.post(
 // Multiple images upload route
 router.post(
   '/images',
-  upload.array('images', 10), // Allow up to 10 images
+  upload.array('images', 30), // Allow up to 30 images
   handleUploadError,
   uploadController.uploadMultipleImages
 );
