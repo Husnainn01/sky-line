@@ -147,6 +147,7 @@ export default function RecentlyAddedSection({
                             className={styles.filterSelect}
                             value={filters.make}
                             onChange={(e) => handleFilterChange('make', e.target.value)}
+                            style={{position: 'relative', zIndex: 5}}
                         >
                             <option value="">Make</option>
                             {/* Display each make only once */}
@@ -169,6 +170,7 @@ export default function RecentlyAddedSection({
                             value={filters.model}
                             onChange={(e) => handleFilterChange('model', e.target.value)}
                             disabled={!filters.make} // Disable if no make is selected
+                            style={{position: 'relative', zIndex: 4}}
                         >
                             <option value="">{filters.make ? 'Model' : 'Select Make First'}</option>
                             {availableModels.map(model => (
@@ -180,6 +182,7 @@ export default function RecentlyAddedSection({
                             className={styles.filterSelect}
                             value={filters.steering}
                             onChange={(e) => handleFilterChange('steering', e.target.value)}
+                            style={{position: 'relative', zIndex: 3}}
                         >
                             <option value="">Steering</option>
                             <option value="right">Right Hand Drive</option>
@@ -192,6 +195,7 @@ export default function RecentlyAddedSection({
                             className={styles.filterSelect}
                             value={filters.type}
                             onChange={(e) => handleFilterChange('type', e.target.value)}
+                            style={{position: 'relative', zIndex: 5}}
                         >
                             <option value="">Type</option>
                             {/* Display each body type only once */}
@@ -213,6 +217,7 @@ export default function RecentlyAddedSection({
                             className={styles.filterSelect}
                             value={filters.priceRange}
                             onChange={(e) => handleFilterChange('priceRange', e.target.value)}
+                            style={{position: 'relative', zIndex: 4}}
                         >
                             <option value="">Price Range</option>
                             <option value="0-10000">$0 - $10,000</option>
@@ -225,6 +230,7 @@ export default function RecentlyAddedSection({
                             className={styles.filterSelect}
                             value={filters.yearFrom}
                             onChange={(e) => handleFilterChange('yearFrom', e.target.value)}
+                            style={{position: 'relative', zIndex: 3}}
                         >
                             <option value="">Year From</option>
                             <option value="1990">1990</option>
@@ -240,6 +246,7 @@ export default function RecentlyAddedSection({
                             className={styles.filterSelect}
                             value={filters.yearTo}
                             onChange={(e) => handleFilterChange('yearTo', e.target.value)}
+                            style={{position: 'relative', zIndex: 2}}
                         >
                             <option value="">Year To</option>
                             <option value="1995">1995</option>

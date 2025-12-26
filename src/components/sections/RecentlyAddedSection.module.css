@@ -75,8 +75,6 @@
     padding: 1rem 1.25rem;
     margin-bottom: 2rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 2;
 }
 
 .searchHeader {
@@ -108,6 +106,7 @@
     gap: 0.625rem;
     margin-bottom: 0.625rem;
     flex-wrap: wrap;
+    position: relative;
 }
 
 .filtersRow:last-of-type {
@@ -127,6 +126,8 @@
     color: #374151;
     cursor: pointer;
     transition: all 0.2s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -134,8 +135,6 @@
     background-size: 0.875rem;
     padding-right: 1.75rem;
     height: 36px;
-    position: relative;
-    z-index: 1;
 }
 
 .filterSelect:hover {
@@ -383,15 +382,19 @@
     .searchBar {
         padding: 1rem;
         margin-bottom: 2rem;
+        position: relative;
+        z-index: 10;
     }
     
     .filtersRow {
         flex-direction: column;
         width: 100%;
+        position: relative;
     }
     
     .filterSelect {
         width: 100%;
+        position: relative;
     }
     
     .resultsCount {
@@ -418,6 +421,8 @@
         width: 100%;
         margin-top: 0.5rem;
         background: #ffffff;
+        position: relative;
+        z-index: 1;
     }
 
     .grid,
