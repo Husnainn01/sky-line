@@ -26,9 +26,7 @@ export default function NewVehiclePage() {
   ];
 
   // Form state
-  const [formData, setFormData] = useState<{
-    [key: string]: string | number | boolean;
-  }>({
+  const [formData, setFormData] = useState({
     make: '',
     model: '',
     year: new Date().getFullYear(),
@@ -192,7 +190,7 @@ export default function NewVehiclePage() {
         description: formData.description,
         status: formData.available ? 'available' : 'sold',
         location: formData.location,
-        vin: formData.vin ? formData.vin : "", // Ensure VIN is always a string, never null or undefined
+        vin: formData.vin || null, // Changed from undefined to null to ensure it's properly serialized
         slug: slug, // Use the slug we prepared above
         stockNumber: formData.stockNumber || `SKY-${formData.make.substring(0, 3).toUpperCase()}-${Date.now().toString().substring(8)}`, // Generate unique stock number if not provided
         specifications: {
@@ -649,7 +647,6 @@ export default function NewVehiclePage() {
                   onChange={handleChange}
                   className={styles.input}
                   placeholder="JZA80-0005801"
-                  maxLength={50} // Add max length to prevent overly long VINs
                 />
               </div>
               
