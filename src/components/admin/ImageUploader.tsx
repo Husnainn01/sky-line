@@ -52,22 +52,30 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         position: img.position || index + 1
       }));
       setImages(imagesWithPositions);
+      
+      // Notify parent only on initial load
+      if (images.length === 0) {
+        notifyParent(imagesWithPositions);
+      }
     }
-  }, [initialImages]);
+  }, [initialImages]); // Intentionally omitting images and onChange from deps
   
-  // Notify parent component only when images are initialized
-  useEffect(() => {
-    if (images.length > 0) {
-      // Only notify on initial load, not on every change
-      // This prevents feedback loops
-    }
-  }, []);
-  
+  // We'll notify parent component manually instead of using useEffect
+  // This prevents infinite loops from occurring
+  const notifyParent = useCallback((updatedImages: UploadedImage[]) => {
+    // Use setTimeout to break the render cycle and prevent infinite loops
+    setTimeout(() => {
+      onChange(updatedImages);
+    }, 0);
+  }, [onChange]);
+
   // Upload file to R2 storage
   const uploadFileToR2 = async (file: File): Promise<string> => {
     try {
+      console.log('Starting R2 upload for file:', file.name);
       const token = getAuthToken();
       if (!token) {
+        console.error('Authentication token missing');
         throw new Error('Authentication required');
       }
 
@@ -78,8 +86,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       // Get API base URL from environment variable
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      console.log('API base URL:', API_BASE_URL);
       
       // Upload to R2 via the API
+      console.log('Uploading to:', `${API_BASE_URL}/upload/image`);
       const response = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
@@ -87,15 +97,26 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         },
         body: formData
       });
+      
+      console.log('Upload response status:', response.status);
 
       if (!response.ok) {
-        throw new Error('Failed to upload image');
+        const errorText = await response.text();
+        console.error('Upload failed with status:', response.status);
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to upload image: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Upload successful, received data:', data);
+      if (!data.data || !data.data.url) {
+        console.error('Missing URL in response data:', data);
+        throw new Error('Invalid response from server - missing URL');
+      }
       return data.data.url;
     } catch (error) {
       console.error('Error uploading to R2:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack available');
       throw error;
     }
   };
@@ -141,6 +162,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       // Add temporary images to the state
       setImages(prevImages => [...prevImages, ...tempImages]);
       
+      // We'll notify parent in the next render cycle to avoid loops
+      const updatedImages = [...images, ...tempImages];
+      setTimeout(() => {
+        onChange(updatedImages);
+      }, 0);
+      
       // Upload each file to R2 and get URLs
       const uploadPromises = acceptedFiles.map(async (file, index) => {
         try {
@@ -172,10 +199,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       // Update images state with uploaded URLs
       setImages(prevImages => {
         // Replace temp images with uploaded ones, keep other existing images
-        return prevImages.map(img => {
+        const updatedImages = prevImages.map(img => {
           const uploadedImg = uploadedImages.find(u => u.id === img.id);
           return uploadedImg || img;
         });
+        
+        // Notify parent in the next render cycle to avoid loops
+        notifyParent(updatedImages);
+        
+        return updatedImages;
       });
     } catch (error) {
       console.error('Error processing uploads:', error);
@@ -197,18 +229,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   
   // Handle image removal
   const removeImage = (id: string) => {
-    setImages(prevImages => {
-      const removedImagePosition = prevImages.find(img => img.id === id)?.position || 0;
-      const updatedImages = prevImages.filter(image => image.id !== id);
-      
-      // Reorder positions after removal
-      return updatedImages.map(img => {
-        if (img.position > removedImagePosition) {
-          return { ...img, position: img.position - 1 };
-        }
-        return img;
-      });
-    });
+    // If the image has a preview URL, revoke it to free up memory
+    const image = images.find(img => img.id === id);
+    if (image?.preview && !image.url) {
+      URL.revokeObjectURL(image.preview);
+    }
+    
+    // Remove the image from state
+    const filteredImages = images.filter(img => img.id !== id);
+    setImages(filteredImages);
+    
+    // Notify parent in the next render cycle
+    notifyParent(filteredImages);
   };
   
   // Handle position change for an image
@@ -241,12 +273,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     
     // Sort by position for display
     const sortedImages = [...updatedImages].sort((a, b) => a.position - b.position);
-    
+
     // Update state once with the final result
     setImages(sortedImages);
     
-    // Notify parent component of the change
-    onChange(sortedImages);
+    // Notify parent in the next render cycle to avoid loops
+    notifyParent(sortedImages);
   };
   
   // Clean up object URLs when component unmounts

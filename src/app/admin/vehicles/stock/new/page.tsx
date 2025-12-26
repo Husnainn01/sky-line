@@ -129,6 +129,9 @@ export default function NewVehiclePage() {
     console.log('Form submission started');
     
     // Validate that at least one image is uploaded
+    console.log('Images array:', images);
+    console.log('Images length:', images.length);
+    
     if (images.length === 0) {
       console.log('Error: No images uploaded');
       // Scroll to the images section
