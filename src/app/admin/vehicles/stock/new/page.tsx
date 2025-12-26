@@ -26,7 +26,9 @@ export default function NewVehiclePage() {
   ];
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    [key: string]: string | number | boolean;
+  }>({
     make: '',
     model: '',
     year: new Date().getFullYear(),
@@ -126,9 +128,11 @@ export default function NewVehiclePage() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission started');
     
     // Validate that at least one image is uploaded
     if (images.length === 0) {
+      console.log('Error: No images uploaded');
       // Scroll to the images section
       document.querySelector('#images-section')?.scrollIntoView({ behavior: 'smooth' });
       return;
@@ -188,7 +192,7 @@ export default function NewVehiclePage() {
         description: formData.description,
         status: formData.available ? 'available' : 'sold',
         location: formData.location,
-        vin: formData.vin || undefined,
+        vin: formData.vin ? formData.vin : "", // Ensure VIN is always a string, never null or undefined
         slug: slug, // Use the slug we prepared above
         stockNumber: formData.stockNumber || `SKY-${formData.make.substring(0, 3).toUpperCase()}-${Date.now().toString().substring(8)}`, // Generate unique stock number if not provided
         specifications: {
@@ -217,6 +221,12 @@ export default function NewVehiclePage() {
       // Get API base URL from environment variable
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
       
+      console.log('API URL:', `${API_BASE_URL}/vehicles`);
+      console.log('Request headers:', {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token.substring(0, 10)}...` // Only log part of the token for security
+      });
+      
       // Make API call to create vehicle
       const response = await fetch(`${API_BASE_URL}/vehicles`, {
         method: 'POST',
@@ -227,8 +237,21 @@ export default function NewVehiclePage() {
         body: JSON.stringify(vehicleData)
       });
       
+      console.log('Response status:', response.status);
+      console.log('Response status text:', response.statusText);
+      
       if (!response.ok) {
-        const errorData = await response.json();
+        console.log('Response not OK');
+        let errorData;
+        try {
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorData = JSON.parse(errorText);
+          console.log('Parsed error data:', errorData);
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+          throw new Error(`Server error (${response.status}): Unable to parse error response`);
+        }
         
         // Check for duplicate key errors
         if (response.status === 409 || (errorData.message && errorData.message.includes('duplicate key'))) {
@@ -249,7 +272,10 @@ export default function NewVehiclePage() {
       
     } catch (error) {
       console.error('Error submitting vehicle data:', error);
+      console.log('Error type:', typeof error);
+      console.log('Error stack:', error instanceof Error ? error.stack : 'No stack trace available');
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.log('Setting error message:', errorMessage);
       setError(errorMessage);
       
       // Scroll to error message
@@ -623,6 +649,7 @@ export default function NewVehiclePage() {
                   onChange={handleChange}
                   className={styles.input}
                   placeholder="JZA80-0005801"
+                  maxLength={50} // Add max length to prevent overly long VINs
                 />
               </div>
               
