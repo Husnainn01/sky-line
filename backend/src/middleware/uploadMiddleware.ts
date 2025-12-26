@@ -17,6 +17,7 @@ export const upload = multer({
   storage: storage,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB max file size
+    files: 30 // Allow up to 30 files
   },
   fileFilter: fileFilter,
 });
@@ -29,6 +30,12 @@ export const handleUploadError = (err: any, req: any, res: any, next: any) => {
       return res.status(400).json({
         success: false,
         message: 'File too large. Maximum size is 10MB',
+      });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        success: false,
+        message: 'Too many files. Maximum is 30 files per upload',
       });
     }
     return res.status(400).json({
