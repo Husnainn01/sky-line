@@ -1,8 +1,9 @@
 import 'vanilla-cookieconsent/dist/cookieconsent.css';
 import * as CookieConsent from 'vanilla-cookieconsent';
 
-// Cookie consent configuration
-const cookieConsentConfig = {
+// Create a function to get the cookie consent configuration
+// This ensures window is only accessed at runtime on the client
+const getCookieConsentConfig = () => ({
   // GUI options
   root: 'body',
   autoShow: true,
@@ -14,7 +15,7 @@ const cookieConsentConfig = {
   // Cookie settings
   cookie: {
     name: 'skylinetrd',
-    domain: window.location.hostname,
+    domain: typeof window !== 'undefined' ? window.location.hostname : '',
     expiresAfterDays: 365,
     sameSite: 'Lax' as 'Lax',
     path: '/'
@@ -116,7 +117,7 @@ const cookieConsentConfig = {
     console.log('Categories changed:', changedCategories);
     console.log('Services changed:', changedServices);
   }
-};
+});
 
 // Function to store user preferences
 function storeUserPreferences(cookie: any) {
@@ -174,6 +175,8 @@ export function isCategoryAccepted(category: 'analytics' | 'marketing' | 'prefer
 // Initialize cookie consent
 export function initCookieConsent() {
   if (typeof window !== 'undefined') {
+    // Get the config at runtime when window is available
+    const cookieConsentConfig = getCookieConsentConfig();
     CookieConsent.run(cookieConsentConfig);
   }
 }
