@@ -377,7 +377,7 @@ export default function NewVehiclePage() {
               <ImageUploader 
                 initialImages={images}
                 onChange={setImages}
-                maxFiles={10}
+                maxFiles={30}
                 maxSizeMB={5}
               />
               {images.length === 0 && (

@@ -30,7 +30,7 @@ interface ImageUploaderProps {
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   initialImages = [],
-  maxFiles = 10,
+  maxFiles = 30,
   onChange,
   maxSizeMB = 5,
   acceptedFileTypes = ['image/jpeg', 'image/png', 'image/webp'],
