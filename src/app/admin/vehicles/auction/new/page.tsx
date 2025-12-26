@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { auctionService } from '@/lib/auctionService';
@@ -11,7 +11,9 @@ import styles from './auctionForm.module.css';
 
 export default function NewAuctionVehiclePage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -61,6 +63,9 @@ export default function NewAuctionVehiclePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear any previous errors
+    setError(null);
+    
     // Validate that at least one image is uploaded
     if (images.length === 0) {
       // Scroll to the images section
@@ -68,7 +73,7 @@ export default function NewAuctionVehiclePage() {
       return;
     }
     
-    setIsSubmitting(true);
+    setIsLoading(true);
     
     try {
       // Convert features string to array
@@ -149,9 +154,16 @@ export default function NewAuctionVehiclePage() {
       router.push('/admin/vehicles/auction');
       
     } catch (error) {
-      console.error('Error submitting auction data:', error);
+      console.error('Error creating auction vehicle:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
+      
+      // Scroll to error message
+      if (errorRef.current) {
+        errorRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
   
@@ -165,6 +177,30 @@ export default function NewAuctionVehiclePage() {
         <AdminHeader title="Add New Auction Vehicle" />
         
         <div className={styles.container}>
+          {error && (
+            <div ref={errorRef} className={styles.errorContainer}>
+              <div className={styles.errorMessage}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>{error}</span>
+                <button 
+                  type="button" 
+                  className={styles.errorCloseButton}
+                  onClick={() => setError(null)}
+                  aria-label="Close error message"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className={styles.header}>
             <div className={styles.breadcrumbs}>
               <Link href="/admin/vehicles/auction" className={styles.breadcrumbLink}>
@@ -617,9 +653,9 @@ export default function NewAuctionVehiclePage() {
               <button 
                 type="submit" 
                 className={styles.submitButton}
-                disabled={isSubmitting}
+                disabled={isLoading}
               >
-                {isSubmitting ? 'Saving...' : 'Save Auction Vehicle'}
+                {isLoading ? 'Saving...' : 'Create Auction'}
               </button>
             </div>
           </form>

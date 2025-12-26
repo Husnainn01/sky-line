@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AdminHeader from '../../../../../components/admin/AdminHeader';
@@ -12,6 +12,8 @@ import styles from './vehicleForm.module.css';
 export default function NewVehiclePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
   
   // Predefined badges
   const predefinedBadges = [
@@ -134,6 +136,9 @@ export default function NewVehiclePage() {
     
     setIsSubmitting(true);
     
+    // Clear any previous errors
+    setError(null);
+    
     try {
       // Convert features string to array
       const featuresArray = formData.features
@@ -244,7 +249,13 @@ export default function NewVehiclePage() {
       
     } catch (error) {
       console.error('Error submitting vehicle data:', error);
-      alert(`Failed to create vehicle: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
+      
+      // Scroll to error message
+      if (errorRef.current) {
+        errorRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -257,6 +268,30 @@ export default function NewVehiclePage() {
         <AdminHeader title="Add New Vehicle" />
         
         <div className={styles.container}>
+          {error && (
+            <div ref={errorRef} className={styles.errorContainer}>
+              <div className={styles.errorMessage}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>{error}</span>
+                <button 
+                  type="button" 
+                  className={styles.errorCloseButton}
+                  onClick={() => setError(null)}
+                  aria-label="Close error message"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className={styles.header}>
             <div className={styles.breadcrumbs}>
               <Link href="/admin/vehicles/stock" className={styles.breadcrumbLink}>
