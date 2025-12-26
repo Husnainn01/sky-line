@@ -606,3 +606,174 @@ export const auctionVehicleApi = {
     return apiRequest(`/auction-vehicles/${vehicleId}/bids`);
   },
 };
+
+/**
+ * Shipping API calls
+ */
+export const shippingApi = {
+  // Get all shipping schedules
+  getAllShippingSchedules: async (filters?: any) => {
+    const queryParams = new URLSearchParams();
+    
+    // Add filters to query params if provided
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, value as string);
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest(`/shipping-schedules${queryString}`);
+  },
+  
+  // Get active shipping schedules
+  getActiveShippingSchedules: async () => {
+    return apiRequest('/shipping-schedules/active');
+  },
+  
+  // Get shipping schedule by ID
+  getShippingScheduleById: async (id: string) => {
+    return apiRequest(`/shipping-schedules/${id}`);
+  },
+  
+  // Create a new shipping schedule (admin only)
+  createShippingSchedule: async (scheduleData: any) => {
+    return apiRequest('/shipping-schedules', {
+      method: 'POST',
+      body: JSON.stringify(scheduleData),
+    });
+  },
+  
+  // Update a shipping schedule (admin only)
+  updateShippingSchedule: async (id: string, updates: any) => {
+    return apiRequest(`/shipping-schedules/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+  
+  // Delete a shipping schedule (admin only)
+  deleteShippingSchedule: async (id: string) => {
+    return apiRequest(`/shipping-schedules/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  
+  // Mock methods for endpoints that don't exist yet
+  getShippingRates: async () => {
+    // Return mock data since this endpoint doesn't exist yet
+    return {
+      success: true,
+      data: [
+        {
+          destination: 'USA (West Coast)',
+          container20ft: '2,800',
+          container40ft: '4,200',
+          roro: '1,800',
+        },
+        {
+          destination: 'USA (East Coast)',
+          container20ft: '3,200',
+          container40ft: '4,800',
+          roro: '2,200',
+        },
+        {
+          destination: 'Europe (Main Ports)',
+          container20ft: '3,000',
+          container40ft: '4,500',
+          roro: '2,000',
+        },
+        {
+          destination: 'Australia',
+          container20ft: '2,500',
+          container40ft: '3,800',
+          roro: '1,600',
+        },
+        {
+          destination: 'New Zealand',
+          container20ft: '2,600',
+          container40ft: '3,900',
+          roro: '1,700',
+        },
+      ]
+    };
+  },
+  
+  getShippingInfo: async () => {
+    // Return mock data since this endpoint doesn't exist yet
+    return {
+      success: true,
+      data: [
+        {
+          title: 'Required Documents',
+          items: [
+            'Bill of Lading',
+            'Commercial Invoice',
+            'Export Declaration',
+            'Import License (if required)',
+            'Certificate of Origin',
+          ],
+        },
+        {
+          title: 'Container Shipping',
+          items: [
+            'Full container load (FCL) available',
+            'Shared container options (consolidation)',
+            'Temperature-controlled containers for special vehicles',
+            'Professional loading and securing',
+          ],
+        },
+        {
+          title: 'RoRo Shipping',
+          items: [
+            'Available for self-propelled vehicles',
+            'Cost-effective option',
+            'Faster transit times',
+            'Regular schedules to major ports',
+          ],
+        },
+        {
+          title: 'Insurance Coverage',
+          items: [
+            'Comprehensive marine insurance',
+            'Coverage against damage and loss',
+            'Door-to-door coverage available',
+            'Quick claim processing',
+          ],
+        },
+      ]
+    };
+  },
+  
+  getDeparturePorts: async () => {
+    // Return mock data since this endpoint doesn't exist yet
+    return {
+      success: true,
+      data: [
+        'Yokohama',
+        'Tokyo',
+        'Osaka',
+        'Kawasaki',
+        'Kobe',
+        'Nagoya',
+      ]
+    };
+  },
+  
+  getDestinations: async () => {
+    // Return mock data since this endpoint doesn't exist yet
+    return {
+      success: true,
+      data: [
+        'USA (West Coast)',
+        'USA (East Coast)',
+        'Europe',
+        'Australia',
+        'New Zealand',
+        'Southeast Asia',
+      ]
+    };
+  },
+};
