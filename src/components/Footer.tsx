@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import styles from './Footer.module.css';
+import { showPreferencesModal } from '@/utils/cookieConsent';
 
 const linkGroups = [
     {
@@ -48,7 +49,8 @@ const bottomLinks = [
     { label: 'Terms & Conditions', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Disclaimer', href: '/disclaimer' },
-    { label: 'Site Map', href: '/sitemap' }
+    { label: 'Site Map', href: '/sitemap' },
+    { label: 'Cookie Preferences', href: '#', onClick: () => showPreferencesModal() }
 ];
 
 const socialLinks = [
@@ -157,9 +159,20 @@ export default function Footer() {
                     <p className={styles.copyright}>&copy; {currentYear} Skyline TRD. All rights reserved.</p>
                     <nav className={styles.bottomNav} aria-label="Footer">
                         {bottomLinks.map((item) => (
-                            <Link key={item.label} href={item.href} className={styles.bottomLink}>
-                                {item.label}
-                            </Link>
+                            item.onClick ? (
+                                <button 
+                                    key={item.label} 
+                                    onClick={item.onClick} 
+                                    className={styles.bottomLink}
+                                    type="button"
+                                >
+                                    {item.label}
+                                </button>
+                            ) : (
+                                <Link key={item.label} href={item.href} className={styles.bottomLink}>
+                                    {item.label}
+                                </Link>
+                            )
                         ))}
                     </nav>
                 </div>

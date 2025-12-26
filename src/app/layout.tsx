@@ -2,11 +2,14 @@
 
 import { Inter, Outfit } from "next/font/google";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SavedVehiclesProvider } from "@/contexts/SavedVehiclesContext";
+import { initCookieConsent } from "@/utils/cookieConsent";
 import "./globals.css";
+import "vanilla-cookieconsent/dist/cookieconsent.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,6 +28,11 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const hideHeaderFooter = pathname?.startsWith('/admin') || pathname?.startsWith('/dashboard') || false;
+  
+  // Initialize cookie consent
+  useEffect(() => {
+    initCookieConsent();
+  }, []);
 
   return (
     <html lang="en" className="overflow-x-hidden">
