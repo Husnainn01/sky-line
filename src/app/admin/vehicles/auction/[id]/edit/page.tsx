@@ -107,7 +107,8 @@ export default function EditAuctionVehiclePage() {
             id: `existing-${index}`,
             name: `image-${index}.jpg`,
             preview: img,
-            url: img // Use url for existing images
+            url: img, // Use url for existing images
+            position: index + 1 // Add position property
           }));
           setImages(uploadedImages);
         }

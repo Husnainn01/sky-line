@@ -45,21 +45,9 @@ export default function AddHeroPage() {
     if (images.length > 0) {
       const uploadedImage = images[0];
       const imageUrl = uploadedImage.url || uploadedImage.preview;
-      
-      // Use functional update to avoid dependency on heroImage
-      setHeroImage(prev => {
-        // Only update if the URL has changed
-        if (prev.imageUrl !== imageUrl) {
-          return { ...prev, imageUrl };
-        }
-        return prev;
-      });
+      setHeroImage(prev => ({ ...prev, imageUrl }));
     }
-    
-    // Only update if the images have changed
-    if (JSON.stringify(uploadedImages) !== JSON.stringify(images)) {
-      setUploadedImages(images);
-    }
+    setUploadedImages(images);
   };
 
   // Save hero image

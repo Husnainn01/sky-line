@@ -152,7 +152,8 @@ export default function EditVehiclePage() {
             id: `existing-${index}`,
             file: null,
             preview: url,
-            name: url.split('/').pop() || `image-${index}.jpg`
+            name: url.split('/').pop() || `image-${index}.jpg`,
+            position: index + 1 // Add position property
           }));
           setImages(uploadedImages);
         }

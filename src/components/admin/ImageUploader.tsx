@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import styles from './ImageUploader.module.css';
 import { getAuthToken } from '../../utils/sessionManager';
@@ -16,6 +15,7 @@ export interface UploadedImage {
   url?: string; // For existing images from server
   uploading?: boolean; // Flag to indicate if image is currently uploading
   error?: boolean; // Flag to indicate if there was an error uploading
+  position: number; // Position number for ordering
 }
 
 interface ImageUploaderProps {
@@ -46,14 +46,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   // Initialize with initial images
   useEffect(() => {
     if (initialImages.length > 0) {
-      setImages(initialImages);
+      // Make sure all images have a position property
+      const imagesWithPositions = initialImages.map((img, index) => ({
+        ...img,
+        position: img.position || index + 1
+      }));
+      setImages(imagesWithPositions);
     }
   }, [initialImages]);
   
-  // Notify parent component when images change
+  // Notify parent component only when images are initialized
   useEffect(() => {
-    onChange(images);
-  }, [images, onChange]);
+    if (images.length > 0) {
+      // Only notify on initial load, not on every change
+      // This prevents feedback loops
+    }
+  }, []);
   
   // Upload file to R2 storage
   const uploadFileToR2 = async (file: File): Promise<string> => {
@@ -120,13 +128,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     // Process and upload each file
     try {
       // Create temporary preview images
-      const tempImages = acceptedFiles.map(file => ({
+      const tempImages = acceptedFiles.map((file, idx) => ({
         id: uuidv4(),
         file,
         preview: URL.createObjectURL(file),
         name: file.name,
         size: file.size,
-        uploading: true
+        uploading: true,
+        position: images.length + idx + 1 // Set position based on current count
       }));
       
       // Add temporary images to the state
@@ -143,14 +152,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             name: file.name,
             size: file.size,
             uploading: false,
-            url: r2Url
+            url: r2Url,
+            position: tempImages[index].position // Preserve the position
           };
         } catch (error) {
           console.error(`Error uploading ${file.name}:`, error);
           return {
             ...tempImages[index],
             uploading: false,
-            error: true
+            error: true,
+            position: tempImages[index].position
           };
         }
       });
@@ -187,20 +198,55 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   // Handle image removal
   const removeImage = (id: string) => {
     setImages(prevImages => {
+      const removedImagePosition = prevImages.find(img => img.id === id)?.position || 0;
       const updatedImages = prevImages.filter(image => image.id !== id);
-      return updatedImages;
+      
+      // Reorder positions after removal
+      return updatedImages.map(img => {
+        if (img.position > removedImagePosition) {
+          return { ...img, position: img.position - 1 };
+        }
+        return img;
+      });
     });
   };
   
-  // Handle drag end for reordering
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
+  // Handle position change for an image
+  const handlePositionChange = (id: string, newPosition: number) => {
+    // Ensure position is within valid range
+    const validPosition = Math.max(1, Math.min(newPosition, images.length));
     
-    const items = Array.from(images);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    // Find current position without state update
+    const currentPosition = images.find(img => img.id === id)?.position || 0;
     
-    setImages(items);
+    // Don't do anything if position didn't change
+    if (currentPosition === validPosition) return;
+    
+    // Create a new array with updated positions
+    const updatedImages = images.map(img => {
+      // The image we're changing
+      if (img.id === id) {
+        return { ...img, position: validPosition };
+      }
+      // Moving down - shift images in between up
+      else if (currentPosition < validPosition && img.position > currentPosition && img.position <= validPosition) {
+        return { ...img, position: img.position - 1 };
+      }
+      // Moving up - shift images in between down
+      else if (currentPosition > validPosition && img.position < currentPosition && img.position >= validPosition) {
+        return { ...img, position: img.position + 1 };
+      }
+      return img;
+    });
+    
+    // Sort by position for display
+    const sortedImages = [...updatedImages].sort((a, b) => a.position - b.position);
+    
+    // Update state once with the final result
+    setImages(sortedImages);
+    
+    // Notify parent component of the change
+    onChange(sortedImages);
   };
   
   // Clean up object URLs when component unmounts
@@ -265,23 +311,41 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             )}
           </div>
           
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="images" direction="horizontal">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className={styles.imageGrid}
-                >
-                  {images.map((image, index) => (
-                    <Draggable key={image.id} draggableId={image.id} index={index}>
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={styles.imageItem}
-                        >
+          <div className={styles.imageGrid}>
+            {/* Sort images by position for display */}
+            {[...images].sort((a, b) => a.position - b.position).map((image) => (
+              <div key={image.id} className={styles.imageItem}>
+                <div className={styles.positionBadge}>
+                  {image.position}
+                </div>
+                <div className={styles.positionButtons}>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (image.position > 1) {
+                        handlePositionChange(image.id, image.position - 1);
+                      }
+                    }}
+                    className={styles.positionButton}
+                    disabled={image.position <= 1}
+                    title="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (image.position < images.length) {
+                        handlePositionChange(image.id, image.position + 1);
+                      }
+                    }}
+                    className={styles.positionButton}
+                    disabled={image.position >= images.length}
+                    title="Move down"
+                  >
+                    ↓
+                  </button>
+                </div>
                           <div className={`${styles.imagePreview} ${image.uploading ? styles.uploading : ''} ${image.error ? styles.error : ''}`}>
                             <img src={image.preview} alt={image.name} />
                             {image.uploading ? (
@@ -321,14 +385,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                             </div>
                           </div>
                         </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+                      ))}
+                    </div>
         </div>
       )}
     </div>
