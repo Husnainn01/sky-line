@@ -133,24 +133,15 @@ export default function SearchFilter({
             </header>
 
             <div className={styles.searchBarBlock}>
-                <input
-                    type="text"
-                    name="searchQuery"
-                    value={filters.searchQuery}
-                    onChange={handleInputChange}
-                    placeholder="Search by make, model, VIN, keyword..."
-                    className={styles.searchInput}
-                />
-                <div className={styles.searchButtons}>
-                    {hasActiveFilters && (
-                        <button
-                            type="button"
-                            onClick={clearFilters}
-                            className={styles.clearFiltersButton}
-                        >
-                            Clear Filters
-                        </button>
-                    )}
+                <div className={styles.searchRow}>
+                    <input
+                        type="text"
+                        name="searchQuery"
+                        value={filters.searchQuery}
+                        onChange={handleInputChange}
+                        placeholder="Search by make, model, VIN, keyword..."
+                        className={styles.searchInput}
+                    />
                     <button
                         type="button"
                         onClick={toggleAdvancedFilters}
@@ -158,6 +149,22 @@ export default function SearchFilter({
                         aria-expanded={showAdvancedFilters}
                     >
                         {showAdvancedFilters ? 'Hide Filters' : 'Show More Filters'}
+                    </button>
+                </div>
+                <div className={`${styles.buttonRow} ${filters.searchQuery ? styles.active : ''}`}>
+                    <button
+                        type="button"
+                        onClick={clearFilters}
+                        className={styles.clearFiltersButton}
+                    >
+                        Clear Filters
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSearch}
+                        className={styles.toggleFiltersButton}
+                    >
+                        Search
                     </button>
                 </div>
             </div>

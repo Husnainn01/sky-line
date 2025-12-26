@@ -27,13 +27,16 @@ export default function RootLayout({
   const hideHeaderFooter = pathname?.startsWith('/admin') || pathname?.startsWith('/dashboard') || false;
 
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en" className="overflow-x-hidden">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+      </head>
+      <body className={`${inter.variable} ${outfit.variable} overflow-x-hidden w-full`}>
         <AuthProvider>
           <SavedVehiclesProvider>
             {!hideHeaderFooter && <Navbar />}
-            <div className={!hideHeaderFooter ? "page-shell" : ""}>
-              <main>
+            <div className={`${!hideHeaderFooter ? "page-shell" : ""} w-full overflow-x-hidden`}>
+              <main className="w-full max-w-[100vw] overflow-x-hidden">
                 {children}
               </main>
             </div>

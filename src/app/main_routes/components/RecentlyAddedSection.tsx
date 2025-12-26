@@ -41,113 +41,36 @@ export default function RecentlyAddedSection({ cars, sidebar }: RecentlyAddedSec
                     <div className={styles.content}>
                 {/* Search Filter Bar */}
                 <div className={styles.searchBar}>
-                    <div className={styles.searchHeader}>
-                        <svg className={styles.searchIcon} viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                        </svg>
-                        <h3 className={styles.searchTitle}>SEARCH FOR CARS</h3>
-                    </div>
-
-                    <div className={styles.filtersRow}>
-                        <select
-                            className={styles.filterSelect}
-                            value={filters.make}
-                            onChange={(e) => handleFilterChange('make', e.target.value)}
-                        >
-                            <option value="">Make</option>
-                            <option value="toyota">Toyota</option>
-                            <option value="nissan">Nissan</option>
-                            <option value="honda">Honda</option>
-                            <option value="mazda">Mazda</option>
-                            <option value="subaru">Subaru</option>
-                            <option value="mitsubishi">Mitsubishi</option>
-                        </select>
-
-                        <select
-                            className={styles.filterSelect}
-                            value={filters.model}
-                            onChange={(e) => handleFilterChange('model', e.target.value)}
-                        >
-                            <option value="">Model</option>
-                            <option value="skyline">Skyline</option>
-                            <option value="supra">Supra</option>
-                            <option value="rx7">RX-7</option>
-                            <option value="nsx">NSX</option>
-                        </select>
-
-                        <select
-                            className={styles.filterSelect}
-                            value={filters.steering}
-                            onChange={(e) => handleFilterChange('steering', e.target.value)}
-                        >
-                            <option value="">Steering</option>
-                            <option value="right">Right Hand Drive</option>
-                            <option value="left">Left Hand Drive</option>
-                        </select>
-                    </div>
-
-                    <div className={styles.filtersRow}>
-                        <select
-                            className={styles.filterSelect}
-                            value={filters.type}
-                            onChange={(e) => handleFilterChange('type', e.target.value)}
-                        >
-                            <option value="">Type</option>
-                            <option value="sedan">Sedan</option>
-                            <option value="coupe">Coupe</option>
-                            <option value="suv">SUV</option>
-                            <option value="sports">Sports Car</option>
-                        </select>
-
-                        <select
-                            className={styles.filterSelect}
-                            value={filters.priceRange}
-                            onChange={(e) => handleFilterChange('priceRange', e.target.value)}
-                        >
-                            <option value="">Price Range</option>
-                            <option value="0-10000">$0 - $10,000</option>
-                            <option value="10000-25000">$10,000 - $25,000</option>
-                            <option value="25000-50000">$25,000 - $50,000</option>
-                            <option value="50000+">$50,000+</option>
-                        </select>
-
-                        <select
-                            className={styles.filterSelect}
-                            value={filters.yearFrom}
-                            onChange={(e) => handleFilterChange('yearFrom', e.target.value)}
-                        >
-                            <option value="">Year From</option>
-                            <option value="1990">1990</option>
-                            <option value="1995">1995</option>
-                            <option value="2000">2000</option>
-                            <option value="2005">2005</option>
-                            <option value="2010">2010</option>
-                            <option value="2015">2015</option>
-                            <option value="2020">2020</option>
-                        </select>
-
-                        <select
-                            className={styles.filterSelect}
-                            value={filters.yearTo}
-                            onChange={(e) => handleFilterChange('yearTo', e.target.value)}
-                        >
-                            <option value="">Year To</option>
-                            <option value="1995">1995</option>
-                            <option value="2000">2000</option>
-                            <option value="2005">2005</option>
-                            <option value="2010">2010</option>
-                            <option value="2015">2015</option>
-                            <option value="2020">2020</option>
-                            <option value="2024">2024</option>
-                        </select>
-
-                        <div className={styles.resultsCount}>
-                            <span className={styles.countNumber}>{cars.length} items match</span>
+                    <div className={styles.searchFilters}>
+                        <div className={styles.filterColumn}>
+                            <select
+                                className={styles.filterSelect}
+                                value={filters.steering}
+                                onChange={(e) => handleFilterChange('steering', e.target.value)}
+                            >
+                                <option value="">Steering</option>
+                                <option value="right">Right Hand Drive</option>
+                                <option value="left">Left Hand Drive</option>
+                            </select>
                         </div>
-
-                        <button className={styles.searchButton}>
-                            SEARCH
-                        </button>
+                    </div>
+                    
+                    <div className={styles.searchInputRow}>
+                        <div className={styles.totalVehiclesCount}>
+                            <span className={styles.totalVehiclesLabel}>Total vehicles</span>
+                            <span className={styles.totalVehiclesNumber}>{cars.length}</span>
+                        </div>
+                        
+                        <div className={styles.searchInputContainer}>
+                            <input 
+                                type="text" 
+                                className={styles.searchInput} 
+                                placeholder="Search by make, model, year..."
+                            />
+                            <button className={styles.searchButton}>
+                                SEARCH
+                            </button>
+                        </div>
                     </div>
                 </div>
 

@@ -531,66 +531,169 @@ export default function InventoryDetailPage() {
                             </div>
                         </div>
 
-                        {relatedCars.length > 0 && (
-                            <section className={styles.relatedSection}>
-                                <div className={styles.relatedHeader}>
-                                    <h2>Related Cars</h2>
-                                    <span className={styles.sectionHint}>Similar inventory you might like</span>
-                                </div>
-                                <div className={styles.relatedList}>
-                                    {relatedCars.map((related) => (
-                                        <article key={related.slug} className={styles.relatedCard}>
-                                            <div className={styles.relatedMedia}>
-                                                <Image
-                                                    src={related.image}
-                                                    alt={`${related.year} ${related.make} ${related.model}`}
-                                                    fill
-                                                    sizes="120px"
-                                                />
-                                                <span className={styles.relatedRef}>Ref No. {related.stockNumber}</span>
-                                            </div>
-                                            <div className={styles.relatedContent}>
-                                                <Link href={`/inventory/${related.slug}`} className={styles.relatedTitle}>
-                                                    {related.year} {related.make} {related.model}
-                                                </Link>
-                                                <div className={styles.relatedMeta}>
-                                                    <div>
-                                                        <span>Mileage</span>
-                                                        <strong>{related.mileage.toLocaleString()} km</strong>
+                        {/* Desktop Related Cars */}
+                        <div className={styles.desktopRelated}>
+                            {relatedCars.length > 0 && (
+                                <section className={styles.relatedSection}>
+                                    <div className={styles.relatedHeader}>
+                                        <h2>Related Cars</h2>
+                                        <span className={styles.sectionHint}>Similar inventory you might like</span>
+                                    </div>
+                                    <div className={styles.relatedList}>
+                                        {relatedCars.map((related) => (
+                                            <article key={related.slug} className={styles.relatedCard}>
+                                                <div className={styles.relatedMedia}>
+                                                    <Image
+                                                        src={related.image}
+                                                        alt={`${related.year} ${related.make} ${related.model}`}
+                                                        fill
+                                                        sizes="120px"
+                                                    />
+                                                    <span className={styles.relatedRef}>Ref No. {related.stockNumber}</span>
+                                                </div>
+                                                <div className={styles.relatedContent}>
+                                                    <Link href={`/inventory/${related.slug}`} className={styles.relatedTitle}>
+                                                        {related.year} {related.make} {related.model}
+                                                    </Link>
+                                                    <div className={styles.relatedMeta}>
+                                                        <div>
+                                                            <span>Mileage</span>
+                                                            <strong>{related.mileage.toLocaleString()} km</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span>Engine</span>
+                                                            <strong>{related.engine || 'N/A'}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span>Trans.</span>
+                                                            <strong>{related.transmission}</strong>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <span>Engine</span>
-                                                        <strong>{related.engine || 'N/A'}</strong>
-                                                    </div>
-                                                    <div>
-                                                        <span>Trans.</span>
-                                                        <strong>{related.transmission}</strong>
+                                                    <div className={styles.relatedFooter}>
+                                                        <div className={styles.relatedPriceBlock}>
+                                                            <span className={styles.relatedPrice}>${related.price.toLocaleString()}</span>
+                                                            <span className={styles.relatedPriceMeta}>Total Price estimate</span>
+                                                        </div>
+                                                        <div className={styles.relatedActions}>
+                                                            <Link
+                                                                href={`/contact?stock=${related.stockNumber}`}
+                                                                className={styles.relatedInquiry}
+                                                            >
+                                                                Inquiry
+                                                            </Link>
+                                                            <Link href={`/inventory/${related.slug}`} className={styles.relatedView}>
+                                                                More
+                                                            </Link>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className={styles.relatedFooter}>
-                                                    <div className={styles.relatedPriceBlock}>
-                                                        <span className={styles.relatedPrice}>${related.price.toLocaleString()}</span>
-                                                        <span className={styles.relatedPriceMeta}>Total Price estimate</span>
-                                                    </div>
-                                                    <div className={styles.relatedActions}>
-                                                        <Link
-                                                            href={`/contact?stock=${related.stockNumber}`}
-                                                            className={styles.relatedInquiry}
-                                                        >
-                                                            Inquiry
-                                                        </Link>
-                                                        <Link href={`/inventory/${related.slug}`} className={styles.relatedView}>
-                                                            More
-                                                        </Link>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                                            </article>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </div>
                     </aside>
+                </div>
+
+                {/* Mobile Quote Panel and Related Cars */}
+                <div className={styles.mobileContent}>
+                    <div className={styles.mobileQuotePanel}>
+                        <div className={styles.quoteHeader}>
+                            <h2>Quick Quote Request</h2>
+                            <p>Let us prepare a tailored export offer for you.</p>
+                        </div>
+
+                        <form className={styles.quoteForm}>
+                            <div className={styles.formGrid}>
+                                <input type="text" placeholder="Full Name" />
+                                <input type="email" placeholder="Email Address" />
+                                <input type="text" placeholder="Destination Country" />
+                                <input type="text" placeholder="Destination Port" />
+                                <input type="text" placeholder="City" />
+                                <input type="tel" placeholder="Telephone" />
+                            </div>
+                            <button type="button" className={styles.quoteButton}>Request Quote</button>
+                            <a 
+                                href={`https://wa.me/YOUR_PHONE_NUMBER?text=Hi,%20I'm%20interested%20in%20this%20car:%20${car.year}%20${car.make}%20${car.model}%20(Stock:%20${stockNumber})`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.whatsappButton}
+                            >
+                                Chat on WhatsApp
+                            </a>
+                        </form>
+
+                        <div className={styles.quickGuide}>
+                            <h3>Quick Process Guide</h3>
+                            <ol>
+                                {quickSteps.map((step) => (
+                                    <li key={step}>{step}</li>
+                                ))}
+                            </ol>
+                        </div>
+                    </div>
+
+                    {/* Mobile Related Cars */}
+                    {relatedCars.length > 0 && (
+                        <section className={styles.mobileRelatedSection}>
+                            <div className={styles.relatedHeader}>
+                                <h2>Related Cars</h2>
+                                <span className={styles.sectionHint}>Similar inventory you might like</span>
+                            </div>
+                            <div className={styles.relatedList}>
+                                {relatedCars.map((related) => (
+                                    <article key={related.slug} className={styles.relatedCard}>
+                                        <div className={styles.relatedMedia}>
+                                            <Image
+                                                src={related.image}
+                                                alt={`${related.year} ${related.make} ${related.model}`}
+                                                fill
+                                                sizes="120px"
+                                            />
+                                            <span className={styles.relatedRef}>Ref No. {related.stockNumber}</span>
+                                        </div>
+                                        <div className={styles.relatedContent}>
+                                            <Link href={`/inventory/${related.slug}`} className={styles.relatedTitle}>
+                                                {related.year} {related.make} {related.model}
+                                            </Link>
+                                            <div className={styles.relatedMeta}>
+                                                <div>
+                                                    <span>Mileage</span>
+                                                    <strong>{related.mileage.toLocaleString()} km</strong>
+                                                </div>
+                                                <div>
+                                                    <span>Engine</span>
+                                                    <strong>{related.engine || 'N/A'}</strong>
+                                                </div>
+                                                <div>
+                                                    <span>Trans.</span>
+                                                    <strong>{related.transmission}</strong>
+                                                </div>
+                                            </div>
+                                            <div className={styles.relatedFooter}>
+                                                <div className={styles.relatedPriceBlock}>
+                                                    <span className={styles.relatedPrice}>${related.price.toLocaleString()}</span>
+                                                    <span className={styles.relatedPriceMeta}>Total Price estimate</span>
+                                                </div>
+                                                <div className={styles.relatedActions}>
+                                                    <Link
+                                                        href={`/contact?stock=${related.stockNumber}`}
+                                                        className={styles.relatedInquiry}
+                                                    >
+                                                        Inquiry
+                                                    </Link>
+                                                    <Link href={`/inventory/${related.slug}`} className={styles.relatedView}>
+                                                        More
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
             </div>
         </div>

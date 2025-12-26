@@ -75,6 +75,8 @@
     padding: 1rem 1.25rem;
     margin-bottom: 2rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2;
 }
 
 .searchHeader {
@@ -105,6 +107,7 @@
     align-items: center;
     gap: 0.625rem;
     margin-bottom: 0.625rem;
+    flex-wrap: wrap;
 }
 
 .filtersRow:last-of-type {
@@ -131,6 +134,8 @@
     background-size: 0.875rem;
     padding-right: 1.75rem;
     height: 36px;
+    position: relative;
+    z-index: 1;
 }
 
 .filterSelect:hover {
@@ -154,12 +159,13 @@
 
 /* Results and Button in same row */
 .resultsCount {
-    background: #ffffff;
+    background: #f97316;
     padding: 0 1rem;
     border-radius: 6px;
     height: 36px;
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     min-width: 140px;
 }
@@ -168,14 +174,14 @@
     font-family: var(--font-display, 'Outfit', sans-serif);
     font-size: 13px;
     font-weight: 700;
-    color: #EA580C;
+    color: #ffffff;
     white-space: nowrap;
 }
 
 .searchButton {
     padding: 0 2rem;
-    background: linear-gradient(135deg, #2d6363 0%, #1e4a4a 100%);
-    color: #ffffff;
+    background: #ffffff;
+    color: #2d6363;
     border: none;
     border-radius: 6px;
     font-family: var(--font-primary, 'Inter', sans-serif);
@@ -188,10 +194,13 @@
     height: 36px;
     flex-shrink: 0;
     min-width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .searchButton:hover {
-    background: linear-gradient(135deg, #1e4a4a 0%, #153838 100%);
+    background: #f0f0f0;
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
@@ -372,8 +381,22 @@
     }
 
     .searchBar {
-        padding: 1.5rem;
+        padding: 1rem;
         margin-bottom: 2rem;
+    }
+    
+    .filtersRow {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .filterSelect {
+        width: 100%;
+    }
+    
+    .resultsCount {
+        width: 100%;
+        margin-top: 0.5rem;
     }
 
     .filtersGrid {
@@ -393,6 +416,8 @@
 
     .searchButton {
         width: 100%;
+        margin-top: 0.5rem;
+        background: #ffffff;
     }
 
     .grid,

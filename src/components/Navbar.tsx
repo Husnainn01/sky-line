@@ -3,22 +3,92 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import styles from './Navbar.module.css';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
     const router = useRouter();
+    const pathname = usePathname();
     const { user, isAuthenticated, logout } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [language, setLanguage] = useState('English');
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            const isMenuButton = target.closest('button')?.classList.contains('mobileMenuButton');
+            if (!target.closest('.navLinks') && !isMenuButton) {
+                setIsMobileMenuOpen(false);
+                setOpenDropdown(null);
+            }
+        };
+
+        if (isMobileMenuOpen) {
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+        }
+    }, [isMobileMenuOpen]);
 
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
         };
         window.addEventListener('scroll', handleScroll);
+        handleScroll(); // Check initial scroll position
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Close mobile menu when route changes, but not for submenu navigation
+    useEffect(() => {
+        const isSubmenuRoute = pathname?.includes('/inventory') || pathname?.includes('/auction');
+        if (!isSubmenuRoute) {
+            setIsMobileMenuOpen(false);
+            setOpenDropdown(null);
+        }
+    }, [pathname]);
+
+    const handleDropdownClick = (dropdownName: string, event: React.MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (window.innerWidth <= 768) {
+            setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+        }
+    };
+
+    const handleMainNavClick = (event: React.MouseEvent, dropdownName: string) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+    };
+
+    const handleLinkClick = (isSubmenuItem: boolean = false) => {
+        if (!isSubmenuItem) {
+            setIsMobileMenuOpen(false);
+            setOpenDropdown(null);
+        }
+    };
+
+    // Always show submenus on mobile
+    useEffect(() => {
+        if (window.innerWidth <= 768) {
+            setOpenDropdown('all');
+        }
+    }, [isMobileMenuOpen]);
+
+    // Handle window resize
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth > 768) {
+                setIsMobileMenuOpen(false);
+                setOpenDropdown(null);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
     
     // No need to check login status manually - AuthContext handles this
@@ -104,57 +174,51 @@ export default function Navbar() {
                     </Link>
 
                     <div className={`${styles.navLinks} ${isMobileMenuOpen ? styles.mobileOpen : ''}`}>
-                        <Link href="/" className={styles.navLink}>Home</Link>
+                        <Link href="/" className={styles.navLink} onClick={() => handleLinkClick()}>Home</Link>
                         <div className={styles.navItemWithDropdown}>
                             <div className={styles.navLink}>
                                 Inventory
-                                <svg className={styles.dropdownIcon} viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
                             </div>
-                            <div className={styles.navDropdown}>
-                                <Link href="/inventory" className={styles.dropdownLink}>
-                                    {/* <span className={styles.dropdownIcon}>🚗</span> */}
+                            <div className={`${styles.navDropdown} ${styles.dropdownOpen}`}>
+                                <Link href="/inventory" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
                                     Stock
                                 </Link>
-                                <Link href="/auction" className={styles.dropdownLink}>
-                                    {/* <span className={styles.dropdownIcon}>🔨</span> */}
+                                <Link href="/auction" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
                                     Auction Vehicles
                                 </Link>
                             </div>
                         </div>
-                        <Link href="/about" className={styles.navLink}>About Us</Link>
-                        <Link href="/shipping" className={styles.navLink}>Shipping Info</Link>
+                        <Link href="/about" className={styles.navLink} onClick={() => handleLinkClick()}>About Us</Link>
+                        <Link href="/shipping" className={styles.navLink} onClick={() => handleLinkClick()}>Shipping Info</Link>
                         <div className={styles.navItemWithDropdown}>
                             <div className={styles.navLink}>
                                 How to Buy
-                                <svg className={styles.dropdownIcon} viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
                             </div>
-                            <div className={styles.navDropdown}>
-                                <Link href="/process" className={styles.dropdownLink}>
-                                    {/* <span className={styles.dropdownIcon}>📋</span> */}
+                            <div className={`${styles.navDropdown} ${styles.dropdownOpen}`}>
+                                <Link href="/process" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
                                     Complete Guide
                                 </Link>
-                                <Link href="/process#banking-details" className={styles.dropdownLink}>
-                                    {/* <span className={styles.dropdownIcon}>🏦</span> */}
+                                <Link href="/process#banking-details" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
                                     Banking Details
                                 </Link>
                             </div>
                         </div>
-                        <Link href="/contact" className={styles.navLink}>Contact</Link>
-                        <Link href="/faq" className={styles.navLink}>FAQ</Link>
+                        <Link href="/contact" className={styles.navLink} onClick={() => handleLinkClick()}>Contact</Link>
+                        <Link href="/faq" className={styles.navLink} onClick={() => handleLinkClick()}>FAQ</Link>
 
-                        <Link href="/quote" className={styles.ctaButton}>
+                        <Link href="/quote" className={styles.ctaButton} onClick={() => handleLinkClick()}>
                             Get a Quote
                         </Link>
                     </div>
 
                     <button
-                        className={styles.mobileMenuButton}
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className={`${styles.mobileMenuButton} ${isMobileMenuOpen ? styles.active : ''}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsMobileMenuOpen(!isMobileMenuOpen);
+                        }}
                         aria-label="Toggle menu"
+                        aria-expanded={isMobileMenuOpen}
                     >
                         <span className={`${styles.hamburger} ${isMobileMenuOpen ? styles.open : ''}`}></span>
                     </button>

@@ -41,16 +41,32 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
   }
 
   .page-shell {
     margin-top: var(--header-height);
     transition: margin 0.3s ease;
+    width: 100%;
+    overflow-x: hidden;
   }
 }
 
@@ -73,6 +89,31 @@
 @media (max-width: 768px) {
   :root {
     --header-height: 60px;
+  }
+
+  .page-shell {
+    margin-top: var(--header-height);
+    width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --spacing-xl: 1.5rem;
+    --spacing-2xl: 2rem;
+    --spacing-3xl: 2.5rem;
+    --spacing-4xl: 3rem;
+  }
+
+  body {
+    min-height: -webkit-fill-available;
+  }
+
+  .page-shell {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 }
 

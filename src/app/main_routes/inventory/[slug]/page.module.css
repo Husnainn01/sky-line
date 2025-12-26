@@ -91,10 +91,12 @@
 .container {
     max-width: 1180px;
     margin: 0 auto;
-    padding: 0 1.75rem;
+    padding: 0 1rem;
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .breadcrumbs {
@@ -198,6 +200,9 @@
     grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
     gap: 1.5rem;
     align-items: flex-start;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .mainContent {
@@ -811,12 +816,78 @@
 }
 
 @media (max-width: 1024px) {
+    /* Tablet and below layout */
     .mainLayout {
         grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .mainContent {
+        width: 100%;
+    }
+
+    .sidebar {
+        width: 100%;
+    }
+}
+
+/* Mobile layout reordering */
+@media (max-width: 768px) {
+    .mainLayout {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 1. Main Info */
+    .mainInfo {
+        order: 1;
+        margin-bottom: 1rem;
+    }
+
+    /* 2. Image Section */
+    .imageSection {
+        order: 2;
+        margin-bottom: 1rem;
+    }
+
+    /* 3. Features */
+    .featuresSection {
+        order: 3;
+        margin-bottom: 1rem;
+    }
+
+    /* 4. Related Cars */
+    .relatedSection {
+        order: 4;
+        margin-bottom: 1rem;
+    }
+
+    /* 5. Quote Block at the end */
+    .priceBlock {
+        order: 5;
+        margin-bottom: 4rem;
+        padding: 1.5rem;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+}
+
+@media (max-width: 1024px) {
+    .mainLayout {
+        grid-template-columns: 1fr;
+        width: 100%;
     }
 
     .sidebar {
         order: -1;
+        width: 100%;
+    }
+    
+    .mainContent {
         width: 100%;
     }
 
@@ -831,24 +902,355 @@
     .formGrid {
         grid-template-columns: 1fr;
     }
+    
+    .primaryImage {
+        min-height: 250px;
+    }
 }
 
 @media (max-width: 768px) {
+    .page {
+        padding: 1rem 0 3rem;
+    }
+    
     .container {
-        padding: 0 1.25rem;
+        padding: 0 1rem;
     }
 
     .overview {
         flex-direction: column;
         align-items: flex-start;
+        padding: 1.2rem;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .pricePanel {
         align-items: flex-start;
+        width: 100%;
+    }
+    
+    .title {
+        font-size: 1.5rem;
+        word-break: break-word;
+    }
+    
+    .subtitle {
+        flex-wrap: wrap;
     }
 
     .formGrid {
         grid-template-columns: 1fr;
+    }
+    
+    .galleryPanel {
+        padding: 1rem;
+    }
+    
+    .galleryTopBar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .galleryActions {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+    
+    .overviewGrid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem;
+    }
+    
+    .overviewItem {
+        padding: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Desktop/Mobile Specific Content */
+.mobileContent {
+    display: none;
+}
+
+.desktopRelated {
+    display: block;
+}
+
+/* iPhone 14 Pro Max */
+@media screen and (max-width: 430px) {
+    /* Car Overview section styling */
+    .overviewSection {
+        padding: 1.25rem;
+    }
+    
+    .overviewSection h2 {
+        font-size: 1.125rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .overviewGrid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+    
+    .overviewItem {
+        padding: 0.5rem;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .overviewIcon {
+        margin-bottom: 0.25rem;
+    }
+    
+    .overviewIcon img {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .overviewLabel {
+        font-size: 0.7rem;
+        margin-bottom: 0.1rem;
+    }
+    
+    .overviewValue {
+        font-size: 0.85rem;
+    }
+    /* Hide desktop content */
+    .sidebar .quotePanel,
+    .desktopRelated {
+        display: none;
+    }
+
+    /* Show mobile content */
+    .mobileContent {
+        display: block !important;
+        margin-top: 2rem;
+    }
+    
+    .mobileQuotePanel {
+        display: block;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        margin-bottom: 1.5rem;
+    }
+    
+    .mobileQuotePanel .formGrid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .mobileQuotePanel .formGrid input {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        height: 40px;
+    }
+
+    .mobileRelatedSection {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+
+    .mobileQuotePanel .quoteForm {
+        margin-bottom: 0;
+    }
+
+    /* Add padding to main content to account for fixed panel */
+    .page {
+        padding-bottom: calc(1.5rem + 280px); /* Adjust based on your quote panel height */
+    }
+
+    .page {
+        padding: 0.5rem 0 1.5rem;
+    }
+    
+    .container {
+        padding: 0 1rem;
+        gap: 1rem;
+    }
+    
+    .overview {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .title {
+        font-size: 1.25rem;
+    }
+
+    .subtitle {
+        font-size: 0.8125rem;
+    }
+    
+    .primaryImage {
+        min-height: 240px;
+        border-radius: 12px;
+    }
+    
+    .thumbnailStrip {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    .thumbnail {
+        border-radius: 8px;
+    }
+    
+    .navButton {
+        width: 36px;
+        height: 36px;
+        font-size: 1.25rem;
+    }
+    
+    .overviewGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .overviewItem {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .overviewLabel {
+        font-size: 0.75rem;
+    }
+
+    .overviewValue {
+        font-size: 0.875rem;
+    }
+    
+    .quotePanel {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-top: 0.5rem;
+    }
+
+    .quoteHeader h2 {
+        font-size: 1.125rem;
+    }
+
+    .quoteHeader p {
+        font-size: 0.8125rem;
+    }
+
+    .formGrid input {
+        height: 40px;
+        padding: 0 0.75rem;
+        font-size: 0.8125rem;
+        border-radius: 8px;
+    }
+
+    .quoteButton,
+    .whatsappButton {
+        height: 40px;
+        font-size: 0.8125rem;
+        border-radius: 8px;
+    }
+
+    .relatedCard {
+        grid-template-columns: 70px minmax(0, 1fr);
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .relatedMedia {
+        width: 70px;
+        height: 52px;
+    }
+
+    .relatedTitle {
+        font-size: 0.875rem;
+    }
+
+    .relatedMeta {
+        font-size: 0.75rem;
+    }
+
+    .relatedActions {
+        flex-direction: row;
+        gap: 0.5rem;
+    }
+
+    .relatedInquiry,
+    .relatedView {
+        flex: 1;
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page {
+        padding: 0.75rem 0 2rem;
+    }
+    
+    .container {
+        padding: 0 0.75rem;
+        gap: 1.5rem;
+    }
+    
+    .overview {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+    
+    .title {
+        font-size: 1.3rem;
+    }
+    
+    .primaryImage {
+        min-height: 200px;
+    }
+    
+    .thumbnailStrip {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    }
+    
+    .thumbnail {
+        border-radius: 8px;
+    }
+    
+    .navButton {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+    
+    .overviewGrid {
+        grid-template-columns: 1fr;
+    }
+    
+    .relatedCard {
+        grid-template-columns: 80px minmax(0, 1fr);
+    }
+    
+    .relatedActions {
+        flex-direction: column;
+        gap: 0.3rem;
+        align-items: stretch;
+    }
+    
+    .relatedInquiry, .relatedView {
+        text-align: center;
     }
 }
 
