@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './page.module.css';
+import TranslatableText from '@/components/TranslatableText';
 
 export default function AboutPage() {
 
@@ -119,9 +120,9 @@ export default function AboutPage() {
           priority
         />
         <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>Our History</h1>
+          <h1 className={styles.heroTitle}><TranslatableText text="Our History" /></h1>
           <p className={styles.heroSubtitle}>
-            The story of Sky Line TRD - delivering premium Japanese vehicles worldwide since 2008
+            <TranslatableText text="The story of Sky Line TRD - delivering premium Japanese vehicles worldwide since 2008" />
           </p>
         </div>
       </div>
@@ -131,9 +132,9 @@ export default function AboutPage() {
         <section className={styles.section}>
           <div className={styles.foundingStory}>
             <div className={styles.foundingContent}>
-              <h2 className={styles.sectionTitle}>{foundingStory.title}</h2>
+              <h2 className={styles.sectionTitle}><TranslatableText text={foundingStory.title} /></h2>
               {foundingStory.content.map((paragraph, index) => (
-                <p key={index} className={styles.foundingText}>{paragraph}</p>
+                <p key={index} className={styles.foundingText}><TranslatableText text={paragraph} /></p>
               ))}
             </div>
             <div className={styles.foundingImage}>
@@ -150,12 +151,12 @@ export default function AboutPage() {
 
         {/* Key Milestones */}
         <section className={styles.milestoneSection}>
-          <h2 className={styles.sectionTitle}>Key Milestones</h2>
+          <h2 className={styles.sectionTitle}><TranslatableText text="Key Milestones" /></h2>
           <div className={styles.milestoneGrid}>
             {milestones.map((milestone) => (
               <div key={milestone.year} className={styles.milestoneCard}>
                 <div className={styles.milestoneYear}>{milestone.year}</div>
-                <div className={styles.milestoneText}>{milestone.achievement}</div>
+                <div className={styles.milestoneText}><TranslatableText text={milestone.achievement} /></div>
               </div>
             ))}
           </div>
@@ -167,7 +168,7 @@ export default function AboutPage() {
             {stats.map((stat) => (
               <div key={stat.label} className={styles.statCard}>
                 <div className={styles.statNumber}>{stat.number}</div>
-                <div className={styles.statLabel}>{stat.label}</div>
+                <div className={styles.statLabel}><TranslatableText text={stat.label} /></div>
               </div>
             ))}
           </div>
@@ -175,13 +176,13 @@ export default function AboutPage() {
 
         {/* Core Values */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Our Core Values Through History</h2>
+          <h2 className={styles.sectionTitle}><TranslatableText text="Our Core Values Through History" /></h2>
           <div className={styles.missionGrid}>
             {coreValues.map((value) => (
               <div key={value.title} className={styles.missionCard}>
                 <div className={styles.missionIcon}>{value.icon}</div>
-                <h3 className={styles.missionTitle}>{value.title}</h3>
-                <p className={styles.missionText}>{value.text}</p>
+                <h3 className={styles.missionTitle}><TranslatableText text={value.title} /></h3>
+                <p className={styles.missionText}><TranslatableText text={value.text} /></p>
               </div>
             ))}
           </div>
@@ -189,14 +190,14 @@ export default function AboutPage() {
 
         {/* Detailed Timeline */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Our Journey Through The Years</h2>
+          <h2 className={styles.sectionTitle}><TranslatableText text="Our Journey Through The Years" /></h2>
           <div className={styles.timeline}>
             {timeline.map((item) => (
               <div key={item.year} className={styles.timelineItem}>
                 <div className={styles.timelineContent}>
                   <span className={styles.timelineYear}>{item.year}</span>
-                  <h3 className={styles.timelineTitle}>{item.title}</h3>
-                  <p className={styles.timelineText}>{item.text}</p>
+                  <h3 className={styles.timelineTitle}><TranslatableText text={item.title} /></h3>
+                  <p className={styles.timelineText}><TranslatableText text={item.text} /></p>
                 </div>
               </div>
             ))}
@@ -205,14 +206,14 @@ export default function AboutPage() {
 
         {/* Call to Action */}
         <section className={styles.ctaSection}>
-          <h2>Experience Our Legacy of Excellence</h2>
-          <p>Join thousands of satisfied customers who have trusted Sky Line TRD for their Japanese vehicle imports.</p>
+          <h2><TranslatableText text="Experience Our Legacy of Excellence" /></h2>
+          <p><TranslatableText text="Join thousands of satisfied customers who have trusted Sky Line TRD for their Japanese vehicle imports." /></p>
           <div className={styles.ctaButtons}>
             <Link href="/inventory" className={styles.primaryButton}>
-              Browse Our Inventory
+              <TranslatableText text="Browse Our Inventory" />
             </Link>
             <Link href="/contact" className={styles.secondaryButton}>
-              Contact Us
+              <TranslatableText text="Contact Us" />
             </Link>
           </div>
         </section>

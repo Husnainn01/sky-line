@@ -8,6 +8,7 @@ import { Car } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSavedVehicles } from '@/contexts/SavedVehiclesContext';
 import styles from './CompactCarCard.module.css';
+import TranslatableText from './TranslatableText';
 
 interface CompactCarCardProps {
     car: Car;
@@ -57,6 +58,7 @@ export default function CompactCarCard({ car, stockNumber }: CompactCarCardProps
                 onClick={handleSaveClick}
                 disabled={isLoading}
                 aria-label={isSaved(car.id) ? 'Remove from favorites' : 'Add to favorites'}
+                title={isSaved(car.id) ? 'Remove from favorites' : 'Add to favorites'}
             >
                 <svg viewBox="0 0 24 24" fill={isSaved(car.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -70,13 +72,13 @@ export default function CompactCarCard({ car, stockNumber }: CompactCarCardProps
 
             {/* Status Badge */}
             {(!car.available || car.status === 'sold') && (
-                <div className={styles.soldBadge}>SOLD</div>
+                <div className={styles.soldBadge}><TranslatableText text="SOLD" /></div>
             )}
             {car.status === 'shipping' && (
-                <div className={styles.soldBadge} style={{ backgroundColor: '#3b82f6' }}>SHIPPING</div>
+                <div className={styles.soldBadge} style={{ backgroundColor: '#3b82f6' }}><TranslatableText text="SHIPPING" /></div>
             )}
             {car.status === 'auction' && (
-                <div className={styles.soldBadge} style={{ backgroundColor: '#8b5cf6' }}>AUCTION</div>
+                <div className={styles.soldBadge} style={{ backgroundColor: '#8b5cf6' }}><TranslatableText text="AUCTION" /></div>
             )}
 
             {/* Car Image */}
@@ -99,28 +101,28 @@ export default function CompactCarCard({ car, stockNumber }: CompactCarCardProps
                 </div>
 
                 {/* Condition */}
-                <div className={styles.condition}>{car.condition}</div>
+                <div className={styles.condition}><TranslatableText text={car.condition} /></div>
 
                 {/* Specs */}
                 <div className={styles.specList}>
                     {[
-                        {label: 'Make', value: car.make, icon: '/images/icons/car-icon.svg' },
-                        {label: 'Model', value: car.model, icon: '/images/icons/car-rear.svg' },
-                        {label: 'Year', value: car.year.toString(), icon: '/images/icons/calendar-icon.svg'},
-                        {label: 'Mileage', value: formattedMileage, icon: '/images/icons/speedometer-color-icon.svg' },
+                        {label: 'Make', value: car.make, icon: '/images/icons/car-icon.svg', translatable: false as const },
+                        {label: 'Model', value: car.model, icon: '/images/icons/car-rear.svg', translatable: false as const },
+                        {label: 'Year', value: car.year.toString(), icon: '/images/icons/calendar-icon.svg', translatable: false as const},
+                        {label: 'Mileage', value: formattedMileage, icon: '/images/icons/speedometer-color-icon.svg', translatable: true as const },
                     ].map((spec) => (
                         <div key={spec.label} className={styles.specEntry}>
                             <span className={styles.specIcon}>
                                 <img src={spec.icon} alt={`${spec.label} icon`} loading="lazy" />
                             </span>
-                            <span>{spec.value}</span>
+                            <span>{spec.translatable ? <TranslatableText text={spec.value} /> : spec.value}</span>
                         </div>
                     ))}
                 </div>
 
                 <div className={styles.ctaRow}>
                     <span className={styles.viewButton}>
-                        View Details
+                        <TranslatableText text="View Details" />
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
                             <path d="M4 10h12" strokeLinecap="round" />
                             <path d="M11 6l5 4-5 4" strokeLinecap="round" strokeLinejoin="round" />

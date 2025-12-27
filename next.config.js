@@ -41,6 +41,7 @@ const nextConfig = {
       },
     ];
   },
+  
   // Disable type checking during build
   typescript: {
     ignoreBuildErrors: true,
@@ -51,11 +52,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // External packages configuration (moved from experimental)
-  serverExternalPackages: ['mongoose'],
-  
-  // Output file tracing configuration (moved from experimental)
-  outputFileTracingRoot: '/app',
   images: {
     domains: ['localhost', 'dffe00b2c327c69b4a869d74b4e7a2a2.r2.cloudflarestorage.com', 'skylinetrd.dffe00b2c327c69b4a869d74b4e7a2a2.r2.cloudflorage.com', 'globaldrivemotors.com', 'vercel.app'],
     unoptimized: true,
@@ -66,11 +62,11 @@ const nextConfig = {
       },
     ],
   },
-  // Transpile react-beautiful-dnd for compatibility
-  transpilePackages: [],
-  // Add external packages configuration
-  serverExternalPackages: ['react-beautiful-dnd'],
-  // Fix for route groups with parentheses
+  
+  // Transpile packages for compatibility
+  transpilePackages: ['react-beautiful-dnd'],
+  
+  // Fix for route groups with parentheses and server components
   experimental: {
     serverComponentsExternalPackages: ['mongoose'],
     outputFileTracingRoot: './',
@@ -81,14 +77,6 @@ const nextConfig = {
         'node_modules/@esbuild/linux-x64'
       ],
     },
-  },
-  // Disable type checking during build to speed up deployment
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  // Disable ESLint during build
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 };
 

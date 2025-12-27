@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import CompactCarCard from '@/components/CompactCarCard';
 import { Car } from '@/types';
 import styles from './RecentlyAddedSection.module.css';
+import TranslatableText from '@/components/TranslatableText';
 
 interface RecentlyAddedSectionProps {
     cars: Car[];
@@ -139,7 +140,7 @@ export default function RecentlyAddedSection({
                         <svg className={styles.searchIcon} viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                         </svg>
-                        <h3 className={styles.searchTitle}>SEARCH FOR CARS</h3>
+                        <h3 className={styles.searchTitle}><TranslatableText text="SEARCH FOR CARS" /></h3>
                     </div>
 
                     <div className={styles.filtersRow}>
@@ -149,7 +150,7 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('make', e.target.value)}
                             style={{position: 'relative', zIndex: 5}}
                         >
-                            <option value="">Make</option>
+                            <option value=""><TranslatableText text="Make" /></option>
                             {/* Display each make only once */}
                             {makes
                                 // Remove duplicates by converting to Set and back to array
@@ -172,7 +173,7 @@ export default function RecentlyAddedSection({
                             disabled={!filters.make} // Disable if no make is selected
                             style={{position: 'relative', zIndex: 4}}
                         >
-                            <option value="">{filters.make ? 'Model' : 'Select Make First'}</option>
+                            <option value="">{filters.make ? <TranslatableText text="Model" /> : <TranslatableText text="Select Make First" />}</option>
                             {availableModels.map(model => (
                                 <option key={model} value={model}>{model}</option>
                             ))}
@@ -184,9 +185,9 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('steering', e.target.value)}
                             style={{position: 'relative', zIndex: 3}}
                         >
-                            <option value="">Steering</option>
-                            <option value="right">Right Hand Drive</option>
-                            <option value="left">Left Hand Drive</option>
+                            <option value=""><TranslatableText text="Steering" /></option>
+                            <option value="right"><TranslatableText text="Right Hand Drive" /></option>
+                            <option value="left"><TranslatableText text="Left Hand Drive" /></option>
                         </select>
                     </div>
 
@@ -197,7 +198,7 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('type', e.target.value)}
                             style={{position: 'relative', zIndex: 5}}
                         >
-                            <option value="">Type</option>
+                            <option value=""><TranslatableText text="Type" /></option>
                             {/* Display each body type only once */}
                             {bodyTypes
                                 // Remove duplicates by converting to Set and back to array
@@ -219,11 +220,11 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('priceRange', e.target.value)}
                             style={{position: 'relative', zIndex: 4}}
                         >
-                            <option value="">Price Range</option>
-                            <option value="0-10000">$0 - $10,000</option>
-                            <option value="10000-25000">$10,000 - $25,000</option>
-                            <option value="25000-50000">$25,000 - $50,000</option>
-                            <option value="50000+">$50,000+</option>
+                            <option value=""><TranslatableText text="Price Range" /></option>
+                            <option value="0-10000"><TranslatableText text="$0 - $10,000" /></option>
+                            <option value="10000-25000"><TranslatableText text="$10,000 - $25,000" /></option>
+                            <option value="25000-50000"><TranslatableText text="$25,000 - $50,000" /></option>
+                            <option value="50000+"><TranslatableText text="$50,000+" /></option>
                         </select>
 
                         <select
@@ -232,7 +233,7 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('yearFrom', e.target.value)}
                             style={{position: 'relative', zIndex: 3}}
                         >
-                            <option value="">Year From</option>
+                            <option value=""><TranslatableText text="Year From" /></option>
                             <option value="1990">1990</option>
                             <option value="1995">1995</option>
                             <option value="2000">2000</option>
@@ -248,7 +249,7 @@ export default function RecentlyAddedSection({
                             onChange={(e) => handleFilterChange('yearTo', e.target.value)}
                             style={{position: 'relative', zIndex: 2}}
                         >
-                            <option value="">Year To</option>
+                            <option value=""><TranslatableText text="Year To" /></option>
                             <option value="1995">1995</option>
                             <option value="2000">2000</option>
                             <option value="2005">2005</option>
@@ -260,7 +261,10 @@ export default function RecentlyAddedSection({
 
                         <div className={styles.resultsCount}>
                             <span className={styles.countNumber}>
-                                {loading ? 'Loading...' : searchPerformed ? `${filteredCars.length} items match` : `${cars.length} total vehicles`}
+                                {searchPerformed ? 
+                                    <>{filteredCars.length} <TranslatableText text="items match" /></> : 
+                                    <>{cars.length} <TranslatableText text="total vehicles" /></>
+                                }
                             </span>
                         </div>
 
@@ -270,7 +274,7 @@ export default function RecentlyAddedSection({
                                 onClick={applyFilters}
                                 type="button"
                             >
-                                SEARCH
+                                <TranslatableText text="検索" />
                             </button>
                             
                             {searchPerformed && (
@@ -279,7 +283,7 @@ export default function RecentlyAddedSection({
                                     onClick={resetFilters}
                                     type="button"
                                 >
-                                    RESET
+                                    <TranslatableText text="RESET" />
                                 </button>
                             )}
                         </div>
@@ -291,10 +295,10 @@ export default function RecentlyAddedSection({
                         <svg className={styles.clockIcon} viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                         </svg>
-                        <h2 className={styles.title}>Recently Added</h2>
+                        <h2 className={styles.title}><TranslatableText text="Recently Added" /></h2>
                     </div>
                     <Link href="/inventory" className={styles.viewMoreLink}>
-                        View More
+                        <TranslatableText text="View More" />
                         <svg viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                         </svg>
@@ -304,16 +308,16 @@ export default function RecentlyAddedSection({
                 {loading ? (
                     <div className={styles.loadingContainer}>
                         <div className={styles.spinner}></div>
-                        <p>Loading vehicles...</p>
+                        <p><TranslatableText text="Loading vehicles..." /></p>
                     </div>
                 ) : error ? (
                     <div className={styles.errorContainer}>
                         <p className={styles.errorMessage}>{error}</p>
-                        <p>Please try again later.</p>
+                        <p><TranslatableText text="Please try again later." /></p>
                     </div>
                 ) : filteredCars.length === 0 ? (
                     <div className={styles.emptyContainer}>
-                        <p>No vehicles found.</p>
+                        <p><TranslatableText text="No vehicles found." /></p>
                     </div>
                 ) : (
                     <div className={styles.grid}>
@@ -329,14 +333,21 @@ export default function RecentlyAddedSection({
 
                 {/* Pagination */}
                 <div className={styles.pagination}>
-                    <button className={styles.paginationButton} disabled>
+                    <button 
+                        className={styles.paginationButton} 
+                        disabled
+                        aria-label="Previous page"
+                    >
                         <svg viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                     </button>
-                    <button className={`${styles.paginationNumber} ${styles.active}`}>1</button>
+                    <button className={`${styles.paginationNumber} ${styles.active}`} aria-current="page">1</button>
                     <button className={styles.paginationNumber}>2</button>
-                    <button className={styles.paginationButton}>
+                    <button 
+                        className={styles.paginationButton}
+                        aria-label="Next page"
+                    >
                         <svg viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                         </svg>

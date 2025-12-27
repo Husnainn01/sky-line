@@ -4,6 +4,7 @@ import Link from 'next/link';
 import styles from './page.module.css';
 import { useState, useEffect, useMemo } from 'react';
 import { shippingApi } from '@/lib/api';
+import TranslatableText from '@/components/TranslatableText';
 
 export default function ShippingPage() {
   const [filters, setFilters] = useState({
@@ -336,70 +337,100 @@ export default function ShippingPage() {
     <div className={styles.page}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1 className={styles.title}>Shipping Information</h1>
+          <h1 className={styles.title}>
+            <TranslatableText text="Shipping Information" />
+          </h1>
           <p className={styles.subtitle}>
-            Track upcoming vessel schedules, shipping rates, and learn about our global shipping services
+            <TranslatableText text="Track upcoming vessel schedules, shipping rates, and learn about our global shipping services" />
           </p>
         </header>
 
         <section className={styles.filterSection}>
           <div className={styles.filterGrid}>
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Destination</label>
+              <label className={styles.filterLabel}>
+                <TranslatableText text="Destination" />
+              </label>
               <select
                 name="destination"
                 value={filters.destination}
                 onChange={handleFilterChange}
                 className={styles.filterSelect}
               >
-                <option value="">All Destinations</option>
+                <option value="">
+                  <TranslatableText text="All Destinations" />
+                </option>
                 {destinations.map(dest => (
-                  <option key={dest} value={dest}>{dest}</option>
+                  <option key={dest} value={dest}>
+                    <TranslatableText text={dest} />
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Departure Port</label>
+              <label className={styles.filterLabel}>
+                <TranslatableText text="Departure Port" />
+              </label>
               <select
                 name="departurePort"
                 value={filters.departurePort}
                 onChange={handleFilterChange}
                 className={styles.filterSelect}
               >
-                <option value="">All Ports</option>
+                <option value="">
+                  <TranslatableText text="All Ports" />
+                </option>
                 {ports.map(port => (
-                  <option key={port} value={port}>{port}</option>
+                  <option key={port} value={port}>
+                    <TranslatableText text={port} />
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Status</label>
+              <label className={styles.filterLabel}>
+                <TranslatableText text="Status" />
+              </label>
               <select
                 name="status"
                 value={filters.status}
                 onChange={handleFilterChange}
                 className={styles.filterSelect}
               >
-                <option value="">All Status</option>
-                <option value="open">Open</option>
-                <option value="limited">Limited</option>
-                <option value="closed">Closed</option>
+                <option value="">
+                  <TranslatableText text="All Status" />
+                </option>
+                <option value="open">
+                  <TranslatableText text="Open" />
+                </option>
+                <option value="limited">
+                  <TranslatableText text="Limited" />
+                </option>
+                <option value="closed">
+                  <TranslatableText text="Closed" />
+                </option>
               </select>
             </div>
 
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Date Range</label>
+              <label className={styles.filterLabel}>
+                <TranslatableText text="Date Range" />
+              </label>
               <select
                 name="dateRange"
                 value={filters.dateRange}
                 onChange={handleFilterChange}
                 className={styles.filterSelect}
               >
-                <option value="">All Dates</option>
+                <option value="">
+                  <TranslatableText text="All Dates" />
+                </option>
                 {dateRanges.map(range => (
-                  <option key={range} value={range}>{range}</option>
+                  <option key={range} value={range}>
+                    <TranslatableText text={range} />
+                  </option>
                 ))}
               </select>
             </div>
@@ -410,31 +441,44 @@ export default function ShippingPage() {
               onClick={handleReset}
               className={`${styles.filterButton} ${styles.filterReset}`}
             >
-              Reset Filters
+              <TranslatableText text="Reset Filters" />
             </button>
             <button
               className={`${styles.filterButton} ${styles.filterApply}`}
             >
-              Apply Filters
+              <TranslatableText text="Apply Filters" />
             </button>
           </div>
         </section>
 
         <div className={styles.resultsInfo}>
-          <span>Found {filteredShipments.length} shipping schedules</span>
-          {error && <span className={styles.errorMessage}>{error}</span>}
+          <span>
+            {filteredShipments.length}{' '}
+            <TranslatableText text="shipping schedules found" />
+          </span>
+          {error && (
+            <span className={styles.errorMessage}>
+              <TranslatableText text={error} />
+            </span>
+          )}
         </div>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Upcoming Shipping Schedule</h2>
+          <h2 className={styles.sectionTitle}>
+            <TranslatableText text="Upcoming Shipping Schedule" />
+          </h2>
           {loading.shipments ? (
             <div className={styles.loadingContainer}>
               <div className={styles.spinner}></div>
-              <p>Loading shipping schedules...</p>
+              <p>
+                <TranslatableText text="Loading shipping schedules..." />
+              </p>
             </div>
           ) : filteredShipments.length === 0 ? (
             <div className={styles.emptyContainer}>
-              <p>No shipping schedules found matching your filters.</p>
+              <p>
+                <TranslatableText text="No shipping schedules found matching your filters." />
+              </p>
             </div>
           ) : (
             <div className={styles.scheduleGrid}>
@@ -446,32 +490,44 @@ export default function ShippingPage() {
                   </div>
                   <div className={styles.scheduleDetails}>
                     <div className={styles.scheduleRow}>
-                      <span className={styles.scheduleLabel}>Vessel</span>
+                      <span className={styles.scheduleLabel}>
+                        <TranslatableText text="Vessel" />
+                      </span>
                       <span className={styles.scheduleValue}>{shipment.vessel}</span>
                     </div>
                     {shipment.port && (
                       <div className={styles.scheduleRow}>
-                        <span className={styles.scheduleLabel}>Ports</span>
+                        <span className={styles.scheduleLabel}>
+                          <TranslatableText text="Ports" />
+                        </span>
                         <span className={styles.scheduleValue}>{shipment.port}</span>
                       </div>
                     )}
                     <div className={styles.scheduleRow}>
-                      <span className={styles.scheduleLabel}>Departure</span>
+                      <span className={styles.scheduleLabel}>
+                        <TranslatableText text="Departure" />
+                      </span>
                       <span className={styles.scheduleValue}>{formatDate(shipment.departureDate || shipment.departure)}</span>
                     </div>
                     <div className={styles.scheduleRow}>
-                      <span className={styles.scheduleLabel}>Arrival</span>
+                      <span className={styles.scheduleLabel}>
+                        <TranslatableText text="Arrival" />
+                      </span>
                       <span className={styles.scheduleValue}>{formatDate(shipment.arrivalDate || shipment.arrival)}</span>
                     </div>
                     {shipment.capacity && (
                       <div className={styles.scheduleRow}>
-                        <span className={styles.scheduleLabel}>Capacity</span>
+                        <span className={styles.scheduleLabel}>
+                          <TranslatableText text="Capacity" />
+                        </span>
                         <span className={styles.scheduleValue}>{shipment.capacity}</span>
                       </div>
                     )}
                     {shipment.status && (
                       <div className={styles.scheduleRow}>
-                        <span className={styles.scheduleLabel}>Status</span>
+                        <span className={styles.scheduleLabel}>
+                          <TranslatableText text="Status" />
+                        </span>
                         <span className={`${styles.scheduleStatus} ${styles['status' + shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)]}`}>
                           {shipment.status.toUpperCase()}
                         </span>
@@ -479,7 +535,9 @@ export default function ShippingPage() {
                     )}
                     {shipment.isActive !== undefined && (
                       <div className={styles.scheduleRow}>
-                        <span className={styles.scheduleLabel}>Status</span>
+                        <span className={styles.scheduleLabel}>
+                          <TranslatableText text="Status" />
+                        </span>
                         <span className={`${styles.scheduleStatus} ${shipment.isActive ? styles.statusOpen : styles.statusClosed}`}>
                           {shipment.isActive ? 'ACTIVE' : 'INACTIVE'}
                         </span>
@@ -487,7 +545,9 @@ export default function ShippingPage() {
                     )}
                     {shipment.notes && (
                       <div className={styles.scheduleRow}>
-                        <span className={styles.scheduleLabel}>Notes</span>
+                        <span className={styles.scheduleLabel}>
+                          <TranslatableText text="Notes" />
+                        </span>
                         <span className={styles.scheduleValue}>{shipment.notes}</span>
                       </div>
                     )}
@@ -499,34 +559,56 @@ export default function ShippingPage() {
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Shipping Rates</h2>
+          <h2 className={styles.sectionTitle}>
+            <TranslatableText text="Shipping Rates" />
+          </h2>
           {loading.rates ? (
             <div className={styles.loadingContainer}>
               <div className={styles.spinner}></div>
-              <p>Loading shipping rates...</p>
+              <p>
+                <TranslatableText text="Loading shipping rates..." />
+              </p>
             </div>
           ) : shippingRates.length === 0 ? (
             <div className={styles.emptyContainer}>
-              <p>No shipping rates available at this time.</p>
+              <p>
+                <TranslatableText text="No shipping rates available at this time." />
+              </p>
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table className={styles.ratesTable}>
                 <thead>
                   <tr>
-                    <th>Destination</th>
-                    <th>20ft Container</th>
-                    <th>40ft Container</th>
-                    <th>RoRo</th>
+                    <th>
+                      <TranslatableText text="Destination" />
+                    </th>
+                    <th>
+                      <TranslatableText text="20ft Container" />
+                    </th>
+                    <th>
+                      <TranslatableText text="40ft Container" />
+                    </th>
+                    <th>
+                      <TranslatableText text="RoRo" />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {shippingRates.map((rate, index) => (
                     <tr key={rate.destination || `rate-${index}`}>
-                      <td>{rate.destination}</td>
-                      <td>USD ${rate.container20ft}</td>
-                      <td>USD ${rate.container40ft}</td>
-                      <td>USD ${rate.roro}</td>
+                      <td>
+                        <TranslatableText text={rate.destination} />
+                      </td>
+                      <td>
+                        <TranslatableText text="USD" /> ${rate.container20ft}
+                      </td>
+                      <td>
+                        <TranslatableText text="USD" /> ${rate.container40ft}
+                      </td>
+                      <td>
+                        <TranslatableText text="USD" /> ${rate.roro}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -536,26 +618,36 @@ export default function ShippingPage() {
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Shipping Information</h2>
+          <h2 className={styles.sectionTitle}>
+            <TranslatableText text="Shipping Information" />
+          </h2>
           {loading.info ? (
             <div className={styles.loadingContainer}>
               <div className={styles.spinner}></div>
-              <p>Loading shipping information...</p>
+              <p>
+                <TranslatableText text="Loading shipping information..." />
+              </p>
             </div>
           ) : shippingInfo.length === 0 ? (
             <div className={styles.emptyContainer}>
-              <p>No shipping information available at this time.</p>
+              <p>
+                <TranslatableText text="No shipping information available at this time." />
+              </p>
             </div>
           ) : (
             <div className={styles.infoGrid}>
               {shippingInfo.map((info, index) => (
                 <div key={info.title || `info-${index}`} className={styles.infoCard}>
-                  <h3 className={styles.infoTitle}>{info.title}</h3>
+                  <h3 className={styles.infoTitle}>
+                    <TranslatableText text={info.title} />
+                  </h3>
                   <ul className={styles.infoList}>
                     {info.items.map((item: string, itemIndex: number) => (
                       <li key={`${info.title}-item-${itemIndex}`} className={styles.infoItem}>
                         <span className={styles.infoIcon}>•</span>
-                        <span>{item}</span>
+                        <span>
+                          <TranslatableText text={item} />
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -566,12 +658,14 @@ export default function ShippingPage() {
         </section>
 
         <div className={styles.contactBox}>
-          <h2 className={styles.contactTitle}>Need Shipping Assistance?</h2>
+          <h2 className={styles.contactTitle}>
+            <TranslatableText text="Need Shipping Assistance?" />
+          </h2>
           <p className={styles.contactText}>
-            Our shipping experts are here to help you with customs clearance, documentation, and logistics planning.
+            <TranslatableText text="Our shipping experts are here to help you with customs clearance, documentation, and logistics planning." />
           </p>
           <Link href="/contact" className={styles.contactButton}>
-            Contact Shipping Team
+            <TranslatableText text="Contact Shipping Team" />
           </Link>
         </div>
       </div>

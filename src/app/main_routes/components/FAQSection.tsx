@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './FAQSection.module.css';
+import TranslatableText from '@/components/TranslatableText';
 
 interface FAQItem {
     question: string;
@@ -46,10 +47,14 @@ export default function FAQSection() {
         <section className={styles.section}>
             <div className={styles.container}>
                 <div className={styles.header}>
-                    <span className={styles.badge}>Got Questions?</span>
-                    <h2 className={styles.title}>Frequently Asked Questions</h2>
+                    <span className={styles.badge}>
+                        <TranslatableText text="Got Questions?" />
+                    </span>
+                    <h2 className={styles.title}>
+                        <TranslatableText text="Frequently Asked Questions" />
+                    </h2>
                     <p className={styles.subtitle}>
-                        Find answers to common questions about our export process
+                        <TranslatableText text="Find answers to common questions about our export process" />
                     </p>
                 </div>
 
@@ -65,7 +70,9 @@ export default function FAQSection() {
                                     onClick={() => toggleFAQ(index)}
                                     aria-expanded={openIndex === index}
                                 >
-                                    <span className={styles.questionText}>{faq.question}</span>
+                                    <span className={styles.questionText}>
+                                        <TranslatableText text={faq.question} />
+                                    </span>
                                     <svg
                                         className={styles.icon}
                                         viewBox="0 0 20 20"
@@ -79,7 +86,9 @@ export default function FAQSection() {
                                     </svg>
                                 </button>
                                 <div className={styles.faqAnswer}>
-                                    <p>{faq.answer}</p>
+                                    <p>
+                                        <TranslatableText text={faq.answer} />
+                                    </p>
                                 </div>
                             </div>
                         ))}
@@ -91,12 +100,14 @@ export default function FAQSection() {
                                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                             </svg>
                         </div>
-                        <h3 className={styles.contactTitle}>Still have questions?</h3>
+                        <h3 className={styles.contactTitle}>
+                            <TranslatableText text="Still have questions?" />
+                        </h3>
                         <p className={styles.contactText}>
-                            Can't find the answer you're looking for? Our team is here to help.
+                            <TranslatableText text="Can't find the answer you're looking for? Our team is here to help." />
                         </p>
                         <a href="/contact" className={styles.contactButton}>
-                            Contact Support
+                            <TranslatableText text="Contact Support" />
                             <svg viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>

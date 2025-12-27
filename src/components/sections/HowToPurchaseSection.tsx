@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import styles from './HowToPurchaseSection.module.css';
+import TranslatableText from '@/components/TranslatableText';
 
 export default function HowToPurchaseSection() {
     const [activeStep, setActiveStep] = useState<number | null>(null);
@@ -61,10 +62,10 @@ export default function HowToPurchaseSection() {
         <section className={styles.section}>
             <div className={styles.container}>
                 <div className={styles.header}>
-                    <span className={styles.badge}>Simple Process</span>
-                    <h2 className={styles.title}>How to Purchase</h2>
+                    <span className={styles.badge}><TranslatableText text="Simple Process" /></span>
+                    <h2 className={styles.title}><TranslatableText text="How to Purchase" /></h2>
                     <p className={styles.subtitle}>
-                        Get your dream JDM vehicle in 4 easy steps
+                        <TranslatableText text="Get your dream JDM vehicle in 4 easy steps" />
                     </p>
                 </div>
 
@@ -92,8 +93,8 @@ export default function HowToPurchaseSection() {
                                     {step.icon}
                                 </div>
 
-                                <h3 className={styles.stepTitle}>{step.title}</h3>
-                                <p className={styles.stepDescription}>{step.description}</p>
+                                <h3 className={styles.stepTitle}><TranslatableText text={step.title} /></h3>
+                                <p className={styles.stepDescription}><TranslatableText text={step.description} /></p>
 
                                 {step.badges && (
                                     <div className={styles.badges}>
@@ -109,12 +110,14 @@ export default function HowToPurchaseSection() {
 
                 <div className={styles.cta}>
                     <Link href="/process" className={styles.guideButton}>
-                        <span>View Complete Guide</span>
+                        <span><TranslatableText text="View Complete Guide" /></span>
                         <svg viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                     </Link>
-                    <p className={styles.ctaSubtext}>Have questions? <Link href="/contact">Contact our team</Link></p>
+                    <p className={styles.ctaSubtext}>
+                        <TranslatableText text="Have questions?" /> <Link href="/contact"><TranslatableText text="Contact our team" /></Link>
+                    </p>
                 </div>
             </div>
         </section>

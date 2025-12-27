@@ -5,6 +5,9 @@ import { useState, useEffect } from 'react';
 import styles from './Navbar.module.css';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/TranslationContext';
+import { supportedLanguages } from '@/utils/translation';
+import TranslatableText from '@/components/TranslatableText';
 
 export default function Navbar() {
     const router = useRouter();
@@ -13,7 +16,7 @@ export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-    const [language, setLanguage] = useState('English');
+    const { currentLanguage, setLanguage } = useTranslation();
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -127,28 +130,45 @@ export default function Navbar() {
                                 loading="lazy"
                             />
                             <select
-                                value={language}
-                                onChange={(e) => setLanguage(e.target.value)}
+                                value={currentLanguage}
+                                onChange={(e) => {
+                                    e.preventDefault();
+                                    const selectedLang = supportedLanguages.find(lang => lang.name === e.target.value);
+                                    if (selectedLang) {
+                                        // Apply language change immediately
+                                        setLanguage(selectedLang.code);
+                                    }
+                                }}
                                 className={styles.languageDropdown}
                             >
-                                <option value="English">English</option>
-                                <option value="日本語">日本語</option>
-                                <option value="Русский">Русский</option>
+                                {supportedLanguages.map(lang => (
+                                    <option key={lang.code} value={lang.name}>
+                                        {lang.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         
                         {isAuthenticated && user ? (
                             <>
-                                <span className={styles.userWelcome}>Welcome, {user.name?.split(' ')[0] || user.email?.split('@')[0]}</span>
+                                <span className={styles.userWelcome}>
+                                    <TranslatableText text="Welcome" />, {user.name?.split(' ')[0] || user.email?.split('@')[0]}
+                                </span>
                                 <Link href="/dashboard" className={styles.topBarLinkButton}>
-                                    Dashboard
+                                    <TranslatableText text="Dashboard" />
                                 </Link>
-                                <button onClick={() => logout()} className={styles.topBarLink}>Logout</button>
+                                <button onClick={() => logout()} className={styles.topBarLink}>
+                                    <TranslatableText text="Logout" />
+                                </button>
                             </>
                         ) : (
                             <>
-                                <Link href="/auth/login" className={styles.topBarLink}>Login</Link>
-                                <Link href="/auth/register" className={styles.topBarLinkButton}>Register</Link>
+                                <Link href="/auth/login" className={styles.topBarLink}>
+                                    <TranslatableText text="Login" />
+                                </Link>
+                                <Link href="/auth/register" className={styles.topBarLinkButton}>
+                                    <TranslatableText text="Register" />
+                                </Link>
                             </>
                         )}
                     </div>
@@ -174,40 +194,50 @@ export default function Navbar() {
                     </Link>
 
                     <div className={`${styles.navLinks} ${isMobileMenuOpen ? styles.mobileOpen : ''}`}>
-                        <Link href="/" className={styles.navLink} onClick={() => handleLinkClick()}>Home</Link>
+                        <Link href="/" className={styles.navLink} onClick={() => handleLinkClick()}>
+                            <TranslatableText text="Home" />
+                        </Link>
                         <div className={styles.navItemWithDropdown}>
                             <div className={styles.navLink}>
-                                Inventory
+                                <TranslatableText text="Inventory" />
                             </div>
                             <div className={`${styles.navDropdown} ${styles.dropdownOpen}`}>
                                 <Link href="/inventory" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
-                                    Stock
+                                    <TranslatableText text="Stock" />
                                 </Link>
                                 <Link href="/auction" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
-                                    Auction Vehicles
+                                    <TranslatableText text="Auction Vehicles" />
                                 </Link>
                             </div>
                         </div>
-                        <Link href="/about" className={styles.navLink} onClick={() => handleLinkClick()}>About Us</Link>
-                        <Link href="/shipping" className={styles.navLink} onClick={() => handleLinkClick()}>Shipping Info</Link>
+                        <Link href="/about" className={styles.navLink} onClick={() => handleLinkClick()}>
+                            <TranslatableText text="About Us" />
+                        </Link>
+                        <Link href="/shipping" className={styles.navLink} onClick={() => handleLinkClick()}>
+                            <TranslatableText text="Shipping Info" />
+                        </Link>
                         <div className={styles.navItemWithDropdown}>
                             <div className={styles.navLink}>
-                                How to Buy
+                                <TranslatableText text="How to Buy" />
                             </div>
                             <div className={`${styles.navDropdown} ${styles.dropdownOpen}`}>
                                 <Link href="/process" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
-                                    Complete Guide
+                                    <TranslatableText text="Complete Guide" />
                                 </Link>
                                 <Link href="/process#banking-details" className={styles.dropdownLink} onClick={() => handleLinkClick(true)}>
-                                    Banking Details
+                                    <TranslatableText text="Banking Details" />
                                 </Link>
                             </div>
                         </div>
-                        <Link href="/contact" className={styles.navLink} onClick={() => handleLinkClick()}>Contact</Link>
-                        <Link href="/faq" className={styles.navLink} onClick={() => handleLinkClick()}>FAQ</Link>
+                        <Link href="/contact" className={styles.navLink} onClick={() => handleLinkClick()}>
+                            <TranslatableText text="Contact" />
+                        </Link>
+                        <Link href="/faq" className={styles.navLink} onClick={() => handleLinkClick()}>
+                            <TranslatableText text="FAQ" />
+                        </Link>
 
                         <Link href="/quote" className={styles.ctaButton} onClick={() => handleLinkClick()}>
-                            Get a Quote
+                            <TranslatableText text="Get a Quote" />
                         </Link>
                     </div>
 

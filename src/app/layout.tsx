@@ -1,15 +1,9 @@
-'use client';
-
 import { Inter, Outfit } from "next/font/google";
-import { usePathname } from "next/navigation";
-import { useEffect } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { SavedVehiclesProvider } from "@/contexts/SavedVehiclesContext";
-import { initCookieConsent } from "@/utils/cookieConsent";
 import "./globals.css";
 import "vanilla-cookieconsent/dist/cookieconsent.css";
+
+// Import the existing ClientLayout component
+import ClientLayout from "@/components/ClientLayout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,36 +15,25 @@ const outfit = Outfit({
   variable: '--font-outfit',
 });
 
+export const metadata = {
+  title: 'Skyline TRD - Japanese Car Exports',
+  description: 'Skyline TRD - Your trusted partner for importing quality Japanese vehicles worldwide',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const hideHeaderFooter = pathname?.startsWith('/admin') || pathname?.startsWith('/dashboard') || false;
-  
-  // Initialize cookie consent
-  useEffect(() => {
-    initCookieConsent();
-  }, []);
-
   return (
     <html lang="en" className="overflow-x-hidden">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
       </head>
       <body className={`${inter.variable} ${outfit.variable} overflow-x-hidden w-full`}>
-        <AuthProvider>
-          <SavedVehiclesProvider>
-            {!hideHeaderFooter && <Navbar />}
-            <div className={`${!hideHeaderFooter ? "page-shell" : ""} w-full overflow-x-hidden`}>
-              <main className="w-full max-w-[100vw] overflow-x-hidden">
-                {children}
-              </main>
-            </div>
-            {!hideHeaderFooter && <Footer />}
-          </SavedVehiclesProvider>
-        </AuthProvider>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );
