@@ -1,8 +1,11 @@
 import nodemailer from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 let transporterPromise: Promise<nodemailer.Transporter> | null = null;
 
-function getEmailConfig() {
+type EmailConfig = Pick<SMTPTransport.Options, 'host' | 'port' | 'secure' | 'auth'>;
+
+function getEmailConfig(): EmailConfig | null {
   const host = process.env.SMTP_HOST || process.env.EMAIL_HOST;
   const port = process.env.SMTP_PORT || process.env.EMAIL_PORT;
   const user = process.env.SMTP_USER || process.env.EMAIL_USER;
@@ -26,18 +29,19 @@ function getEmailConfig() {
 async function createTransporter() {
   const emailConfig = getEmailConfig();
   if (emailConfig) {
-    return nodemailer.createTransport({
+    const transporterOptions: SMTPTransport.Options = {
       ...emailConfig,
-      family: 4,
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-    });
+      connectionTimeout: 60000,
+      greetingTimeout: 30000,
+      socketTimeout: 60000,
+    };
+    return nodemailer.createTransport(transporterOptions);
   }
 
   const testAccount = await nodemailer.createTestAccount();
   console.log('Using test email account:', testAccount.user);
 
-  return nodemailer.createTransport({
+  const testTransportOptions: SMTPTransport.Options = {
     host: 'smtp.ethereal.email',
     port: 587,
     secure: false,
@@ -45,8 +49,12 @@ async function createTransporter() {
       user: testAccount.user,
       pass: testAccount.pass,
     },
-    family: 4,
-  });
+    connectionTimeout: 60000,
+    greetingTimeout: 30000,
+    socketTimeout: 60000,
+  };
+
+  return nodemailer.createTransport(testTransportOptions);
 }
 
 export async function getEmailTransporter() {
