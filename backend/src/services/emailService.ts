@@ -2,22 +2,31 @@ import nodemailer from 'nodemailer';
 
 let transporterPromise: Promise<nodemailer.Transporter> | null = null;
 
-async function createTransporter() {
-  if (
-    process.env.SMTP_HOST &&
-    process.env.SMTP_PORT &&
-    process.env.SMTP_USER &&
-    process.env.SMTP_PASS
-  ) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT, 10),
-      secure: process.env.SMTP_SECURE === 'true',
+function getEmailConfig() {
+  const host = process.env.SMTP_HOST || process.env.EMAIL_HOST;
+  const port = process.env.SMTP_PORT || process.env.EMAIL_PORT;
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS;
+  const secureValue = process.env.SMTP_SECURE ?? process.env.EMAIL_SECURE;
+
+  if (host && port && user && pass) {
+    return {
+      host,
+      port: parseInt(port, 10),
+      secure: secureValue === 'true' || secureValue === '1',
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user,
+        pass,
       },
-    });
+    };
+  }
+  return null;
+}
+
+async function createTransporter() {
+  const emailConfig = getEmailConfig();
+  if (emailConfig) {
+    return nodemailer.createTransport(emailConfig);
   }
 
   const testAccount = await nodemailer.createTestAccount();
