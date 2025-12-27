@@ -18,7 +18,12 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<any>;
+  login: (
+    email: string, 
+    password: string, 
+    rememberMe?: boolean, 
+    turnstileToken?: string | null
+  ) => Promise<any>;
   logout: () => Promise<void>;
   verifyMfa: (factorId: string, code: string) => Promise<any>;
   updateUser: (userData: Partial<User>) => void;
@@ -66,10 +71,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Login function
-  const login = async (email: string, password: string, rememberMe = false) => {
+  const login = async (
+    email: string, 
+    password: string, 
+    rememberMe = false, 
+    turnstileToken?: string | null
+  ) => {
     setIsLoading(true);
     try {
-      const response = await authApi.login(email, password, rememberMe);
+      const response = await authApi.login(email, password, rememberMe, turnstileToken);
       
       // If MFA is required, return early
       if (response.requiresMfa) {

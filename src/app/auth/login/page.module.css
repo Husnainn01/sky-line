@@ -127,6 +127,11 @@
   color: #ff4444;
 }
 
+.turnstileWrapper {
+  display: flex;
+  justify-content: center;
+}
+
 .submitButton {
   background: #c70f0f;
   color: white;

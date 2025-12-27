@@ -116,18 +116,33 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
  */
 export const authApi = {
   // Register a new user
-  register: async (userData: any) => {
+  register: async (userData: any, turnstileToken?: string | null) => {
+    const payload = {
+      ...userData,
+      ...(turnstileToken ? { turnstileToken } : {}),
+    };
+
     return apiRequest('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     });
   },
   
   // Login user
-  login: async (email: string, password: string, rememberMe: boolean = false) => {
+  login: async (
+    email: string, 
+    password: string, 
+    rememberMe: boolean = false,
+    turnstileToken?: string | null,
+  ) => {
+    const body: Record<string, any> = { email, password, rememberMe };
+    if (turnstileToken) {
+      body.turnstileToken = turnstileToken;
+    }
+
     const response = await apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password, rememberMe }),
+      body: JSON.stringify(body),
     });
 
     // If MFA is required, return the response without storing token
@@ -228,10 +243,15 @@ export const authApi = {
   },
   
   // Request verification code
-  requestVerification: async (data: { email: string }) => {
+  requestVerification: async (data: { email: string }, turnstileToken?: string | null) => {
+    const payload = {
+      ...data,
+      ...(turnstileToken ? { turnstileToken } : {}),
+    };
+
     return apiRequest('/auth/request-verification', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   },
 };

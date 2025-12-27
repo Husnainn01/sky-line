@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { authApi } from '@/lib/api';
+import TurnstileWidget from '@/components/security/TurnstileWidget';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,6 +22,8 @@ export default function RegisterPage() {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<React.ReactNode>('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [verificationTurnstileToken, setVerificationTurnstileToken] = useState<string | null>(null);
   
   // Verification state
   const [registrationStep, setRegistrationStep] = useState('form'); // 'form', 'verification', 'success'
@@ -126,13 +129,21 @@ export default function RegisterPage() {
     // Validate form
     if (!validateForm()) return;
 
+    if (!turnstileToken) {
+      setError('Please complete the security verification.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       // Request verification email from backend
-      const data = await authApi.requestVerification({
-        email: formData.email
-      });
+      const data = await authApi.requestVerification(
+        {
+          email: formData.email
+        },
+        turnstileToken
+      );
       
       // Store registration data temporarily including the tempUserId
       setTempRegistrationData({
@@ -146,6 +157,7 @@ export default function RegisterPage() {
       
       // Move to verification step
       setRegistrationStep('verification');
+      setTurnstileToken(null);
     } catch (err: any) {
       // Handle specific error messages from the backend
       const errorMessage = err.message || 'Failed to send verification email. Please try again.';
@@ -179,9 +191,12 @@ export default function RegisterPage() {
     
     try {
       if (tempRegistrationData) {
-        await authApi.requestVerification({
-          email: tempRegistrationData.email
-        });
+        await authApi.requestVerification(
+          {
+            email: tempRegistrationData.email
+          },
+          turnstileToken
+        );
       }
       
       // Show success message
@@ -202,6 +217,11 @@ export default function RegisterPage() {
       setVerificationError('Please enter the verification code from your email');
       return;
     }
+
+    if (!verificationTurnstileToken) {
+      setVerificationError('Please complete the security verification.');
+      return;
+    }
     
     setIsLoading(true);
     
@@ -211,7 +231,8 @@ export default function RegisterPage() {
         tempRegistrationData ? {
           ...tempRegistrationData,
           verificationCode
-        } : {}
+        } : {},
+        verificationTurnstileToken
       );
       
       // Save token and user data to localStorage
@@ -388,10 +409,16 @@ export default function RegisterPage() {
                   </label>
                 </div>
 
+                <TurnstileWidget
+                  action="user_register_request"
+                  className={styles.turnstileWrapper}
+                  onTokenChange={setTurnstileToken}
+                />
+
                 <button 
                   type="submit" 
                   className={styles.submitButton}
-                  disabled={isLoading}
+                  disabled={isLoading || !turnstileToken}
                 >
                   {isLoading ? 'Sending Verification...' : 'Continue'}
                 </button>
@@ -451,10 +478,15 @@ export default function RegisterPage() {
                     disabled={isLoading}
                   />
                 </div>
+                <TurnstileWidget
+                  action="user_register_verify"
+                  className={styles.turnstileWrapper}
+                  onTokenChange={setVerificationTurnstileToken}
+                />
                 <button 
                   type="submit" 
                   className={styles.submitButton}
-                  disabled={isLoading}
+                  disabled={isLoading || !verificationTurnstileToken}
                 >
                   {isLoading ? 'Processing...' : 'Complete Registration'}
                 </button>

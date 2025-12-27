@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
 import { useAuth } from '@/contexts/AuthContext';
+import TurnstileWidget from '@/components/security/TurnstileWidget';
 
 // Component that uses searchParams
 function LoginContent() {
@@ -21,6 +22,7 @@ function LoginContent() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   
   // MFA state
   const [requiresMfa, setRequiresMfa] = useState(false);
@@ -60,9 +62,15 @@ function LoginContent() {
     setError('');
     setIsLoading(true);
 
+    if (!turnstileToken) {
+      setError('Please complete the security check.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Call login from AuthContext
-      const data = await login(formData.email, formData.password, formData.rememberMe);
+      const data = await login(formData.email, formData.password, formData.rememberMe, turnstileToken);
       
       // Check if MFA is required
       if (data.requiresMfa) {
@@ -204,10 +212,16 @@ function LoginContent() {
               </Link>
             </div>
 
+            <TurnstileWidget
+              action="user_login"
+              className={styles.turnstileWrapper}
+              onTokenChange={setTurnstileToken}
+            />
+
             <button
               type="submit"
               className={styles.submitButton}
-              disabled={isLoading}
+              disabled={isLoading || !turnstileToken}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
