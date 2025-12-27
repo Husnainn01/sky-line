@@ -274,7 +274,7 @@ export default function RecentlyAddedSection({
                                 onClick={applyFilters}
                                 type="button"
                             >
-                                <TranslatableText text="検索" />
+                                <TranslatableText text="SEARCH" />
                             </button>
                             
                             {searchPerformed && (
