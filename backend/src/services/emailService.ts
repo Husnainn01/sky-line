@@ -42,5 +42,5 @@ export async function getEmailTransporter() {
 }
 
 export function getDefaultFromAddress() {
-  return process.env.EMAIL_FROM || 'noreply@jdmglobal.com';
+  return process.env.EMAIL_FROM || 'noreply@sky-linetrd.com';
 }
