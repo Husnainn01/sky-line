@@ -13,6 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "create-admin": "ts-node src/scripts/createAdmin.ts",
+    "test-smtp": "ts-node src/scripts/testSmtpConnection.ts",
     "postinstall": "npm run build"
   },
   "keywords": [],
