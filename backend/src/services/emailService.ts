@@ -26,7 +26,12 @@ function getEmailConfig() {
 async function createTransporter() {
   const emailConfig = getEmailConfig();
   if (emailConfig) {
-    return nodemailer.createTransport(emailConfig);
+    return nodemailer.createTransport({
+      ...emailConfig,
+      family: 4,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+    });
   }
 
   const testAccount = await nodemailer.createTestAccount();
@@ -40,6 +45,7 @@ async function createTransporter() {
       user: testAccount.user,
       pass: testAccount.pass,
     },
+    family: 4,
   });
 }
 
