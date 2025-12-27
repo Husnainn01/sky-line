@@ -20,6 +20,17 @@ const ADMIN_ENDPOINT_PREFIXES = [
   '/dashboard',
 ];
 
+export interface ContactFormRequest {
+  name: string;
+  email: string;
+  phone?: string;
+  country: string;
+  subject: string;
+  inquiryType: string;
+  message: string;
+  turnstileToken: string;
+}
+
 /**
  * Make a request to the backend API
  */
@@ -412,6 +423,18 @@ export const profileApi = {
   cancelEmailChange: async () => {
     return apiRequest('/profile/email/cancel', {
       method: 'POST',
+    });
+  },
+};
+
+/**
+ * Contact API calls
+ */
+export const contactApi = {
+  submitContactForm: async (payload: ContactFormRequest) => {
+    return apiRequest('/contact', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   },
 };

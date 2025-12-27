@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import styles from '../app/main_routes/contact/page.module.css';
 import TranslatableText from './TranslatableText';
+import TurnstileWidget from './security/TurnstileWidget';
+import { contactApi } from '@/lib/api';
 
 interface ContactPageClientProps {
   contactInfo: {
@@ -50,15 +52,34 @@ export default function ContactPageClient({ contactInfo, offices, faqs, inquiryT
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string>('');
+  const [turnstileWidgetKey, setTurnstileWidgetKey] = useState(0);
+  const [formFeedback, setFormFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!turnstileToken) {
+      setTurnstileError('Please complete the security verification.');
+      setFormFeedback(null);
+      return;
+    }
+
     setIsSubmitting(true);
+    setFormFeedback(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await contactApi.submitContactForm({
+        ...formData,
+        phone: formData.phone || undefined,
+        turnstileToken,
+      });
+
       setSubmitStatus('success');
-      // Reset form after success
+      setFormFeedback({
+        type: 'success',
+        text: 'Thank you! Our team will reach out shortly.',
+      });
       setFormData({
         name: '',
         email: '',
@@ -68,12 +89,28 @@ export default function ContactPageClient({ contactInfo, offices, faqs, inquiryT
         inquiryType: '',
         message: '',
       });
-    } catch (error) {
+      setTurnstileError('');
+    } catch (error: any) {
+      console.error('Contact form submission failed:', error);
       setSubmitStatus('error');
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        'Failed to send your message. Please try again.';
+
+      setFormFeedback({
+        type: 'error',
+        text: errorMessage,
+      });
+
+      if (error?.data?.message?.toLowerCase().includes('security')) {
+        setTurnstileError('Security verification failed. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
-      // Reset status after 3 seconds
       setTimeout(() => setSubmitStatus('idle'), 3000);
+      setTurnstileToken(null);
+      setTurnstileWidgetKey(prev => prev + 1);
     }
   };
 
@@ -209,10 +246,28 @@ export default function ContactPageClient({ contactInfo, offices, faqs, inquiryT
                 </div>
               </div>
 
+              {turnstileError && (
+                <p className={styles.turnstileError}>
+                  <TranslatableText text={turnstileError} />
+                </p>
+              )}
+
+              <TurnstileWidget
+                key={turnstileWidgetKey}
+                action="contact_form"
+                className={styles.turnstileWrapper}
+                onTokenChange={(token) => {
+                  setTurnstileToken(token);
+                  if (token) {
+                    setTurnstileError('');
+                  }
+                }}
+              />
+
               <button 
                 type="submit" 
                 className={styles.formButton}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !turnstileToken}
               >
                 {isSubmitting ? (
                   <TranslatableText text="Sending..." />
@@ -224,6 +279,18 @@ export default function ContactPageClient({ contactInfo, offices, faqs, inquiryT
                   <TranslatableText text="Send Message" />
                 )}
               </button>
+
+              {formFeedback && (
+                <p
+                  className={`${styles.formFeedback} ${
+                    formFeedback.type === 'success'
+                      ? styles.formFeedbackSuccess
+                      : styles.formFeedbackError
+                  }`}
+                >
+                  {formFeedback.text}
+                </p>
+              )}
             </form>
           </section>
 

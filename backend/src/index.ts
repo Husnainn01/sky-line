@@ -31,6 +31,7 @@ import savedVehiclesRoutes from './routes/savedVehiclesRoutes';
 import heroSectionRoutes from './routes/heroSectionRoutes';
 import faqRoutes from './routes/faqRoutes';
 import shippingScheduleRoutes from './routes/shippingScheduleRoutes';
+import contactRoutes from './routes/contactRoutes';
 
 // Environment variables have already been logged above
 
@@ -74,6 +75,7 @@ app.use('/api/saved-vehicles', savedVehiclesRoutes);
 app.use('/api/hero-sections', heroSectionRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/shipping-schedules', shippingScheduleRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Error handler middleware
 app.use(errorHandler);
