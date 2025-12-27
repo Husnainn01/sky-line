@@ -8,11 +8,24 @@ if (!API_BASE_URL) {
   console.error('NEXT_PUBLIC_API_URL environment variable is not set');
 }
 
+// Admin-protected endpoint prefixes (require admin token when available)
+const ADMIN_ENDPOINT_PREFIXES = [
+  '/admin',
+  '/auction-vehicles',
+  '/vehicles',
+  '/makes',
+  '/models',
+  '/shipping-schedules',
+  '/security',
+  '/dashboard',
+];
+
 /**
  * Make a request to the backend API
  */
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  const isAdminEndpoint = ADMIN_ENDPOINT_PREFIXES.some(prefix => endpoint.startsWith(prefix));
   
   // Set default headers
   const headers: Record<string, string> = {
@@ -24,15 +37,24 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const adminToken = typeof window !== 'undefined' ? localStorage.getItem('adminAuthToken') : null;
   const userToken = typeof window !== 'undefined' ? localStorage.getItem('userAuthToken') : null;
   
-  // Use the appropriate token based on the endpoint
-  if (endpoint.startsWith('/admin') && adminToken) {
-    headers['Authorization'] = `Bearer ${adminToken}`;
-  } else if (!endpoint.startsWith('/admin') && userToken) {
-    headers['Authorization'] = `Bearer ${userToken}`;
+  // Choose the appropriate token
+  let authToken: string | null = null;
+  if (isAdminEndpoint && adminToken) {
+    authToken = adminToken;
+  } else if (!isAdminEndpoint && userToken) {
+    authToken = userToken;
+  } else if (adminToken) {
+    // Fallback to admin token if no user token is available
+    authToken = adminToken;
+  } else if (userToken) {
+    authToken = userToken;
+  }
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
   }
   
   // For debugging
-  if (endpoint.startsWith('/admin')) {
+  if (isAdminEndpoint) {
     console.log('Admin API request:', endpoint, 'Token present:', !!adminToken);
   }
   
@@ -49,7 +71,7 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
       console.warn('Authentication token expired or invalid');
       
       // Clear the relevant token based on the endpoint
-      if (endpoint.startsWith('/admin')) {
+      if (isAdminEndpoint) {
         localStorage.removeItem('adminAuthToken');
         localStorage.removeItem('adminUser');
       } else {
@@ -61,7 +83,7 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
       if (typeof window !== 'undefined') {
         // For admin endpoints, redirect to admin login
         // For user endpoints, redirect to user login
-        if (endpoint.startsWith('/admin')) {
+        if (isAdminEndpoint) {
           console.log('Redirecting to admin login page');
           // Use a small timeout to allow the current code to complete
           setTimeout(() => {
@@ -222,7 +244,7 @@ export const dashboardApi = {
   getDashboardData: async () => {
     try {
       // Try to fetch real data from the API
-      return await apiRequest('/user/dashboard');
+      return await apiRequest('/dashboard');
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       
