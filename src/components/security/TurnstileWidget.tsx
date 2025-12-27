@@ -69,6 +69,11 @@ export default function TurnstileWidget({
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const tokenCallbackRef = useRef<typeof onTokenChange>();
+
+  useEffect(() => {
+    tokenCallbackRef.current = onTokenChange;
+  }, [onTokenChange]);
 
   useEffect(() => {
     if (!siteKey || !containerRef.current) {
@@ -87,22 +92,22 @@ export default function TurnstileWidget({
           action,
           theme,
           callback: (token) => {
-            onTokenChange?.(token);
+            tokenCallbackRef.current?.(token);
           },
           'expired-callback': () => {
-            onTokenChange?.(null);
+            tokenCallbackRef.current?.(null);
             if (widgetIdRef.current && window.turnstile) {
               window.turnstile.reset(widgetIdRef.current);
             }
           },
           'error-callback': () => {
-            onTokenChange?.(null);
+            tokenCallbackRef.current?.(null);
           },
         });
       })
       .catch((error) => {
         console.error('Failed to load Cloudflare Turnstile script:', error);
-        onTokenChange?.(null);
+        tokenCallbackRef.current?.(null);
       });
 
     return () => {
@@ -112,7 +117,7 @@ export default function TurnstileWidget({
         widgetIdRef.current = null;
       }
     };
-  }, [action, onTokenChange, siteKey, theme]);
+  }, [action, siteKey, theme]);
 
   if (!siteKey) {
     return null;
